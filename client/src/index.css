@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+/* ================================================
+   VECTORS 2026 — The Monolithic Engine
+   Global Design Tokens & Base Styles
+   ================================================ */
+
+@theme {
+  /* Architecture (Primary Base) */
+  --color-charcoal: #121212;
+  --color-gunmetal: #2A2E33;
+
+  /* Machinery (Secondary Base) */
+  --color-iron: #1C1A17;
+  --color-bronze: #2D241E;
+
+  /* Energy (Primary Accent) */
+  --color-emerald: #00FF66;
+  --color-emerald-dim: #00CC52;
+  --color-emerald-glow: #00FF6633;
+
+  /* Mechanism (Secondary Accent) */
+  --color-brass: #B89C49;
+  --color-brass-dim: #8A7535;
+
+  /* Text */
+  --color-bone: #F4F4F5;
+  --color-steel: #8F939C;
+
+  /* Danger / Warning */
+  --color-crimson: #FF0033;
+  --color-amber: #FFB800;
+
+  /* Font families */
+  --font-display: 'Cinzel', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'Inter', sans-serif;
+}
+
+/* ================================================
+   Base Layer
+   ================================================ */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-charcoal);
+    color: var(--color-bone);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-charcoal);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-brass-dim);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-brass);
+  }
+
+  /* Selection */
+  ::selection {
+    background: var(--color-emerald);
+    color: var(--color-charcoal);
+  }
+
+  /* Display font for headings */
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Monospace for data */
+  code, pre, .mono {
+    font-family: var(--font-mono);
+  }
+}
