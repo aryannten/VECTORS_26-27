@@ -1,0 +1,14 @@
+# Environment variables
+.env
+*.env
+.env.*
+
+# Master Specification 
+VECTORS_2026_Antigravity_Master_Specification.md
+
+# Node modules (just in case they are ever installed at root)
+node_modules/
+
+# OS generated files
+.DS_Store
+Thumbs.db
