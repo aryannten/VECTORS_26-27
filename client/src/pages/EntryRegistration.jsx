@@ -34,7 +34,17 @@ export default function EntryRegistration() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Registration failed')
+      
       setRegistrationId(data.registrationId)
+      
+      // Persist the pass locally for the user
+      localStorage.setItem('vectorsPass', JSON.stringify({
+        registrationId: data.registrationId,
+        name: formData.name,
+        college: formData.college,
+        status: 'VERIFIED'
+      }))
+      
       setStep(4)
     } catch (err) {
       setError(err.message)
