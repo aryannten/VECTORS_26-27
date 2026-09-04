@@ -2,6 +2,8 @@
 .env
 *.env
 .env.*
+!.env.example
+!*.env.example
 
 # Firebase Admin SDK service account key
 serviceAccountKey.json
