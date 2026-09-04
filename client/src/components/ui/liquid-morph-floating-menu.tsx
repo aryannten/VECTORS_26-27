@@ -13,6 +13,7 @@ export interface MenuItem {
 export interface FloatingMenuProps {
   items?: MenuItem[];
   className?: string;
+  position?: "top" | "bottom";
 }
 
 function MenuButton({
@@ -60,7 +61,7 @@ function MenuButton({
       onClick={onClick}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
-      className="text-[#f7f1ed] text-[24px] uppercase leading-none overflow-hidden cursor-pointer"
+      className="text-[#f7f1ed] text-[22px] sm:text-[24px] uppercase leading-none overflow-hidden cursor-pointer"
       style={{
         fontFamily: "'Trobika', 'Bebas Neue', 'Outfit', sans-serif",
         letterSpacing: "-0.03em",
@@ -111,7 +112,11 @@ function MenuButton({
   );
 }
 
-export default function FloatingMenu({ items, className = "" }: FloatingMenuProps) {
+export default function FloatingMenu({
+  items,
+  className = "",
+  position = "top",
+}: FloatingMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -120,6 +125,8 @@ export default function FloatingMenu({ items, className = "" }: FloatingMenuProp
     { label: "Works" },
     { label: "Contact" },
   ];
+
+  const isTop = position === "top";
 
   // Close on outside click
   useEffect(() => {
@@ -133,12 +140,87 @@ export default function FloatingMenu({ items, className = "" }: FloatingMenuProp
     return () => document.removeEventListener("mousedown", handler);
   }, [isOpen]);
 
+  // Base pill bar element (Menu label + animated hamburger icon)
+  const pillBar = (
+    <motion.div
+      className="relative z-10 flex items-center justify-between w-full shrink-0 cursor-pointer select-none"
+      onClick={(e) => {
+        e.stopPropagation();
+        setIsOpen(!isOpen);
+      }}
+      animate={{
+        paddingLeft: isOpen ? 22 : 16,
+        paddingRight: isOpen ? 22 : 16,
+        paddingTop: isTop && isOpen ? 14 : 0,
+        paddingBottom: !isTop && isOpen ? 18 : 0,
+        height: 38,
+      }}
+      transition={{ duration: 0.8, ease }}
+      style={{ alignItems: "center" }}
+    >
+      <motion.span
+        className="text-[13px] sm:text-[15px] leading-none font-semibold uppercase tracking-wider"
+        animate={{ color: isOpen ? "#f7f1ed" : "#242424" }}
+        transition={{ duration: 0.3, ease }}
+      >
+        Menu
+      </motion.span>
+
+      <div className="relative w-[20px] h-[20px] flex items-center justify-center">
+        <motion.span
+          className="absolute block w-[16px] h-[2px] rounded-full"
+          animate={{
+            rotate: isOpen ? 45 : 0,
+            y: isOpen ? 0 : -3,
+            backgroundColor: isOpen ? "#f7f1ed" : "#242424",
+          }}
+          transition={{ duration: 0.4, ease }}
+        />
+        <motion.span
+          className="absolute block w-[16px] h-[2px] rounded-full"
+          animate={{
+            rotate: isOpen ? -45 : 0,
+            y: isOpen ? 0 : 3,
+            backgroundColor: isOpen ? "#f7f1ed" : "#242424",
+          }}
+          transition={{ duration: 0.4, ease }}
+        />
+      </div>
+    </motion.div>
+  );
+
+  // Items list element
+  const itemsList = (
+    <div
+      className="relative z-10 flex flex-col gap-5 items-center justify-center py-4"
+      style={{
+        pointerEvents: isOpen ? "auto" : "none",
+        opacity: isOpen ? 1 : 0,
+        flex: isOpen ? 1 : 0,
+        overflow: "hidden",
+      }}
+    >
+      {menuItems.map((item, idx) => (
+        <MenuButton
+          key={item.label}
+          label={item.label}
+          onClick={() => {
+            if (item.onClick) item.onClick();
+            setIsOpen(false);
+          }}
+          isOpen={isOpen}
+          index={idx}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <motion.div
       ref={containerRef}
-      className={`fixed bottom-10 left-1/2 z-[100] ${className}`}
+      className={`fixed ${isTop ? "top-[9px]" : "bottom-10"} left-1/2 z-[70] ${className}`}
       style={{ x: "-50%", pointerEvents: "auto" }}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: isTop ? -20 : 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease }}
     >
@@ -153,12 +235,12 @@ export default function FloatingMenu({ items, className = "" }: FloatingMenuProp
           cursor: isOpen ? "default" : "pointer",
         }}
         animate={{
-          width: isOpen ? 280 : 150,
-          height: isOpen ? Math.max(260, menuItems.length * 52 + 90) : 48,
-          borderRadius: isOpen ? 32 : 72,
+          width: isOpen ? 280 : 136,
+          height: isOpen ? Math.max(250, menuItems.length * 48 + 70) : 38,
+          borderRadius: isOpen ? 28 : 72,
           scale: 1,
         }}
-        whileHover={isOpen ? undefined : { scale: 1.05 }}
+        whileHover={isOpen ? undefined : { scale: 1.04 }}
         transition={{
           duration: 0.8,
           ease,
@@ -181,7 +263,7 @@ export default function FloatingMenu({ items, className = "" }: FloatingMenuProp
           }}
         />
 
-        {/* Dark circle expanding from bottom */}
+        {/* Dark circle expanding from top (for top position) or bottom (for bottom position) */}
         <motion.div
           className="absolute left-1/2 bg-[#242424]"
           style={{
@@ -190,7 +272,11 @@ export default function FloatingMenu({ items, className = "" }: FloatingMenuProp
             borderRadius: "50%",
             x: "-50%",
           }}
-          animate={{ bottom: isOpen ? "-20%" : "-200%" }}
+          animate={
+            isTop
+              ? { top: isOpen ? "-20%" : "-200%" }
+              : { bottom: isOpen ? "-20%" : "-200%" }
+          }
           transition={{
             duration: 0.8,
             ease,
@@ -198,75 +284,18 @@ export default function FloatingMenu({ items, className = "" }: FloatingMenuProp
           }}
         />
 
-        {/* Menu items */}
-        <div
-          className="relative z-10 flex flex-col gap-6 items-center justify-center"
-          style={{
-            pointerEvents: isOpen ? "auto" : "none",
-            opacity: isOpen ? 1 : 0,
-            flex: isOpen ? 1 : 0,
-            overflow: "hidden",
-          }}
-        >
-          {menuItems.map((item, idx) => (
-            <MenuButton
-              key={item.label}
-              label={item.label}
-              onClick={() => {
-                if (item.onClick) item.onClick();
-                setIsOpen(false);
-              }}
-              isOpen={isOpen}
-              index={idx}
-            />
-          ))}
-        </div>
-
-        {/* Bottom bar: Menu + hamburger */}
-        <motion.div
-          className="relative z-10 flex items-center justify-between w-full shrink-0 cursor-pointer select-none"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsOpen(!isOpen);
-          }}
-          animate={{
-            paddingLeft: isOpen ? 24 : 20,
-            paddingRight: isOpen ? 24 : 20,
-            paddingBottom: isOpen ? 24 : 0,
-            height: 48,
-          }}
-          transition={{ duration: 0.8, ease }}
-          style={{ alignItems: "center" }}
-        >
-          <motion.span
-            className="text-[14px] md:text-[20px] leading-none font-semibold"
-            animate={{ color: isOpen ? "#f7f1ed" : "#242424" }}
-            transition={{ duration: 0.3, ease }}
-          >
-            Menu
-          </motion.span>
-
-          <div className="relative w-[24px] h-[24px] flex items-center justify-center">
-            <motion.span
-              className="absolute block w-[18px] h-[2px] rounded-full"
-              animate={{
-                rotate: isOpen ? 45 : 0,
-                y: isOpen ? 0 : -3,
-                backgroundColor: isOpen ? "#f7f1ed" : "#242424",
-              }}
-              transition={{ duration: 0.4, ease }}
-            />
-            <motion.span
-              className="absolute block w-[18px] h-[2px] rounded-full"
-              animate={{
-                rotate: isOpen ? -45 : 0,
-                y: isOpen ? 0 : 3,
-                backgroundColor: isOpen ? "#f7f1ed" : "#242424",
-              }}
-              transition={{ duration: 0.4, ease }}
-            />
-          </div>
-        </motion.div>
+        {/* Layout ordering: for Top position, bar is at top and items below; for Bottom position, items above and bar at bottom */}
+        {isTop ? (
+          <>
+            {pillBar}
+            {itemsList}
+          </>
+        ) : (
+          <>
+            {itemsList}
+            {pillBar}
+          </>
+        )}
       </motion.div>
     </motion.div>
   );
