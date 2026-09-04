@@ -76,23 +76,23 @@ export default function Navbar() {
       <header className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 md:px-6 bg-charcoal/90 backdrop-blur-sm border-b border-white/[0.04]">
 
         {/* Left: Back or Brand */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {!isTopLevel && (
             <button
               onClick={() => navigate(-1)}
-              className="w-9 h-9 flex items-center justify-center text-steel hover:text-bone transition-colors"
+              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-steel hover:text-bone transition-colors shrink-0"
               aria-label="Go back"
             >
               <ArrowLeft size={16} strokeWidth={1.5} />
             </button>
           )}
-          <Link to="/" className="font-display text-sm tracking-[0.2em] text-bone uppercase">
+          <Link to="/" className="font-display text-xs sm:text-sm tracking-[0.15em] sm:tracking-[0.2em] text-bone uppercase shrink-0">
             VECTORS
           </Link>
         </div>
 
         {/* Right: Auth + Menu Toggle */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {!loading && (
             <>
               {user ? (
@@ -176,7 +176,7 @@ export default function Navbar() {
                     )}
                   >
                     <span className="font-mono text-[10px] tracking-widest text-brass-dim w-6">{item.index}</span>
-                    <span className="font-display text-3xl md:text-5xl tracking-wide uppercase">{item.label}</span>
+                    <span className="font-display text-2xl sm:text-3xl md:text-5xl tracking-wide uppercase">{item.label}</span>
                   </Link>
                 </motion.div>
               ))}
@@ -187,11 +187,11 @@ export default function Navbar() {
                   <div className="flex flex-col gap-4">
                     {/* User info */}
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-emerald/20 border border-emerald/30 flex items-center justify-center text-emerald font-mono text-sm uppercase">
+                      <div className="w-8 h-8 rounded-full bg-emerald/20 border border-emerald/30 flex items-center justify-center text-emerald font-mono text-sm uppercase shrink-0">
                         {userInitial}
                       </div>
-                      <div>
-                        <p className="font-mono text-sm text-bone">{user.displayName || user.email}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-mono text-xs sm:text-sm text-bone truncate">{user.displayName || user.email}</p>
                         <p className="font-mono text-[10px] text-steel/50 uppercase tracking-wider">{userRole}</p>
                       </div>
                     </div>

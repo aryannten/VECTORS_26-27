@@ -63,7 +63,7 @@ export default function EntryRegistration() {
     'w-full bg-iron/50 border border-brass-dim/30 text-bone px-4 py-3 font-mono text-sm focus:outline-none focus:border-emerald transition-colors duration-300'
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-20">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 pt-20 pb-10">
       <div className="w-full max-w-md">
         {/* Progress Indicator */}
         <div className="flex items-center justify-center gap-2 mb-12">
@@ -180,7 +180,7 @@ export default function EntryRegistration() {
               <span className="text-emerald text-3xl">✓</span>
             </div>
             <h2 className="font-display text-2xl tracking-widest">Pass Generated</h2>
-            <p className="font-mono text-emerald text-lg">{registrationId}</p>
+            <p className="font-mono text-emerald text-base sm:text-lg break-all">{registrationId}</p>
             <p className="font-mono text-steel text-sm">
               Your digital entry pass is ready. Show the QR code at the gate.
             </p>

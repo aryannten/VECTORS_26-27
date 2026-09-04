@@ -63,27 +63,27 @@ export default function Admin() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
         {statCards.map((card) => (
           <div
             key={card.label}
-            className="p-4 border border-white/[0.06] bg-iron/20 hover:border-white/[0.1] transition-colors"
+            className="p-3.5 sm:p-4 border border-white/[0.06] bg-iron/20 hover:border-white/[0.1] transition-colors"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <card.icon size={14} className={card.color} />
-              <span className="font-mono text-[10px] tracking-wider text-steel/60 uppercase">{card.label}</span>
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <card.icon size={14} className={`${card.color} shrink-0`} />
+              <span className="font-mono text-[10px] tracking-wider text-steel/60 uppercase truncate">{card.label}</span>
             </div>
-            <p className={`font-mono text-2xl ${card.color}`}>{card.value}</p>
+            <p className={`font-mono text-xl sm:text-2xl ${card.color} truncate`}>{card.value}</p>
           </div>
         ))}
       </div>
 
       {/* Gate Security Management Guide */}
-      <div className="border border-brass-dim/20 bg-iron/20 p-6">
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-3">
+      <div className="border border-brass-dim/20 bg-iron/20 p-4 sm:p-6">
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <Shield size={18} className="text-brass" />
-            <h2 className="font-display text-lg tracking-wider text-bone uppercase">Gate Security Personnel</h2>
+            <Shield size={18} className="text-brass shrink-0" />
+            <h2 className="font-display text-base sm:text-lg tracking-wider text-bone uppercase">Gate Security Personnel</h2>
           </div>
           <Link
             to="/admin/users"
@@ -94,12 +94,12 @@ export default function Admin() {
         </div>
         <p className="font-mono text-xs text-steel/70 leading-relaxed mb-4">
           Gate security officers sign up or log in with their own email and password (no access keys needed).
-          To give someone security clearance, find them in the <Link to="/admin/users" className="text-brass underline">Users list</Link> and switch their role to <span className="text-brass font-bold">Security</span>. They can then sign in at <code className="text-emerald text-[11px] bg-charcoal px-1.5 py-0.5 border border-white/[0.06]">/security/login</code> to operate the QR scanner.
+          To give someone security clearance, find them in the <Link to="/admin/users" className="text-brass underline">Users list</Link> and switch their role to <span className="text-brass font-bold">Security</span>. They can then sign in at <code className="text-emerald text-[11px] bg-charcoal px-1.5 py-0.5 border border-white/[0.06] break-all">/security/login</code> to operate the QR scanner.
         </p>
-        <div className="flex items-center gap-4 text-steel/50 font-mono text-[11px]">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-steel/50 font-mono text-[11px]">
           <span>Active security staff: <strong className="text-bone">{stats?.securityUsers ?? 0}</strong></span>
-          <span>•</span>
-          <span>Scanner route: <code className="text-brass-dim">/security</code></span>
+          <span className="hidden sm:inline">•</span>
+          <span>Scanner route: <code className="text-brass-dim break-all">/security</code></span>
         </div>
       </div>
     </div>

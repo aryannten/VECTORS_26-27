@@ -49,6 +49,15 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    max-width: 100%;
+  }
+
+  img, svg, video, canvas {
+    max-width: 100%;
+  }
+
+  input, select, textarea, button {
+    max-width: 100%;
   }
 
   body {

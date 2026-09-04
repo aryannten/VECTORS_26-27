@@ -103,20 +103,20 @@ export default function Security() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-bone flex flex-col items-center px-6 py-8 overflow-y-auto">
+    <div className="min-h-screen bg-transparent text-bone flex flex-col items-center px-4 sm:px-6 py-6 sm:py-8 overflow-y-auto">
       <div className="w-full max-w-md space-y-6 pb-12">
         {/* Header with user info */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Shield size={20} className="text-brass" />
-            <div>
-              <h1 className="font-display text-xl tracking-widest text-brass uppercase">Gate Security</h1>
-              <p className="font-mono text-steel text-[10px] mt-0.5">{user?.email}</p>
+            <Shield size={20} className="text-brass shrink-0" />
+            <div className="min-w-0">
+              <h1 className="font-display text-lg sm:text-xl tracking-widest text-brass uppercase truncate">Gate Security</h1>
+              <p className="font-mono text-steel text-[10px] mt-0.5 truncate">{user?.email}</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-steel hover:text-crimson transition-colors uppercase px-2.5 py-1.5 border border-white/[0.06] bg-iron/20"
+            className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-steel hover:text-crimson transition-colors uppercase px-2.5 py-1.5 border border-white/[0.06] bg-iron/20 shrink-0 ml-2"
           >
             <LogOut size={12} />
             Exit
@@ -125,7 +125,7 @@ export default function Security() {
 
         {/* Camera Selector (if multiple cameras detected) */}
         {devices && devices.length > 1 && !scanResult && (
-          <div className="flex items-center gap-2 bg-iron/30 border border-white/[0.06] px-3 py-2">
+          <div className="flex items-center gap-2 bg-iron/30 border border-white/[0.06] px-3 py-2 min-w-0">
             <Camera size={14} className="text-brass-dim shrink-0" />
             <select
               value={selectedDeviceId}
@@ -134,7 +134,7 @@ export default function Security() {
                 setCameraError(null)
                 setScannerKey(k => k + 1)
               }}
-              className="bg-transparent text-bone font-mono text-xs w-full focus:outline-none cursor-pointer"
+              className="bg-transparent text-bone font-mono text-xs w-full focus:outline-none cursor-pointer truncate min-w-0"
             >
               <option value="" className="bg-charcoal">Auto (Prefer Back Camera)</option>
               {devices.map((device, idx) => (
@@ -239,9 +239,9 @@ export default function Security() {
                   <div className="w-12 h-12 rounded-full bg-emerald/20 flex items-center justify-center mb-2">
                     <span className="text-emerald text-2xl font-bold">✓</span>
                   </div>
-                  <h2 className="font-display text-2xl tracking-widest text-emerald">APPROVED</h2>
-                  <p className="font-mono text-bone text-lg font-bold">{scanResult.name}</p>
-                  <p className="font-mono text-steel text-sm">{scanResult.college}</p>
+                  <h2 className="font-display text-xl sm:text-2xl tracking-widest text-emerald">APPROVED</h2>
+                  <p className="font-mono text-bone text-base sm:text-lg font-bold break-words">{scanResult.name}</p>
+                  <p className="font-mono text-steel text-xs sm:text-sm break-words">{scanResult.college}</p>
                   <span className="font-mono text-[10px] text-emerald/80 tracking-wider uppercase mt-1">Pass Verified • Entry Granted</span>
                 </>
               )}
@@ -251,9 +251,9 @@ export default function Security() {
                   <div className="w-12 h-12 rounded-full bg-brass/20 flex items-center justify-center mb-2">
                     <span className="text-brass text-2xl font-bold">!</span>
                   </div>
-                  <h2 className="font-display text-xl tracking-widest text-brass text-center leading-relaxed">ALREADY CHECKED IN</h2>
-                  <p className="font-mono text-bone mt-2 font-bold">{scanResult.name}</p>
-                  <p className="font-mono text-steel text-sm mt-1">
+                  <h2 className="font-display text-lg sm:text-xl tracking-widest text-brass text-center leading-relaxed">ALREADY CHECKED IN</h2>
+                  <p className="font-mono text-bone mt-2 font-bold text-base sm:text-lg break-words">{scanResult.name}</p>
+                  <p className="font-mono text-steel text-xs sm:text-sm mt-1 break-words">
                     Checked in at: {scanResult.checkInTimestamp ? new Date(scanResult.checkInTimestamp).toLocaleTimeString() : 'Earlier today'}
                   </p>
                 </>
@@ -264,8 +264,8 @@ export default function Security() {
                   <div className="w-12 h-12 rounded-full bg-crimson/20 flex items-center justify-center mb-2">
                     <span className="text-crimson text-2xl font-bold">✕</span>
                   </div>
-                  <h2 className="font-display text-2xl tracking-widest text-crimson">REJECTED</h2>
-                  <p className="font-mono text-steel text-sm mt-2">{scanResult.message || 'Pass ID not found or invalid.'}</p>
+                  <h2 className="font-display text-xl sm:text-2xl tracking-widest text-crimson">REJECTED</h2>
+                  <p className="font-mono text-steel text-xs sm:text-sm mt-2 break-words">{scanResult.message || 'Pass ID not found or invalid.'}</p>
                 </>
               )}
             </div>

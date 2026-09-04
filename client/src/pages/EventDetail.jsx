@@ -89,7 +89,7 @@ export default function EventDetail() {
   }
 
   return (
-    <div className="min-h-screen px-6 pt-24 pb-32">
+    <div className="min-h-screen px-4 sm:px-6 pt-20 sm:pt-24 pb-32">
       <div className="max-w-2xl mx-auto">
         {/* Back Link */}
         <Link to="/events" className="font-mono text-brass text-sm hover:text-emerald transition-colors duration-300">
@@ -101,31 +101,31 @@ export default function EventDetail() {
           <span className="font-mono text-xs text-brass uppercase tracking-widest">
             {event.category}
           </span>
-          <h1 className="font-display text-4xl md:text-5xl tracking-widest mt-2">{event.name}</h1>
-          <p className="font-mono text-steel mt-4 leading-relaxed">{event.description}</p>
+          <h1 className="font-display text-2xl sm:text-4xl md:text-5xl tracking-widest mt-2">{event.name}</h1>
+          <p className="font-mono text-steel text-sm sm:text-base mt-4 leading-relaxed">{event.description}</p>
         </div>
 
         {/* Details Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-12 relative z-10">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 mb-12 relative z-10">
           {[
             { label: 'Date', value: event.date },
             { label: 'Venue', value: event.venue },
             { label: 'Fee', value: event.fee },
             { label: 'Team Size', value: event.teamSize },
           ].map((item) => (
-            <div key={item.label} className="glass-panel p-4 md:p-6 border-brass-dim/20 hover:border-emerald/30 transition-colors duration-500">
+            <div key={item.label} className="glass-panel p-3 sm:p-4 md:p-6 border-brass-dim/20 hover:border-emerald/30 transition-colors duration-500">
               <span className="font-mono text-[10px] md:text-xs text-emerald tracking-widest uppercase block mb-1">{item.label}</span>
-              <p className="font-mono text-bone text-sm md:text-base drop-shadow-md">{item.value}</p>
+              <p className="font-mono text-bone text-xs sm:text-sm md:text-base drop-shadow-md break-words">{item.value}</p>
             </div>
           ))}
         </div>
 
         {/* Rules */}
         <div className="mb-24 relative z-10">
-          <h2 className="font-display text-2xl tracking-widest mb-6 text-brass drop-shadow-[0_0_10px_rgba(212,175,55,0.2)]">Rules of Engagement</h2>
-          <ul className="space-y-4">
+          <h2 className="font-display text-xl sm:text-2xl tracking-widest mb-6 text-brass drop-shadow-[0_0_10px_rgba(212,175,55,0.2)]">Rules of Engagement</h2>
+          <ul className="space-y-3 sm:space-y-4">
             {event.rules.map((rule, i) => (
-              <li key={i} className="font-mono text-sm md:text-base text-steel flex gap-4 bg-iron/10 p-4 border-l-2 border-emerald/50">
+              <li key={i} className="font-mono text-xs sm:text-sm md:text-base text-steel flex gap-3 sm:gap-4 bg-iron/10 p-3.5 sm:p-4 border-l-2 border-emerald/50">
                 <span className="text-emerald shrink-0 font-bold drop-shadow-[0_0_5px_rgba(0,255,102,0.5)]">
                   {String(i + 1).padStart(2, '0')}
                 </span>
@@ -136,12 +136,12 @@ export default function EventDetail() {
         </div>
 
         {/* Sticky Registration CTA */}
-        <div className="fixed bottom-0 left-0 right-0 p-6 bg-charcoal/80 backdrop-blur-xl border-t border-brass-dim/20 z-50">
+        <div className="fixed bottom-0 left-0 right-0 p-3.5 sm:p-6 bg-charcoal/80 backdrop-blur-xl border-t border-brass-dim/20 z-50">
           <a
             href={event.googleFormUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full max-w-2xl mx-auto py-4 text-center font-display text-sm tracking-[0.15em] uppercase text-emerald border border-emerald/40 transition-all duration-300 hover:text-charcoal hover:bg-emerald hover:shadow-[0_0_40px_rgba(0,255,102,0.6)]"
+            className="block w-full max-w-2xl mx-auto py-3.5 sm:py-4 text-center font-display text-xs sm:text-sm tracking-[0.15em] uppercase text-emerald border border-emerald/40 transition-all duration-300 hover:text-charcoal hover:bg-emerald hover:shadow-[0_0_40px_rgba(0,255,102,0.6)]"
             style={{ background: 'rgba(0,255,102,0.06)', backdropFilter: 'blur(12px)', boxShadow: '0 0 15px rgba(0,255,102,0.08), inset 0 0 15px rgba(0,255,102,0.05)' }}
             id="btn-register-participate"
           >

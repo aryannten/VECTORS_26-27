@@ -105,7 +105,7 @@ export default function Signup() {
       />
 
       {/* Content */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-8">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-20 pb-8">
         <motion.div {...seq.panel} className="w-full max-w-sm">
 
           {/* Header */}
@@ -120,7 +120,7 @@ export default function Signup() {
 
           {/* Terminal Panel */}
           <motion.div {...seq.form}
-            className="w-full p-6 sm:p-8"
+            className="w-full p-5 sm:p-8"
             style={{
               background: 'linear-gradient(180deg, #141311 0%, #0f0e0c 100%)',
               border: '1px solid rgba(184,156,73,0.12)',

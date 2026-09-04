@@ -56,17 +56,17 @@ export default function AdminEvents() {
           events.map((event) => (
             <div
               key={event._id}
-              className="border border-white/[0.06] bg-iron/20 p-5 hover:border-white/[0.1] transition-colors"
+              className="border border-white/[0.06] bg-iron/20 p-4 sm:p-5 hover:border-white/[0.1] transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <span className="font-mono text-[10px] tracking-wider text-brass uppercase">
                     {event.category}
                   </span>
-                  <h3 className="font-display text-lg tracking-wider text-bone mt-1">{event.name}</h3>
+                  <h3 className="font-display text-base sm:text-lg tracking-wider text-bone mt-1 truncate">{event.name}</h3>
                   <p className="font-mono text-xs text-steel/60 mt-2 line-clamp-2">{event.description}</p>
                 </div>
-                <span className={`inline-flex items-center font-mono text-[10px] tracking-wider uppercase px-2 py-1 ${
+                <span className={`inline-flex items-center font-mono text-[10px] tracking-wider uppercase px-2 py-1 shrink-0 ${
                   event.isActive 
                     ? 'text-emerald bg-emerald/10 border border-emerald/20' 
                     : 'text-steel bg-white/[0.03] border border-white/[0.06]'
@@ -75,18 +75,18 @@ export default function AdminEvents() {
                 </span>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-white/[0.04] grid grid-cols-3 gap-3">
-                <div>
+              <div className="mt-4 pt-3 border-t border-white/[0.04] grid grid-cols-3 gap-2 sm:gap-3">
+                <div className="min-w-0">
                   <span className="font-mono text-[9px] text-steel/40 uppercase block">Fee</span>
-                  <span className="font-mono text-xs text-brass">{event.fee}</span>
+                  <span className="font-mono text-xs text-brass truncate block">{event.fee}</span>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="font-mono text-[9px] text-steel/40 uppercase block">Date</span>
-                  <span className="font-mono text-xs text-steel">{event.date}</span>
+                  <span className="font-mono text-xs text-steel truncate block">{event.date}</span>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="font-mono text-[9px] text-steel/40 uppercase block">Team</span>
-                  <span className="font-mono text-xs text-steel">{event.teamSize}</span>
+                  <span className="font-mono text-xs text-steel truncate block">{event.teamSize}</span>
                 </div>
               </div>
             </div>

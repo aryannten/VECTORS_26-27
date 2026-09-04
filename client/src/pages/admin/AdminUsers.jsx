@@ -310,9 +310,9 @@ export default function AdminUsers() {
       )}
 
       {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-iron/20 p-3 border border-white/[0.06]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-iron/20 p-3 border border-white/[0.06]">
         {/* Role Filter Tabs */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-none">
           {[
             { label: 'All', value: '' },
             { label: 'Users', value: 'user' },
@@ -322,7 +322,7 @@ export default function AdminUsers() {
             <button
               key={tab.label}
               onClick={() => setRoleFilter(tab.value)}
-              className={`px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors ${
+              className={`px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors shrink-0 ${
                 roleFilter === tab.value
                   ? 'bg-brass text-charcoal font-bold'
                   : 'text-steel hover:text-bone hover:bg-white/[0.04]'
@@ -334,20 +334,20 @@ export default function AdminUsers() {
         </div>
 
         {/* Search Input */}
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative">
+        <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-initial">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel/40" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search email or name..."
-              className="bg-charcoal border border-white/[0.06] text-bone font-mono text-xs pl-9 pr-4 py-2 w-56 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
+              className="bg-charcoal border border-white/[0.06] text-bone font-mono text-xs pl-9 pr-4 py-2 w-full sm:w-56 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
             />
           </div>
           <button
             type="submit"
-            className="px-3 py-2 font-mono text-xs tracking-wider uppercase border border-white/[0.1] text-steel hover:text-bone transition-colors"
+            className="px-3 py-2 font-mono text-xs tracking-wider uppercase border border-white/[0.1] text-steel hover:text-bone transition-colors shrink-0"
           >
             Filter
           </button>
@@ -360,11 +360,11 @@ export default function AdminUsers() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-brass font-mono text-xs">
               <KeyRound size={15} />
-              <span className="font-bold">Password Reset Link for {generatedLink.email}</span>
+              <span className="font-bold truncate">Password Reset Link for {generatedLink.email}</span>
             </div>
             <button
               onClick={() => setGeneratedLink(null)}
-              className="text-steel/60 hover:text-bone transition-colors"
+              className="text-steel/60 hover:text-bone transition-colors shrink-0 ml-2"
             >
               <X size={14} />
             </button>
@@ -372,16 +372,16 @@ export default function AdminUsers() {
           <p className="font-mono text-[11px] text-steel/70">
             Share this link with the user to let them set a new password.
           </p>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1">
             <input
               type="text"
               readOnly
               value={generatedLink.link}
-              className="flex-1 bg-charcoal border border-white/[0.08] text-bone font-mono text-xs px-3 py-2 select-all focus:outline-none"
+              className="flex-1 min-w-0 bg-charcoal border border-white/[0.08] text-bone font-mono text-xs px-3 py-2 select-all focus:outline-none"
             />
             <button
               onClick={copyResetLink}
-              className="px-3 py-2 bg-emerald text-charcoal font-mono text-xs tracking-wider uppercase flex items-center gap-1.5 hover:bg-emerald-dim transition-colors shrink-0"
+              className="px-3 py-2 bg-emerald text-charcoal font-mono text-xs tracking-wider uppercase flex items-center justify-center gap-1.5 hover:bg-emerald-dim transition-colors shrink-0"
             >
               {copiedLink ? <Check size={14} /> : <Copy size={14} />}
               {copiedLink ? 'Copied!' : 'Copy Link'}
@@ -391,8 +391,8 @@ export default function AdminUsers() {
       )}
 
       {/* Users Table */}
-      <div className="border border-white/[0.06] overflow-x-auto">
-        <table className="w-full text-left">
+      <div className="border border-white/[0.06] overflow-x-auto w-full max-w-full min-w-0">
+        <table className="w-full min-w-[640px] text-left">
           <thead>
             <tr className="border-b border-white/[0.06] bg-iron/30">
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">User</th>
@@ -495,8 +495,8 @@ export default function AdminUsers() {
       {/* ADD USER MODAL */}
       {/* ============================================================ */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-charcoal border border-brass-dim/30 p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-md bg-charcoal border border-brass-dim/30 p-4 sm:p-6 shadow-2xl my-auto">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2 text-brass">
                 <UserPlus size={18} />
@@ -599,8 +599,8 @@ export default function AdminUsers() {
       {/* EDIT USER MODAL */}
       {/* ============================================================ */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-charcoal border border-brass-dim/30 p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-md bg-charcoal border border-brass-dim/30 p-4 sm:p-6 shadow-2xl my-auto">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2 text-brass">
                 <Edit2 size={18} />
@@ -614,7 +614,7 @@ export default function AdminUsers() {
               </button>
             </div>
 
-            <p className="font-mono text-xs text-steel/60 mb-4">
+            <p className="font-mono text-xs text-steel/60 mb-4 truncate">
               Editing <strong className="text-bone">{editingUser.email}</strong>
             </p>
 
@@ -690,15 +690,15 @@ export default function AdminUsers() {
       {/* DELETE CONFIRMATION MODAL */}
       {/* ============================================================ */}
       {deletingUser && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-charcoal border border-crimson/40 p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-sm bg-charcoal border border-crimson/40 p-4 sm:p-6 shadow-2xl my-auto">
             <div className="flex items-center gap-3 text-crimson mb-3">
               <AlertTriangle size={24} />
               <h2 className="font-display text-lg tracking-wider uppercase">Delete User?</h2>
             </div>
             <p className="font-mono text-xs text-steel/80 leading-relaxed mb-6">
               Are you sure you want to permanently delete{' '}
-              <strong className="text-bone">{deletingUser.email}</strong>?
+              <strong className="text-bone break-all">{deletingUser.email}</strong>?
               This will remove their profile, authentication record, and access permanently.
             </p>
             <div className="flex gap-3">

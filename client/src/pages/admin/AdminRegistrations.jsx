@@ -55,20 +55,20 @@ export default function AdminRegistrations() {
         </div>
 
         {/* Search */}
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative">
+        <form onSubmit={handleSearch} className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1 sm:w-64">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel/40" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name, email, college..."
-              className="bg-charcoal border border-white/[0.06] text-bone font-mono text-xs pl-9 pr-4 py-2.5 w-64 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
+              className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-xs pl-9 pr-4 py-2.5 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2.5 font-mono text-xs tracking-wider uppercase bg-emerald text-charcoal hover:bg-emerald-dim transition-colors"
+            className="px-4 py-2.5 font-mono text-xs tracking-wider uppercase bg-emerald text-charcoal hover:bg-emerald-dim transition-colors shrink-0"
           >
             Search
           </button>
@@ -76,8 +76,8 @@ export default function AdminRegistrations() {
       </div>
 
       {/* Table */}
-      <div className="border border-white/[0.06] overflow-x-auto">
-        <table className="w-full text-left">
+      <div className="w-full max-w-full min-w-0 border border-white/[0.06] overflow-x-auto">
+        <table className="w-full min-w-[640px] text-left">
           <thead>
             <tr className="border-b border-white/[0.06] bg-iron/30">
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">ID</th>

@@ -58,12 +58,12 @@ const itemVariants = {
 
 export default function Events() {
   return (
-    <div className="min-h-screen px-6 pt-24 pb-12 bg-transparent relative z-10">
+    <div className="min-h-screen px-4 sm:px-6 pt-20 sm:pt-24 pb-12 bg-transparent relative z-10">
       <motion.h1 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="font-display text-4xl md:text-5xl tracking-widest text-center mb-16 text-bone drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+        className="font-display text-3xl sm:text-4xl md:text-5xl tracking-widest text-center mb-10 sm:mb-16 text-bone drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]"
       >
         Event Vaults
       </motion.h1>
@@ -72,25 +72,25 @@ export default function Events() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="max-w-4xl mx-auto space-y-8"
+        className="max-w-4xl mx-auto space-y-6 sm:space-y-8"
       >
         {mockEvents.map((event) => (
           <motion.div variants={itemVariants} key={event.id}>
             <Link
               to={`/events/${event.id}`}
-              className="block relative glass-panel p-6 md:p-8 hover:border-emerald/40 transition-all duration-500 group overflow-hidden"
+              className="block relative glass-panel p-4 sm:p-6 md:p-8 hover:border-emerald/40 transition-all duration-500 group overflow-hidden"
               id={`event-${event.id}`}
             >
               {/* Hover Glow Effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-emerald/0 via-emerald/10 to-emerald/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 -translate-x-full group-hover:translate-x-full ease-in-out" />
               
-              <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6">
-                <div className="flex-1">
+              <div className="relative z-10 flex flex-col md:flex-row items-start justify-between gap-4 sm:gap-6">
+                <div className="flex-1 min-w-0">
                   <span className="font-mono text-xs text-brass uppercase tracking-widest flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-brass rounded-full animate-pulse" />
                     {event.category}
                   </span>
-                  <h3 className="font-display text-3xl tracking-wider mt-2 text-bone group-hover:text-emerald transition-colors duration-300 drop-shadow-md">
+                  <h3 className="font-display text-2xl sm:text-3xl tracking-wider mt-2 text-bone group-hover:text-emerald transition-colors duration-300 drop-shadow-md">
                     {event.name}
                   </h3>
                   <p className="font-mono text-steel text-sm mt-3 leading-relaxed max-w-xl">{event.description}</p>

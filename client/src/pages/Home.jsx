@@ -17,7 +17,7 @@ import FaultyTerminal from '../components/ui/FaultyTerminal'
  */
 function AstrolabeCore() {
   return (
-    <div className="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] md:w-[400px] md:h-[400px]">
+    <div className="relative w-[230px] h-[230px] xs:w-[270px] xs:h-[270px] sm:w-[320px] sm:h-[320px] md:w-[400px] md:h-[400px] max-w-full">
       {/* Ring 1 — Outermost. Heavy iron. Slow rotation. */}
       <motion.svg
         animate={{ rotate: 360 }}
@@ -194,10 +194,10 @@ export default function Home() {
 
 
       {/* === SCENE CONTENT === */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-8 min-h-screen">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-20 pb-8 min-h-screen">
 
         {/* FOCAL OBJECT — The Astrolabe Core */}
-        <motion.div {...seq.core} className="mb-10 md:mb-14">
+        <motion.div {...seq.core} className="mb-8 sm:mb-10 md:mb-14">
           <AstrolabeCore />
         </motion.div>
 
@@ -205,7 +205,7 @@ export default function Home() {
             The wordmark is architectural: wide tracking, monumental weight,
             positioned as if carved into the wall below the Astrolabe. */}
         <motion.div {...seq.title} className="text-center">
-          <h1 className="font-display text-[2.5rem] sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.15em] sm:tracking-[0.2em] text-bone leading-[0.9] uppercase"
+          <h1 className="font-display text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.12em] sm:tracking-[0.2em] text-bone leading-[0.95] uppercase"
             style={{ textShadow: '0 2px 30px rgba(0,0,0,0.8)' }}
           >
             VECTORS
