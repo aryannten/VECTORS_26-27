@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminLayout from './components/AdminLayout'
@@ -16,12 +16,34 @@ import AdminRegistrations from './pages/admin/AdminRegistrations'
 import AdminEvents from './pages/admin/AdminEvents'
 import AdminUsers from './pages/admin/AdminUsers'
 import NotFound from './pages/NotFound'
+import Particles from './components/ui/Particles'
 
 function App() {
+  const location = useLocation()
+  const isLandingPage = location.pathname === '/'
+
   return (
-    <Routes>
-      {/* Public routes with main layout */}
-      <Route path="/" element={<Layout />}>
+    <div className="relative min-h-screen bg-charcoal">
+      {/* 3D Particle background for all pages except the landing page */}
+      {!isLandingPage && (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <Particles
+            particleColors={['#ffffff', '#b89c49', '#e2e8f0']}
+            particleCount={200}
+            particleSpread={10}
+            speed={0.1}
+            particleBaseSize={100}
+            moveParticlesOnHover={true}
+            alphaParticles={false}
+            disableRotation={false}
+          />
+        </div>
+      )}
+
+      <div className="relative z-10">
+        <Routes>
+          {/* Public routes with main layout */}
+          <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="login" element={<Login />} />
         <Route path="signup" element={<Signup />} />
@@ -62,7 +84,9 @@ function App() {
         <Route path="events" element={<AdminEvents />} />
         <Route path="users" element={<AdminUsers />} />
       </Route>
-    </Routes>
+        </Routes>
+      </div>
+    </div>
   )
 }
 

@@ -122,7 +122,7 @@ export default function Login() {
   return (
     <div className="relative min-h-screen overflow-hidden flex flex-col"
       style={{
-        background: 'linear-gradient(180deg, #0d0c0a 0%, #0a0a0a 40%, #0e0d0b 100%)'
+        background: 'linear-gradient(180deg, rgba(13,12,10,0.55) 0%, rgba(10,10,10,0.65) 40%, rgba(14,13,11,0.8) 100%)'
       }}
     >
       {/* Interior Architecture Lines */}

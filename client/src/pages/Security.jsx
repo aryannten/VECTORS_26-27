@@ -103,7 +103,7 @@ export default function Security() {
   }
 
   return (
-    <div className="min-h-screen bg-charcoal text-bone flex flex-col items-center px-6 py-8 overflow-y-auto">
+    <div className="min-h-screen bg-transparent text-bone flex flex-col items-center px-6 py-8 overflow-y-auto">
       <div className="w-full max-w-md space-y-6 pb-12">
         {/* Header with user info */}
         <div className="flex items-center justify-between">

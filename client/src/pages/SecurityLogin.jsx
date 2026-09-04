@@ -3,7 +3,6 @@ import { useNavigate, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { Shield, Scan, ArrowLeft, CheckCircle2 } from 'lucide-react'
-import FaultyTerminal from '../components/ui/FaultyTerminal'
 
 /**
  * SecurityLogin — Gate Access Terminal.
@@ -92,31 +91,9 @@ export default function SecurityLogin() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-4 py-8 overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #080808 0%, #0a0a0a 50%, #0c0b09 100%)'
+        background: 'linear-gradient(180deg, rgba(8,8,8,0.55) 0%, rgba(10,10,10,0.65) 50%, rgba(12,11,9,0.8) 100%)'
       }}
     >
-      {/* Ambient Tactical Faulty Terminal Background */}
-      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
-        <FaultyTerminal
-          scale={1.3}
-          gridMul={[2, 1]}
-          digitSize={1.1}
-          timeScale={0.5}
-          pause={false}
-          scanlineIntensity={0.4}
-          glitchAmount={0.7}
-          flickerAmount={0.5}
-          noiseAmp={0.8}
-          chromaticAberration={0.2}
-          dither={0}
-          curvature={0.1}
-          tint="#b89c49"
-          mouseReact={false}
-          pageLoadAnimation={true}
-          brightness={0.65}
-        />
-      </div>
-
       <motion.div {...seq.panel} className="relative z-10 w-full max-w-sm">
 
         {/* Header — Tactical branding */}

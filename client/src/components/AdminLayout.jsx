@@ -24,9 +24,9 @@ export default function AdminLayout() {
   ]
 
   return (
-    <div className="min-h-screen bg-charcoal text-bone flex">
+    <div className="min-h-screen bg-transparent text-bone flex">
       {/* Sidebar */}
-      <aside className="w-56 shrink-0 border-r border-white/[0.04] bg-iron/30 flex flex-col fixed inset-y-0 left-0 z-40">
+      <aside className="w-56 shrink-0 border-r border-white/[0.06] bg-charcoal/85 backdrop-blur-md flex flex-col fixed inset-y-0 left-0 z-40">
         {/* Brand */}
         <div className="p-4 border-b border-white/[0.04]">
           <div className="flex items-center gap-2">
