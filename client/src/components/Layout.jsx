@@ -2,17 +2,18 @@ import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
 
 /**
- * Layout — Wraps all public-facing pages with the Navbar and footer.
- * The Security scanner route lives outside this layout.
+ * Layout — Structural shell only.
+ * Each page owns its own visual environment.
+ * Layout provides navigation and footer, nothing else.
  */
 export default function Layout() {
   return (
-    <div className="min-h-screen bg-charcoal text-bone">
+    <div className="min-h-screen relative flex flex-col">
       <Navbar />
-      <main>
+      <main className="flex-grow relative">
         <Outlet />
       </main>
-      <footer className="border-t border-brass-dim/30 py-8 px-6 text-center text-steel text-sm font-mono">
+      <footer className="relative z-10 border-t border-brass-dim/10 py-6 px-6 text-center text-slate text-xs font-mono bg-charcoal">
         <p>&copy; 2026 VECTORS. All rights reserved.</p>
       </footer>
     </div>

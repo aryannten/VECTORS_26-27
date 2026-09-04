@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import Home from './pages/Home'
+import Login from './pages/Login'
 import EntryRegistration from './pages/EntryRegistration'
 import MyPass from './pages/MyPass'
 import Events from './pages/Events'
@@ -13,6 +14,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
+        <Route path="login" element={<Login />} />
         <Route path="entry-registration" element={<EntryRegistration />} />
         <Route path="my-pass" element={<MyPass />} />
         <Route path="events" element={<Events />} />
@@ -26,3 +28,4 @@ function App() {
 }
 
 export default App
+

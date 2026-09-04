@@ -106,40 +106,43 @@ export default function EventDetail() {
         </div>
 
         {/* Details Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-12 relative z-10">
           {[
             { label: 'Date', value: event.date },
             { label: 'Venue', value: event.venue },
             { label: 'Fee', value: event.fee },
             { label: 'Team Size', value: event.teamSize },
           ].map((item) => (
-            <div key={item.label} className="border border-brass-dim/20 bg-iron/20 p-4">
-              <span className="font-mono text-xs text-steel uppercase">{item.label}</span>
-              <p className="font-mono text-bone mt-1">{item.value}</p>
+            <div key={item.label} className="glass-panel p-4 md:p-6 border-brass-dim/20 hover:border-emerald/30 transition-colors duration-500">
+              <span className="font-mono text-[10px] md:text-xs text-emerald tracking-widest uppercase block mb-1">{item.label}</span>
+              <p className="font-mono text-bone text-sm md:text-base drop-shadow-md">{item.value}</p>
             </div>
           ))}
         </div>
 
         {/* Rules */}
-        <div className="mb-8">
-          <h2 className="font-display text-xl tracking-widest mb-4">Rules</h2>
-          <ul className="space-y-2">
+        <div className="mb-24 relative z-10">
+          <h2 className="font-display text-2xl tracking-widest mb-6 text-brass drop-shadow-[0_0_10px_rgba(212,175,55,0.2)]">Rules of Engagement</h2>
+          <ul className="space-y-4">
             {event.rules.map((rule, i) => (
-              <li key={i} className="font-mono text-sm text-steel flex gap-3">
-                <span className="text-emerald shrink-0">{String(i + 1).padStart(2, '0')}</span>
-                {rule}
+              <li key={i} className="font-mono text-sm md:text-base text-steel flex gap-4 bg-iron/10 p-4 border-l-2 border-emerald/50">
+                <span className="text-emerald shrink-0 font-bold drop-shadow-[0_0_5px_rgba(0,255,102,0.5)]">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span className="leading-relaxed text-bone/90">{rule}</span>
               </li>
             ))}
           </ul>
         </div>
 
         {/* Sticky Registration CTA */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-charcoal/95 backdrop-blur-sm border-t border-brass-dim/20">
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-charcoal/80 backdrop-blur-xl border-t border-brass-dim/20 z-50">
           <a
             href={event.googleFormUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full max-w-2xl mx-auto py-4 text-center font-display text-lg tracking-widest uppercase bg-emerald text-charcoal hover:bg-emerald-dim transition-colors duration-300"
+            className="block w-full max-w-2xl mx-auto py-4 text-center font-display text-sm tracking-[0.15em] uppercase text-emerald border border-emerald/40 transition-all duration-300 hover:text-charcoal hover:bg-emerald hover:shadow-[0_0_40px_rgba(0,255,102,0.6)]"
+            style={{ background: 'rgba(0,255,102,0.06)', backdropFilter: 'blur(12px)', boxShadow: '0 0 15px rgba(0,255,102,0.08), inset 0 0 15px rgba(0,255,102,0.05)' }}
             id="btn-register-participate"
           >
             Register to Participate
