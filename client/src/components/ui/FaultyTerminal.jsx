@@ -282,6 +282,14 @@ export default function FaultyTerminal({
     const gl = renderer.gl;
     gl.clearColor(lightMode ? 1 : 0, lightMode ? 1 : 0, lightMode ? 1 : 0, 1);
 
+    gl.canvas.style.display = 'block';
+    gl.canvas.style.position = 'absolute';
+    gl.canvas.style.top = '0';
+    gl.canvas.style.left = '0';
+    gl.canvas.style.width = '100%';
+    gl.canvas.style.height = '100%';
+    gl.canvas.style.pointerEvents = 'none';
+
     const geometry = new Triangle(gl);
 
     const program = new Program(gl, {
@@ -290,7 +298,7 @@ export default function FaultyTerminal({
       uniforms: {
         iTime: { value: 0 },
         iResolution: {
-          value: new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
+          value: new Color(gl.canvas.width || 800, gl.canvas.height || 600, (gl.canvas.width || 800) / (gl.canvas.height || 600))
         },
         uScale: { value: scale },
 
@@ -321,8 +329,8 @@ export default function FaultyTerminal({
 
     function resize() {
       if (!ctn || !renderer) return;
-      const w = Math.max(1, ctn.offsetWidth);
-      const h = Math.max(1, ctn.offsetHeight);
+      const w = Math.max(1, ctn.offsetWidth || window.innerWidth || 1);
+      const h = Math.max(1, ctn.offsetHeight || window.innerHeight || 1);
       renderer.setSize(w, h);
       if (programRef.current) {
         programRef.current.uniforms.iResolution.value = new Color(
@@ -335,6 +343,7 @@ export default function FaultyTerminal({
 
     const resizeObserver = new ResizeObserver(() => resize());
     resizeObserver.observe(ctn);
+    window.addEventListener('resize', resize);
     resize();
 
     const update = t => {
@@ -374,14 +383,23 @@ export default function FaultyTerminal({
       renderer.render({ scene: mesh });
     };
     rafRef.current = requestAnimationFrame(update);
+
+    while (ctn.firstChild) {
+      ctn.removeChild(ctn.firstChild);
+    }
     ctn.appendChild(gl.canvas);
 
-    if (mouseReact) ctn.addEventListener('mousemove', handleMouseMove);
+    if (mouseReact) {
+      window.addEventListener('mousemove', handleMouseMove);
+    }
 
     return () => {
       cancelAnimationFrame(rafRef.current);
       resizeObserver.disconnect();
-      if (mouseReact) ctn.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', resize);
+      if (mouseReact) {
+        window.removeEventListener('mousemove', handleMouseMove);
+      }
       if (gl.canvas.parentElement === ctn) ctn.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
       loadAnimationStartRef.current = 0;

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
+import FaultyTerminal from '../components/ui/FaultyTerminal'
 
 /**
  * AstrolabeCore — The focal mechanical object of the VECTORS world.
@@ -144,22 +145,41 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-charcoal overflow-hidden flex flex-col">
 
-      {/* === THE WALL === 
-          Dark architectural surface. Not a gradient background—a physical wall
-          with subtle material variation suggesting concrete/iron. */}
-      <div className="absolute inset-0"
+      {/* === FAULTY TERMINAL BACKGROUND === */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <FaultyTerminal
+          scale={1.5}
+          gridMul={[2, 1]}
+          digitSize={1.2}
+          timeScale={1}
+          pause={false}
+          scanlineIntensity={1}
+          glitchAmount={1}
+          flickerAmount={1}
+          noiseAmp={1}
+          chromaticAberration={0}
+          dither={0}
+          curvature={0}
+          tint="#2F5D3A"
+          mouseReact={true}
+          mouseStrength={0.5}
+          pageLoadAnimation={false}
+          brightness={1}
+        />
+      </div>
+
+      {/* Atmospheric vignette blending terminal with monolithic architecture */}
+      <div
+        className="absolute inset-0 pointer-events-none z-[1]"
         style={{
-          background: `
-            radial-gradient(ellipse 60% 50% at 50% 40%, #141311 0%, #0a0a0a 100%)
-          `
+          background: 'radial-gradient(ellipse 70% 60% at 50% 40%, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.65) 60%, rgba(10,10,10,0.94) 100%)'
         }}
       />
 
-      {/* Light cast by the Astrolabe Core onto the wall behind it.
-          This is not decorative—it's the reflected illumination from the core. */}
-      <div className="absolute inset-0 pointer-events-none"
+      {/* Light cast by the Astrolabe Core */}
+      <div className="absolute inset-0 pointer-events-none z-[2]"
         style={{
-          background: 'radial-gradient(ellipse 40% 35% at 50% 38%, rgba(0,255,102,0.04) 0%, transparent 70%)'
+          background: 'radial-gradient(ellipse 40% 35% at 50% 38%, rgba(0,255,102,0.06) 0%, transparent 70%)'
         }}
       />
 
