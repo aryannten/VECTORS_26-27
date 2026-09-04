@@ -2,8 +2,9 @@ import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
 
 /**
- * Layout — Structural shell.
- * Renders Navbar with top Liquid Morph Floating Menu, page outlet, and footer.
+ * Layout — Structural shell only.
+ * Each page owns its own visual environment.
+ * Layout provides navigation and footer, nothing else.
  */
 export default function Layout() {
   return (

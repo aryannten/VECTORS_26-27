@@ -1,13 +1,17 @@
+import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, User, Shield, LayoutDashboard } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft, User, LogOut, Shield, LayoutDashboard } from 'lucide-react'
+import { cn } from '../lib/utils'
 import { useAuth } from '../contexts/AuthContext'
-import FloatingMenu from './ui/liquid-morph-floating-menu'
 
 /**
- * Navbar — Structural top navigation with Liquid Morph Floating Menu.
- * Features brand on the left, liquid morph navbar at top-center, and auth status on the right.
+ * Navbar — Structural navigation.
+ * Functional first: auth-aware, contextual back, real routing.
+ * Shows/hides nav items based on auth state and role.
  */
 export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { user, userRole, logout, loading } = useAuth()
@@ -16,27 +20,53 @@ export default function Navbar() {
   const topLevelPaths = ['/', '/events', '/login', '/signup']
   const isTopLevel = topLevelPaths.includes(location.pathname)
 
-  const handleLogout = async () => {
-    await logout()
-    navigate('/')
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
+  // Close menu on route change
+  useEffect(() => {
+    setIsOpen(false)
+  }, [location.pathname])
+
+  const menuVariants = {
+    closed: {
+      clipPath: 'inset(0 0 100% 0)',
+      transition: { duration: 0.4, ease: [0.76, 0, 0.24, 1] }
+    },
+    open: {
+      clipPath: 'inset(0 0 0% 0)',
+      transition: { duration: 0.5, ease: [0.76, 0, 0.24, 1] }
+    }
   }
 
-  // Dynamic menu items for the Liquid Morph Navbar
-  const floatingMenuItems = [
-    { label: 'Home', onClick: () => navigate('/') },
-    { label: 'Events', onClick: () => navigate('/events') },
-    ...(user
-      ? [
-          { label: 'Pass', onClick: () => navigate('/my-pass') },
-          userRole === 'admin'
-            ? { label: 'Admin', onClick: () => navigate('/admin') }
-            : userRole === 'security'
-            ? { label: 'Scanner', onClick: () => navigate('/security') }
-            : { label: 'Register', onClick: () => navigate('/entry-registration') },
-          { label: 'Sign Out', onClick: handleLogout },
-        ]
-      : [{ label: 'Sign In', onClick: () => navigate('/login') }]),
+  const itemVariants = {
+    closed: { opacity: 0, y: 8 },
+    open: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: 0.2 + i * 0.06, duration: 0.4, ease: 'easeOut' }
+    })
+  }
+
+  // Build nav items based on auth state
+  const navItems = [
+    { to: '/', label: 'Home', index: '01', always: true },
   ]
+
+  // Only show these if logged in
+  if (user) {
+    navItems.push({ to: '/events', label: 'Events', index: '02', always: false })
+    navItems.push({ to: '/entry-registration', label: 'Entry Pass', index: '03', always: false })
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    setIsOpen(false)
+    navigate('/')
+  }
 
   // User initial for avatar
   const userInitial = user?.displayName?.[0] || user?.email?.[0] || '?'
@@ -44,6 +74,7 @@ export default function Navbar() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 md:px-6 bg-charcoal/90 backdrop-blur-sm border-b border-white/[0.04]">
+
         {/* Left: Back or Brand */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {!isTopLevel && (
@@ -60,13 +91,14 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Right: Auth Status */}
+        {/* Right: Auth + Menu Toggle */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {!loading && (
             <>
               {user ? (
-                /* Logged in — show avatar initial + role shortcut */
+                /* Logged in — show avatar initial */
                 <div className="flex items-center gap-2">
+                  {/* Admin dashboard link */}
                   {userRole === 'admin' && (
                     <Link
                       to="/admin"
@@ -77,6 +109,7 @@ export default function Navbar() {
                       <span className="hidden sm:inline">Dashboard</span>
                     </Link>
                   )}
+                  {/* Security scanner link */}
                   {userRole === 'security' && (
                     <Link
                       to="/security"
@@ -87,6 +120,7 @@ export default function Navbar() {
                       <span className="hidden sm:inline">Scanner</span>
                     </Link>
                   )}
+                  {/* User avatar */}
                   <div
                     className="w-7 h-7 rounded-full bg-emerald/20 border border-emerald/30 flex items-center justify-center text-emerald font-mono text-xs uppercase"
                     title={user.displayName || user.email}
@@ -107,11 +141,102 @@ export default function Navbar() {
               )}
             </>
           )}
+
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-9 h-9 flex items-center justify-center text-steel hover:text-bone transition-colors relative z-[60]"
+            aria-label="Menu"
+          >
+            <div className="w-5 flex flex-col gap-[5px]">
+              <span className={cn("block h-px bg-current transition-all duration-300 origin-center", isOpen && "rotate-45 translate-y-[3px]")} />
+              <span className={cn("block h-px bg-current transition-all duration-300 origin-center", isOpen && "-rotate-45 -translate-y-[3px]")} />
+            </div>
+          </button>
         </div>
       </header>
 
-      {/* Liquid Morph Floating Navbar centered at the top */}
-      <FloatingMenu items={floatingMenuItems} position="top" />
+      {/* Full-screen menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial="closed"
+            animate="open"
+            exit="closed"
+            variants={menuVariants}
+            className="fixed inset-0 z-40 bg-charcoal flex flex-col justify-end pb-24 px-6 md:px-12"
+          >
+            <nav className="flex flex-col gap-1">
+              {navItems.map((item, i) => (
+                <motion.div key={item.to} custom={i} variants={itemVariants}>
+                  <Link
+                    to={item.to}
+                    className={cn(
+                      "flex items-baseline gap-4 py-3 group transition-colors",
+                      location.pathname === item.to ? "text-bone" : "text-steel hover:text-bone"
+                    )}
+                  >
+                    <span className="font-mono text-[10px] tracking-widest text-brass-dim w-6">{item.index}</span>
+                    <span className="font-display text-2xl sm:text-3xl md:text-5xl tracking-wide uppercase">{item.label}</span>
+                  </Link>
+                </motion.div>
+              ))}
+
+              {/* Auth section, separated */}
+              <motion.div custom={navItems.length} variants={itemVariants} className="mt-8 pt-6 border-t border-white/[0.06]">
+                {user ? (
+                  <div className="flex flex-col gap-4">
+                    {/* User info */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald/20 border border-emerald/30 flex items-center justify-center text-emerald font-mono text-sm uppercase shrink-0">
+                        {userInitial}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-mono text-xs sm:text-sm text-bone truncate">{user.displayName || user.email}</p>
+                        <p className="font-mono text-[10px] text-steel/50 uppercase tracking-wider">{userRole}</p>
+                      </div>
+                    </div>
+                    {/* Admin link in menu */}
+                    {userRole === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center gap-3 text-brass hover:text-brass-dim transition-colors font-mono text-sm tracking-wider"
+                      >
+                        <LayoutDashboard size={15} strokeWidth={1.5} />
+                        Admin Dashboard
+                      </Link>
+                    )}
+                    {/* Logout */}
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 text-steel hover:text-crimson transition-colors font-mono text-sm tracking-wider"
+                    >
+                      <LogOut size={15} strokeWidth={1.5} />
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    <Link
+                      to="/login"
+                      className="flex items-center gap-3 text-steel hover:text-bone transition-colors font-mono text-sm tracking-wider"
+                    >
+                      <User size={15} strokeWidth={1.5} />
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="flex items-center gap-3 text-brass-dim hover:text-brass transition-colors font-mono text-sm tracking-wider"
+                    >
+                      <User size={15} strokeWidth={1.5} />
+                      Create Account
+                    </Link>
+                  </div>
+                )}
+              </motion.div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
