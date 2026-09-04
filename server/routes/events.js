@@ -1,12 +1,14 @@
 const express = require('express')
 const router = express.Router()
 const Event = require('../models/Event')
+const { verifyFirebaseToken } = require('../middleware/auth')
 
 /**
  * GET /api/events
  * Get all active events.
+ * Requires authenticated user.
  */
-router.get('/', async (req, res) => {
+router.get('/', verifyFirebaseToken, async (req, res) => {
   try {
     const events = await Event.find({ isActive: true }).sort({ category: 1, name: 1 })
     res.status(200).json(events)
@@ -19,8 +21,9 @@ router.get('/', async (req, res) => {
 /**
  * GET /api/events/:slug
  * Get a single event by slug.
+ * Requires authenticated user.
  */
-router.get('/:slug', async (req, res) => {
+router.get('/:slug', verifyFirebaseToken, async (req, res) => {
   try {
     const event = await Event.findOne({ slug: req.params.slug, isActive: true })
     if (!event) {

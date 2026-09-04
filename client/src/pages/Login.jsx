@@ -1,41 +1,116 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useAuth } from '../contexts/AuthContext'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
 
 /**
  * Login — Identity Checkpoint.
  * 
- * This is NOT the same environment as the Home page.
- * The user has moved deeper inside the Monolith. The space is tighter,
- * more compressed. The lighting shifts from the emerald Astrolabe glow
- * to warm brass—a practical overhead light illuminating the terminal.
- * 
- * Composition:
- *   Dark compressed architecture → Overhead brass light → Terminal panel → Form
- * 
- * Usability is primary. The form must be immediately obvious:
- *   Email, Password, Sign In, Google Sign In, Create Account, Back.
+ * Supports email/password login, Google sign-in, and self-service password reset.
  */
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { user, userRole, login, loginWithGoogle, resetPassword } = useAuth()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  // Password reset state
+  const [showReset, setShowReset] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetSuccess, setResetSuccess] = useState(null)
+  const [resetError, setResetError] = useState(null)
+
+  // Redirect if already logged in
+  if (user && !loading) {
+    if (userRole === 'security') return <Navigate to="/security" replace />
+    if (userRole === 'admin') return <Navigate to="/admin" replace />
+    const from = location.state?.from?.pathname || '/events'
+    return <Navigate to={from} replace />
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
     try {
-      // TODO: Firebase auth integration
-      console.log('Login attempt:', email)
-      await new Promise(r => setTimeout(r, 1000))
-      navigate('/my-pass')
+      const backendUser = await login(email, password)
+      if (backendUser?.role === 'security') {
+        navigate('/security', { replace: true })
+      } else if (backendUser?.role === 'admin') {
+        navigate('/admin', { replace: true })
+      } else {
+        const from = location.state?.from?.pathname || '/events'
+        navigate(from, { replace: true })
+      }
     } catch (err) {
-      setError(err.message || 'Authentication failed')
+      const code = err.code
+      if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+        setError('Invalid email or password.')
+      } else if (code === 'auth/wrong-password') {
+        setError('Incorrect password.')
+      } else if (code === 'auth/too-many-requests') {
+        setError('Too many attempts. Try again later or reset password below.')
+      } else {
+        setError(err.message || 'Authentication failed.')
+      }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const backendUser = await loginWithGoogle()
+      if (backendUser?.role === 'security') {
+        navigate('/security', { replace: true })
+      } else if (backendUser?.role === 'admin') {
+        navigate('/admin', { replace: true })
+      } else {
+        const from = location.state?.from?.pathname || '/events'
+        navigate(from, { replace: true })
+      }
+    } catch (err) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        setLoading(false)
+        return
+      }
+      setError(err.message || 'Google sign-in failed.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault()
+    if (!email) {
+      setResetError('Please enter your email address.')
+      return
+    }
+
+    setResetLoading(true)
+    setResetError(null)
+    setResetSuccess(null)
+
+    try {
+      await resetPassword(email)
+      setResetSuccess(`Password reset email sent to ${email}. Check your inbox and spam folder.`)
+    } catch (err) {
+      if (err.code === 'auth/user-not-found') {
+        setResetError('No account found with this email address.')
+      } else if (err.code === 'auth/invalid-email') {
+        setResetError('Please enter a valid email address.')
+      } else {
+        setResetError(err.message || 'Failed to send password reset email.')
+      }
+    } finally {
+      setResetLoading(false)
     }
   }
 
@@ -47,20 +122,14 @@ export default function Login() {
   return (
     <div className="relative min-h-screen overflow-hidden flex flex-col"
       style={{
-        /* Different environment: darker, tighter, interior space.
-           The base color shifts toward bronze/iron to distinguish from Home. */
         background: 'linear-gradient(180deg, #0d0c0a 0%, #0a0a0a 40%, #0e0d0b 100%)'
       }}
     >
-
-      {/* === INTERIOR ARCHITECTURE ===
-          Tighter vertical lines suggest the walls are closer.
-          The space feels compressed compared to Home's open monolith. */}
+      {/* Interior Architecture Lines */}
       <div className="absolute top-0 left-[12%] w-px h-full bg-gradient-to-b from-transparent via-white/[0.02] to-transparent" />
       <div className="absolute top-0 right-[12%] w-px h-full bg-gradient-to-b from-transparent via-white/[0.02] to-transparent" />
 
-      {/* Overhead brass light — practical illumination source.
-          A warm, narrow pool of light falls onto the terminal area. */}
+      {/* Overhead Brass Light */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-[1px] bg-brass/30" />
       <div className="absolute pointer-events-none"
         style={{
@@ -73,25 +142,21 @@ export default function Login() {
         }}
       />
 
-      {/* === CONTENT === */}
+      {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-8">
-
-        {/* Terminal Header — system identification */}
         <motion.div {...seq.panel} className="w-full max-w-sm">
 
-          {/* Access label */}
+          {/* Terminal Header */}
           <div className="mb-8 text-center">
             <p className="font-mono text-[10px] tracking-[0.3em] text-brass-dim uppercase mb-3">
-              System Access
+              {showReset ? 'Account Recovery' : 'System Access'}
             </p>
             <h1 className="font-display text-2xl sm:text-3xl tracking-[0.1em] text-bone uppercase">
-              Identity Checkpoint
+              {showReset ? 'Reset Password' : 'Identity Checkpoint'}
             </h1>
           </div>
 
-          {/* === THE TERMINAL PANEL ===
-              A recessed panel with physical edges. Not a glass card.
-              The brass border catches the overhead light. */}
+          {/* The Terminal Panel */}
           <motion.div {...seq.form}
             className="w-full p-6 sm:p-8"
             style={{
@@ -100,78 +165,146 @@ export default function Login() {
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03), 0 8px 40px rgba(0,0,0,0.6)'
             }}
           >
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              
-              {/* Email */}
-              <div>
-                <label className="block font-mono text-[10px] tracking-[0.15em] text-steel/60 uppercase mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
-                  placeholder="operator@vectors.dev"
-                />
-              </div>
+            {showReset ? (
+              /* Password Reset View */
+              <form onSubmit={handleResetSubmit} className="flex flex-col gap-4">
+                <p className="font-mono text-xs text-steel/70 leading-relaxed">
+                  Enter the email address registered with your account. We'll send you a link to reset your password.
+                </p>
 
-              {/* Password */}
-              <div>
-                <label className="block font-mono text-[10px] tracking-[0.15em] text-steel/60 uppercase mb-2">
-                  Access Key
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                  className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
-                  placeholder="••••••••"
-                />
-              </div>
+                {/* Email Input */}
+                <div>
+                  <label className="block font-mono text-[10px] tracking-[0.15em] text-steel/60 uppercase mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
+                    placeholder="operator@vectors.dev"
+                  />
+                </div>
 
-              {/* Error state */}
-              {error && (
-                <p className="font-mono text-xs text-crimson">{error}</p>
-              )}
+                {/* Success message */}
+                {resetSuccess && (
+                  <div className="p-3 border border-emerald/30 bg-emerald/10 text-emerald font-mono text-xs flex items-start gap-2">
+                    <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
+                    <span>{resetSuccess}</span>
+                  </div>
+                )}
 
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading || !email || !password}
-                className="w-full py-3.5 text-center font-mono text-xs tracking-[0.2em] uppercase text-charcoal bg-emerald hover:bg-emerald-dim disabled:opacity-30 disabled:cursor-not-allowed transition-colors mt-1"
-              >
-                {loading ? 'Authenticating...' : 'Sign In'}
-              </button>
+                {/* Error message */}
+                {resetError && (
+                  <p className="font-mono text-xs text-crimson">{resetError}</p>
+                )}
 
-              {/* Divider */}
-              <div className="flex items-center gap-3 my-1">
-                <div className="flex-1 h-px bg-white/[0.04]" />
-                <span className="font-mono text-[9px] tracking-widest text-steel/40 uppercase">or</span>
-                <div className="flex-1 h-px bg-white/[0.04]" />
-              </div>
+                {/* Send button */}
+                <button
+                  type="submit"
+                  disabled={resetLoading || !email}
+                  className="w-full py-3.5 text-center font-mono text-xs tracking-[0.2em] uppercase text-charcoal bg-emerald hover:bg-emerald-dim disabled:opacity-30 disabled:cursor-not-allowed transition-colors mt-1"
+                >
+                  {resetLoading ? 'Sending Link...' : 'Send Reset Link'}
+                </button>
 
-              {/* Google Sign In */}
-              <button
-                type="button"
-                className="w-full py-3.5 text-center font-mono text-xs tracking-[0.15em] uppercase text-steel border border-white/[0.06] hover:border-white/[0.12] hover:text-bone transition-all bg-white/[0.01]"
-              >
-                Continue with Google
-              </button>
-            </form>
+                {/* Back to sign in */}
+                <button
+                  type="button"
+                  onClick={() => { setShowReset(false); setResetError(null); setResetSuccess(null) }}
+                  className="w-full py-2 text-center font-mono text-xs tracking-wider text-steel/70 hover:text-bone transition-colors flex items-center justify-center gap-1.5 uppercase mt-1"
+                >
+                  <ArrowLeft size={13} /> Back to Sign In
+                </button>
+              </form>
+            ) : (
+              /* Normal Sign In Form */
+              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                
+                {/* Email */}
+                <div>
+                  <label className="block font-mono text-[10px] tracking-[0.15em] text-steel/60 uppercase mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
+                    placeholder="operator@vectors.dev"
+                  />
+                </div>
+
+                {/* Password with Forgot password button */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block font-mono text-[10px] tracking-[0.15em] text-steel/60 uppercase">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => { setShowReset(true); setError(null); setResetError(null); setResetSuccess(null) }}
+                      className="font-mono text-[10px] tracking-wider text-brass-dim hover:text-brass transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
+                    placeholder="Enter your password"
+                  />
+                </div>
+
+                {/* Error state */}
+                {error && (
+                  <p className="font-mono text-xs text-crimson">{error}</p>
+                )}
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={loading || !email || !password}
+                  className="w-full py-3.5 text-center font-mono text-xs tracking-[0.2em] uppercase text-charcoal bg-emerald hover:bg-emerald-dim disabled:opacity-30 disabled:cursor-not-allowed transition-colors mt-1"
+                >
+                  {loading ? 'Authenticating...' : 'Sign In'}
+                </button>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3 my-1">
+                  <div className="flex-1 h-px bg-white/[0.04]" />
+                  <span className="font-mono text-[9px] tracking-widest text-steel/40 uppercase">or</span>
+                  <div className="flex-1 h-px bg-white/[0.04]" />
+                </div>
+
+                {/* Google Sign In */}
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                  className="w-full py-3.5 text-center font-mono text-xs tracking-[0.15em] uppercase text-steel border border-white/[0.06] hover:border-white/[0.12] hover:text-bone transition-all bg-white/[0.01] disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Continue with Google
+                </button>
+              </form>
+            )}
           </motion.div>
 
           {/* Below the terminal — Create Account + Back */}
           <div className="mt-6 flex flex-col items-center gap-4">
             <Link
-              to="/entry-registration"
+              to="/signup"
               className="font-mono text-xs tracking-wider text-steel hover:text-bone transition-colors"
             >
-              No account? <span className="text-brass-dim">Create credential</span>
+              No account? <span className="text-brass-dim">Create account</span>
             </Link>
             <button
               onClick={() => navigate('/')}

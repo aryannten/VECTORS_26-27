@@ -3,11 +3,17 @@
 *.env
 .env.*
 
+# Firebase Admin SDK service account key
+serviceAccountKey.json
+
 # Master Specification 
 VECTORS_2026_Antigravity_Master_Specification.md
 
-# Node modules (just in case they are ever installed at root)
+# Node modules
 node_modules/
+**/node_modules/
+dist/
+**/dist/
 
 # OS generated files
 .DS_Store

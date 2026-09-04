@@ -1,12 +1,14 @@
 const express = require('express')
 const router = express.Router()
 const EntryRegistration = require('../models/EntryRegistration')
+const { verifyFirebaseToken, requireRole } = require('../middleware/auth')
 
 /**
  * POST /api/register
  * Register a new entry pass.
+ * Requires authenticated user.
  */
-router.post('/register', async (req, res) => {
+router.post('/register', verifyFirebaseToken, async (req, res) => {
   try {
     const { name, email, phone, college } = req.body
 
@@ -40,8 +42,9 @@ router.post('/register', async (req, res) => {
 /**
  * GET /api/verify/:registrationId
  * Verify an entry pass (used by security scanner).
+ * Requires security or admin role.
  */
-router.get('/verify/:registrationId', async (req, res) => {
+router.get('/verify/:registrationId', verifyFirebaseToken, requireRole('security', 'admin'), async (req, res) => {
   try {
     const { registrationId } = req.params
     const registration = await EntryRegistration.findOne({ registrationId })

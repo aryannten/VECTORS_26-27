@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, User } from 'lucide-react'
+import { ArrowLeft, User, LogOut, Shield, LayoutDashboard } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { useAuth } from '../contexts/AuthContext'
 
 /**
  * Navbar — Structural navigation.
- * Functional first: Sign In always visible, contextual back, real routing.
+ * Functional first: auth-aware, contextual back, real routing.
+ * Shows/hides nav items based on auth state and role.
  */
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+  const { user, userRole, logout, loading } = useAuth()
 
   // Top-level pages don't show a back button
-  const topLevelPaths = ['/', '/events', '/login']
+  const topLevelPaths = ['/', '/events', '/login', '/signup']
   const isTopLevel = topLevelPaths.includes(location.pathname)
 
   // Lock body scroll when menu is open
@@ -48,11 +51,25 @@ export default function Navbar() {
     })
   }
 
+  // Build nav items based on auth state
   const navItems = [
-    { to: '/', label: 'Home', index: '01' },
-    { to: '/events', label: 'Events', index: '02' },
-    { to: '/entry-registration', label: 'Entry Pass', index: '03' },
+    { to: '/', label: 'Home', index: '01', always: true },
   ]
+
+  // Only show these if logged in
+  if (user) {
+    navItems.push({ to: '/events', label: 'Events', index: '02', always: false })
+    navItems.push({ to: '/entry-registration', label: 'Entry Pass', index: '03', always: false })
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    setIsOpen(false)
+    navigate('/')
+  }
+
+  // User initial for avatar
+  const userInitial = user?.displayName?.[0] || user?.email?.[0] || '?'
 
   return (
     <>
@@ -76,14 +93,54 @@ export default function Navbar() {
 
         {/* Right: Auth + Menu Toggle */}
         <div className="flex items-center gap-2">
-          <Link
-            to="/login"
-            className="flex items-center gap-1.5 text-xs font-mono tracking-wider text-steel hover:text-bone transition-colors px-3 py-1.5"
-            aria-label="Sign In"
-          >
-            <User size={13} strokeWidth={1.5} />
-            <span className="hidden sm:inline">Sign In</span>
-          </Link>
+          {!loading && (
+            <>
+              {user ? (
+                /* Logged in — show avatar initial */
+                <div className="flex items-center gap-2">
+                  {/* Admin dashboard link */}
+                  {userRole === 'admin' && (
+                    <Link
+                      to="/admin"
+                      className="flex items-center gap-1 text-xs font-mono tracking-wider text-brass-dim hover:text-brass transition-colors px-2 py-1.5"
+                      aria-label="Admin Dashboard"
+                    >
+                      <LayoutDashboard size={13} strokeWidth={1.5} />
+                      <span className="hidden sm:inline">Dashboard</span>
+                    </Link>
+                  )}
+                  {/* Security scanner link */}
+                  {userRole === 'security' && (
+                    <Link
+                      to="/security"
+                      className="flex items-center gap-1 text-xs font-mono tracking-wider text-brass-dim hover:text-brass transition-colors px-2 py-1.5"
+                      aria-label="Security Scanner"
+                    >
+                      <Shield size={13} strokeWidth={1.5} />
+                      <span className="hidden sm:inline">Scanner</span>
+                    </Link>
+                  )}
+                  {/* User avatar */}
+                  <div
+                    className="w-7 h-7 rounded-full bg-emerald/20 border border-emerald/30 flex items-center justify-center text-emerald font-mono text-xs uppercase"
+                    title={user.displayName || user.email}
+                  >
+                    {userInitial}
+                  </div>
+                </div>
+              ) : (
+                /* Logged out — show sign in */
+                <Link
+                  to="/login"
+                  className="flex items-center gap-1.5 text-xs font-mono tracking-wider text-steel hover:text-bone transition-colors px-3 py-1.5"
+                  aria-label="Sign In"
+                >
+                  <User size={13} strokeWidth={1.5} />
+                  <span className="hidden sm:inline">Sign In</span>
+                </Link>
+              )}
+            </>
+          )}
 
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -126,13 +183,55 @@ export default function Navbar() {
 
               {/* Auth section, separated */}
               <motion.div custom={navItems.length} variants={itemVariants} className="mt-8 pt-6 border-t border-white/[0.06]">
-                <Link
-                  to="/login"
-                  className="flex items-center gap-3 text-steel hover:text-bone transition-colors font-mono text-sm tracking-wider"
-                >
-                  <User size={15} strokeWidth={1.5} />
-                  Sign In
-                </Link>
+                {user ? (
+                  <div className="flex flex-col gap-4">
+                    {/* User info */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald/20 border border-emerald/30 flex items-center justify-center text-emerald font-mono text-sm uppercase">
+                        {userInitial}
+                      </div>
+                      <div>
+                        <p className="font-mono text-sm text-bone">{user.displayName || user.email}</p>
+                        <p className="font-mono text-[10px] text-steel/50 uppercase tracking-wider">{userRole}</p>
+                      </div>
+                    </div>
+                    {/* Admin link in menu */}
+                    {userRole === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center gap-3 text-brass hover:text-brass-dim transition-colors font-mono text-sm tracking-wider"
+                      >
+                        <LayoutDashboard size={15} strokeWidth={1.5} />
+                        Admin Dashboard
+                      </Link>
+                    )}
+                    {/* Logout */}
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 text-steel hover:text-crimson transition-colors font-mono text-sm tracking-wider"
+                    >
+                      <LogOut size={15} strokeWidth={1.5} />
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    <Link
+                      to="/login"
+                      className="flex items-center gap-3 text-steel hover:text-bone transition-colors font-mono text-sm tracking-wider"
+                    >
+                      <User size={15} strokeWidth={1.5} />
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="flex items-center gap-3 text-brass-dim hover:text-brass transition-colors font-mono text-sm tracking-wider"
+                    >
+                      <User size={15} strokeWidth={1.5} />
+                      Create Account
+                    </Link>
+                  </div>
+                )}
               </motion.div>
             </nav>
           </motion.div>

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useAuth } from '../contexts/AuthContext'
 
 /**
  * AstrolabeCore — The focal mechanical object of the VECTORS world.
@@ -111,6 +112,7 @@ function AstrolabeCore() {
  */
 export default function Home() {
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   // Orchestrated entrance sequence
   const seq = {
@@ -118,6 +120,25 @@ export default function Home() {
     title: { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 1.5, delay: 0.8, ease: 'easeOut' } },
     sub:   { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 1, delay: 1.6, ease: 'easeOut' } },
     cta:   { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, delay: 2.2, ease: 'easeOut' } },
+  }
+
+  /**
+   * Gate CTA buttons behind auth — if not logged in, redirect to /login.
+   */
+  const handleEntryPass = () => {
+    if (user) {
+      navigate('/entry-registration')
+    } else {
+      navigate('/login', { state: { from: { pathname: '/entry-registration' } } })
+    }
+  }
+
+  const handleExploreEvents = () => {
+    if (user) {
+      navigate('/events')
+    } else {
+      navigate('/login', { state: { from: { pathname: '/events' } } })
+    }
   }
 
   return (
@@ -187,16 +208,16 @@ export default function Home() {
             Full-width on mobile for thumb reach. Not decorative. */}
         <motion.div {...seq.cta} className="mt-12 md:mt-16 w-full max-w-sm flex flex-col gap-3">
           <button
-            onClick={() => navigate('/entry-registration')}
+            onClick={handleEntryPass}
             className="w-full py-4 text-center font-mono text-xs tracking-[0.2em] uppercase text-charcoal bg-emerald hover:bg-emerald-dim transition-colors"
           >
-            Get Entry Pass
+            {user ? 'Get Entry Pass' : 'Sign In → Get Entry Pass'}
           </button>
           <button
-            onClick={() => navigate('/events')}
+            onClick={handleExploreEvents}
             className="w-full py-4 text-center font-mono text-xs tracking-[0.2em] uppercase text-steel border border-white/[0.08] hover:border-white/[0.15] hover:text-bone transition-all bg-white/[0.02]"
           >
-            Explore Events
+            {user ? 'Explore Events' : 'Sign In → Explore Events'}
           </button>
         </motion.div>
       </div>

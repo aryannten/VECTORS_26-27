@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 
 /**
  * Entry Registration — Multi-step form flow.
@@ -8,6 +9,7 @@ import { useState } from 'react'
  * Step 4: Success & QR Pass generation
  */
 export default function EntryRegistration() {
+  const { getToken } = useAuth()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     name: '',
@@ -27,9 +29,13 @@ export default function EntryRegistration() {
     setLoading(true)
     setError(null)
     try {
+      const token = await getToken()
       const res = await fetch('/api/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(formData),
       })
       const data = await res.json()
