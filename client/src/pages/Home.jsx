@@ -4,112 +4,8 @@ import { useAuth } from '../contexts/AuthContext'
 import FaultyTerminal from '../components/ui/FaultyTerminal'
 
 /**
- * AstrolabeCore — The focal mechanical object of the VECTORS world.
- * 
- * Built with layered SVG to suggest mechanical depth.
- * Each ring is a distinct structural element with its own rotation speed,
- * material suggestion (stroke gradient), and segmentation.
- * 
- * NOTE: This is a CSS/SVG placeholder. If it does not achieve convincing
- * mechanical depth at review, it should be replaced with a proper 3D or
- * illustrated asset in the next phase. Do not pile on more CSS effects
- * to compensate.
- */
-function AstrolabeCore() {
-  return (
-    <div className="relative w-[230px] h-[230px] xs:w-[270px] xs:h-[270px] sm:w-[320px] sm:h-[320px] md:w-[400px] md:h-[400px] max-w-full">
-      {/* Ring 1 — Outermost. Heavy iron. Slow rotation. */}
-      <motion.svg
-        animate={{ rotate: 360 }}
-        transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-        viewBox="0 0 400 400"
-        className="absolute inset-0 w-full h-full"
-        style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.8))' }}
-      >
-        {/* Segmented outer ring — dark iron with structural gaps */}
-        <circle cx="200" cy="200" r="190" fill="none" stroke="#1a1d21" strokeWidth="6"
-          strokeDasharray="40 8 80 8 40 8 80 8" strokeLinecap="butt" />
-        {/* Rivet marks */}
-        {[0, 45, 90, 135, 180, 225, 270, 315].map(angle => {
-          const rad = (angle * Math.PI) / 180
-          const x = 200 + 190 * Math.cos(rad)
-          const y = 200 + 190 * Math.sin(rad)
-          return <circle key={angle} cx={x} cy={y} r="2" fill="#7a652a" />
-        })}
-      </motion.svg>
-
-      {/* Ring 2 — Counter-rotating. Tarnished brass. Thinner, segmented. */}
-      <motion.svg
-        animate={{ rotate: -360 }}
-        transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-        viewBox="0 0 400 400"
-        className="absolute inset-0 w-full h-full"
-      >
-        <circle cx="200" cy="200" r="160" fill="none" stroke="#b89c49" strokeWidth="1.5"
-          strokeDasharray="30 20" opacity="0.5" />
-        <circle cx="200" cy="200" r="155" fill="none" stroke="#2a2e33" strokeWidth="3"
-          strokeDasharray="15 5 45 5" strokeLinecap="butt" />
-      </motion.svg>
-
-      {/* Ring 3 — Inner structural ring. Very slow. Dark bronze. */}
-      <motion.svg
-        animate={{ rotate: 360 }}
-        transition={{ duration: 200, repeat: Infinity, ease: "linear" }}
-        viewBox="0 0 400 400"
-        className="absolute inset-0 w-full h-full"
-      >
-        <circle cx="200" cy="200" r="120" fill="none" stroke="#231c17" strokeWidth="8"
-          strokeDasharray="25 4 60 4 25 4" />
-        {/* Cross-hair structural lines */}
-        <line x1="200" y1="72" x2="200" y2="88" stroke="#7a652a" strokeWidth="1" opacity="0.4" />
-        <line x1="200" y1="312" x2="200" y2="328" stroke="#7a652a" strokeWidth="1" opacity="0.4" />
-        <line x1="72" y1="200" x2="88" y2="200" stroke="#7a652a" strokeWidth="1" opacity="0.4" />
-        <line x1="312" y1="200" x2="328" y2="200" stroke="#7a652a" strokeWidth="1" opacity="0.4" />
-      </motion.svg>
-
-      {/* Ring 4 — Innermost mechanical ring. Counter-rotating. */}
-      <motion.svg
-        animate={{ rotate: -360 }}
-        transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-        viewBox="0 0 400 400"
-        className="absolute inset-0 w-full h-full"
-      >
-        <circle cx="200" cy="200" r="80" fill="none" stroke="#1a1d21" strokeWidth="4"
-          strokeDasharray="12 6" />
-        <circle cx="200" cy="200" r="76" fill="none" stroke="#b89c49" strokeWidth="0.5" opacity="0.3" />
-      </motion.svg>
-
-      {/* The Core — emerald energy source. This is the light origin. */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative">
-          {/* Core glow — the light source of the scene */}
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-emerald/80"
-            style={{
-              boxShadow: '0 0 20px rgba(0,255,102,0.6), 0 0 60px rgba(0,255,102,0.3), 0 0 120px rgba(0,255,102,0.1)'
-            }}
-          />
-          {/* Inner bright point */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-white/90" />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-
-/**
- * Home — The exterior of the Monolith.
- * 
- * The user stands before the massive wall. The Astrolabe Core is embedded
- * in the structure. The VECTORS wordmark is carved into the architecture.
- * The emerald core is the primary light source of the scene.
- * 
- * Composition (bottom to top):
- *   Ground fog → Architectural base → CTAs → Wordmark → Astrolabe → Upper wall
- * 
- * On mobile, this reads naturally as a tall vertical structure.
+ * Home — The VECTORS 26 Portal.
+ * Features the signature Beyond Logic VECTORS 26 logo, lore narrative, and gateway CTAs.
  */
 export default function Home() {
   const navigate = useNavigate()
@@ -117,10 +13,9 @@ export default function Home() {
 
   // Orchestrated entrance sequence
   const seq = {
-    core:  { initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 2, ease: [0.16, 1, 0.3, 1] } },
-    title: { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 1.5, delay: 0.8, ease: 'easeOut' } },
-    sub:   { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 1, delay: 1.6, ease: 'easeOut' } },
-    cta:   { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, delay: 2.2, ease: 'easeOut' } },
+    logo: { initial: { opacity: 0, scale: 0.92 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] } },
+    text: { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1, delay: 0.5, ease: 'easeOut' } },
+    cta:  { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, delay: 1.0, ease: 'easeOut' } },
   }
 
   /**
@@ -176,76 +71,76 @@ export default function Home() {
         }}
       />
 
-      {/* Light cast by the Astrolabe Core */}
-      <div className="absolute inset-0 pointer-events-none z-[2]"
+      {/* Atmospheric crimson backlight glow behind the logo */}
+      <div
+        className="absolute inset-0 pointer-events-none z-[2]"
         style={{
-          background: 'radial-gradient(ellipse 40% 35% at 50% 38%, rgba(0,255,102,0.06) 0%, transparent 70%)'
+          background: 'radial-gradient(ellipse 50% 40% at 50% 32%, rgba(220,38,38,0.12) 0%, rgba(184,156,73,0.04) 50%, transparent 75%)'
         }}
       />
 
-      {/* === ARCHITECTURAL FRAME ===
-          Vertical pillars at the edges suggesting the viewport is an opening
-          in the wall. Creates depth without decorative borders. */}
+      {/* Architectural edge frame */}
       <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white/[0.03] to-transparent" />
       <div className="absolute top-0 right-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white/[0.03] to-transparent" />
 
-      {/* Upper darkness — the wall extends above the Astrolabe */}
+      {/* Upper darkness */}
       <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-charcoal to-transparent z-10" />
 
-
       {/* === SCENE CONTENT === */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-20 pb-8 min-h-screen">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-20 pb-16 min-h-screen">
 
-        {/* FOCAL OBJECT — The Astrolabe Core */}
-        <motion.div {...seq.core} className="mb-8 sm:mb-10 md:mb-14">
-          <AstrolabeCore />
+        {/* LOGO — BEYOND LOGIC / VECTORS 26 */}
+        <motion.div {...seq.logo} className="w-full max-w-xl flex justify-center mb-6 sm:mb-8">
+          <img
+            src="/vectors-logo.png"
+            alt="VECTORS 26 — Beyond Logic"
+            className="w-full max-w-[320px] xs:max-w-[400px] sm:max-w-[480px] md:max-w-[540px] h-auto object-contain drop-shadow-[0_0_40px_rgba(220,38,38,0.35)] select-none"
+          />
         </motion.div>
 
-        {/* VECTORS IDENTITY — Not just large text. 
-            The wordmark is architectural: wide tracking, monumental weight,
-            positioned as if carved into the wall below the Astrolabe. */}
-        <motion.div {...seq.title} className="text-center">
-          <h1 className="font-display text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-[0.12em] sm:tracking-[0.2em] text-bone leading-[0.95] uppercase"
-            style={{ textShadow: '0 2px 30px rgba(0,0,0,0.8)' }}
-          >
-            VECTORS
-          </h1>
-          <div className="flex items-center justify-center gap-3 mt-3">
-            <div className="h-px w-8 bg-brass-dim/40" />
-            <span className="font-mono text-[10px] tracking-[0.3em] text-brass-dim uppercase">2 0 2 6</span>
-            <div className="h-px w-8 bg-brass-dim/40" />
+        {/* NARRATIVE TEXT */}
+        <motion.div {...seq.text} className="max-w-xl mx-auto text-center space-y-4 sm:space-y-5 px-2">
+          <p className="font-mono text-xs sm:text-sm text-steel/90 tracking-wider leading-relaxed">
+            The world is changing.<br />
+            Technology is evolving.<br />
+            And the next generation is being called.
+          </p>
+
+          <p className="font-mono text-xs sm:text-sm text-steel/90 tracking-wider leading-relaxed">
+            <strong className="text-crimson font-bold">VECTORS</strong> is where minds collide, machines awaken, and ideas become reality.
+          </p>
+
+          <p className="font-mono text-xs sm:text-sm text-steel/90 tracking-wider leading-relaxed">
+            From <strong className="text-bone font-semibold">robotics and coding</strong> to <strong className="text-bone font-semibold">hackathons and futuristic challenges</strong>, every battle demands skill, strategy, and innovation.
+          </p>
+
+          <div className="font-mono text-xs sm:text-sm tracking-widest uppercase font-bold leading-relaxed pt-2 text-brass">
+            The arena is set.<br />
+            The challenge awaits.<br />
+            <span className="text-emerald drop-shadow-[0_0_12px_rgba(0,255,102,0.4)]">Will you answer the call?</span>
           </div>
         </motion.div>
 
-        {/* Tagline — technical readout beneath the identity */}
-        <motion.p {...seq.sub}
-          className="font-mono text-[10px] sm:text-xs tracking-[0.15em] text-steel/60 mt-6 text-center"
-        >
-          A Technical Odyssey
-        </motion.p>
-
-        {/* CTAs — Positioned at the base of the composition.
-            Full-width on mobile for thumb reach. Not decorative. */}
-        <motion.div {...seq.cta} className="mt-12 md:mt-16 w-full max-w-sm flex flex-col gap-3">
+        {/* CTAs */}
+        <motion.div {...seq.cta} className="mt-8 sm:mt-10 md:mt-12 w-full max-w-sm flex flex-col gap-3">
           <button
             onClick={handleEntryPass}
-            className="w-full py-4 text-center font-mono text-xs tracking-[0.2em] uppercase text-charcoal bg-emerald hover:bg-emerald-dim transition-colors"
+            className="w-full py-4 text-center font-mono text-xs tracking-[0.2em] uppercase text-charcoal bg-emerald hover:bg-emerald-dim transition-colors cursor-pointer"
           >
             {user ? 'Get Entry Pass' : 'Sign In → Get Entry Pass'}
           </button>
           <button
             onClick={handleExploreEvents}
-            className="w-full py-4 text-center font-mono text-xs tracking-[0.2em] uppercase text-steel border border-white/[0.08] hover:border-white/[0.15] hover:text-bone transition-all bg-white/[0.02]"
+            className="w-full py-4 text-center font-mono text-xs tracking-[0.2em] uppercase text-steel border border-white/[0.08] hover:border-white/[0.15] hover:text-bone transition-all bg-white/[0.02] cursor-pointer"
           >
             {user ? 'Explore Events' : 'Sign In → Explore Events'}
           </button>
         </motion.div>
       </div>
 
-      {/* === GROUND FOG ===
-          Atmospheric haze at the base. Suggests physical space, 
-          illuminated slightly by the downward light of the Astrolabe. */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none z-20"
+      {/* === GROUND FOG === */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none z-20"
         style={{
           background: 'linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.4) 50%, transparent 100%)'
         }}
