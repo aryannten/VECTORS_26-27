@@ -1,37 +1,31 @@
 /**
- * VECTORS 26 — Master Event Data
- * Official Proposed Technical & Non-Technical Events
- * 
- * Strict Structure:
- * - id: unique slug for URL routing (/events/:id)
- * - name: Official event title
- * - category: 'Technical' | 'Non-Technical'
- * - branch: Department/branch alignment
- * - description: Official event introduction and participant briefing
- * - fee: Entry fee
- * - date: Scheduled date/time
- * - venue: Venue or campus location
- * - teamSize: Team size requirements
- * - prizePool: Prize details if applicable
- * - rules: Rules of engagement
- * - googleFormUrl: External registration link (set to '#' until links provided)
- * - isBranchExclusive: Boolean flag (default false)
+ * Script to synchronize all 23 official proposed events into MongoDB Atlas
+ * Run with: node scripts/sync_events.js
  */
+require('dotenv').config()
+const mongoose = require('mongoose')
+const Event = require('../models/Event')
+const connectDB = require('../config/db')
 
-export const eventsData = [
-  // ==========================================
-  // TECHNICAL EVENTS (15)
-  // ==========================================
+const officialEvents = [
+  // TECHNICAL (15)
   {
-    id: 'robo-soccer',
+    slug: 'robo-soccer',
     name: 'Robo Soccer',
     category: 'Technical',
     branch: 'Electronics / Mechanical',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 10:00 IST',
+    date: 'March 15, 2026',
+    startTime: '10:00 IST',
+    endTime: '13:00 IST',
     venue: 'Robotics Arena // Ground Floor',
     teamSize: '2–4 members',
+    minTeamSize: 2,
+    maxTeamSize: 4,
+    capacity: 32,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Trophies',
     description: 'Teams program robots to play soccer, blending mechanics and coding.',
     rules: [
@@ -39,22 +33,25 @@ export const eventsData = [
       'Robots must comply with standard size, weight, and radio frequency regulations.',
       'Matches follow knockout tournament rules with 5-minute halves.',
       'Autonomous and manual wireless-controlled bots are evaluated based on agility, goals scored, and fair play.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43210' }
     ]
   },
   {
-    id: 'prompt-mania',
+    slug: 'prompt-mania',
     name: 'Prompt Mania',
     category: 'Technical',
     branch: 'Computer',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 11:30 IST',
+    date: 'March 15, 2026',
+    startTime: '11:30 IST',
+    endTime: '13:30 IST',
     venue: 'AI & Computing Lab // Room 302',
     teamSize: 'Solo / Duo (1–2 members)',
+    minTeamSize: 1,
+    maxTeamSize: 2,
+    capacity: 60,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Merch',
     description: 'A coding challenge driven by creative prompts.',
     rules: [
@@ -62,22 +59,25 @@ export const eventsData = [
       'Prompt engineering skills, code accuracy, and algorithmic execution speed determine scoring.',
       'Multiple difficulty tiers will be unveiled in rapid rounds.',
       'Use of unauthorized third-party solvers is strictly prohibited.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43211' }
     ]
   },
   {
-    id: 'code-musketeer',
+    slug: 'code-musketeer',
     name: 'Code Musketeer',
     category: 'Technical',
     branch: 'Computer',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 14:00 IST',
+    date: 'March 15, 2026',
+    startTime: '14:00 IST',
+    endTime: '16:00 IST',
     venue: 'Software Center // Terminal 1',
     teamSize: 'Solo',
+    minTeamSize: 1,
+    maxTeamSize: 1,
+    capacity: 80,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Trophies',
     description: 'Competitive coding contest solving algorithmic problems under time limits.',
     rules: [
@@ -85,22 +85,25 @@ export const eventsData = [
       'Supported languages: C++, Java, Python 3, Go.',
       'Automated judge scoring with hidden test cases; penalty on wrong submissions.',
       'Plagiarism or use of pre-written modules will result in immediate disqualification.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43212' }
     ]
   },
   {
-    id: 'tech-arena',
+    slug: 'tech-arena',
     name: 'Tech Arena',
     category: 'Technical',
     branch: 'Computer / Electronics',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 15:30 IST',
+    date: 'March 15, 2026',
+    startTime: '15:30 IST',
+    endTime: '17:30 IST',
     venue: 'Central Seminar Hall // Block A',
     teamSize: '2–3 members',
+    minTeamSize: 2,
+    maxTeamSize: 3,
+    capacity: 40,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Certificates',
     description: 'A multi-domain contest testing applied technical knowledge.',
     rules: [
@@ -108,22 +111,25 @@ export const eventsData = [
       'Round 1: Rapid technical triage and diagnostic round.',
       'Round 2: Applied problem-solving and architectural synthesis.',
       'Teams are evaluated on accuracy, technical breadth, and innovative approaches.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43213' }
     ]
   },
   {
-    id: 'technical-treasure-hunt',
+    slug: 'technical-treasure-hunt',
     name: 'Technical Treasure Hunt',
     category: 'Technical',
     branch: 'Computer',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 16, 2026 // 09:30 IST',
+    date: 'March 16, 2026',
+    startTime: '09:30 IST',
+    endTime: '12:30 IST',
     venue: 'Campus IT Corridor & Tech Labs',
     teamSize: '3–4 members',
+    minTeamSize: 3,
+    maxTeamSize: 4,
+    capacity: 40,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Goodies',
     description: 'Clue-based hunt requiring engineering and IT problem-solving.',
     rules: [
@@ -131,22 +137,25 @@ export const eventsData = [
       'Each solved riddle unlocks coordinates to the next engineering checkpoint.',
       'Fastest team to complete all technical stages and decrypt the final token wins.',
       'Team members must stay together throughout the hunt.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43214' }
     ]
   },
   {
-    id: 'ui-nightmare',
+    slug: 'ui-nightmare',
     name: 'UI Nightmare',
     category: 'Technical',
     branch: 'Computer',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 16, 2026 // 11:00 IST',
+    date: 'March 16, 2026',
+    startTime: '11:00 IST',
+    endTime: '12:30 IST',
     venue: 'Design & Media Lab // Room 205',
     teamSize: 'Solo / Duo (1–2 members)',
+    minTeamSize: 1,
+    maxTeamSize: 2,
+    capacity: 50,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Certificates',
     description: 'Participants fix flawed user interfaces to improve usability.',
     rules: [
@@ -154,22 +163,25 @@ export const eventsData = [
       'Tasks involve redesigning CSS, fixing layout bugs, improving responsiveness, and ensuring accessibility.',
       'Evaluated on UX heuristics, aesthetic polish, and clean code implementation.',
       'All fixes must be completed within the allotted 60-minute sprint.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43215' }
     ]
   },
   {
-    id: 'break-the-pattern',
+    slug: 'break-the-pattern',
     name: 'Break the Pattern',
     category: 'Technical',
     branch: 'Computer',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 16, 2026 // 13:00 IST',
+    date: 'March 16, 2026',
+    startTime: '13:00 IST',
+    endTime: '14:30 IST',
     venue: 'Logic & Computation Hall // Room 401',
     teamSize: 'Solo / Duo (1–2 members)',
+    minTeamSize: 1,
+    maxTeamSize: 2,
+    capacity: 50,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Merch',
     description: 'A design logic challenge focused on identifying and breaking patterns.',
     rules: [
@@ -177,22 +189,25 @@ export const eventsData = [
       'The objective is to identify hidden algorithmic patterns and formulate edge cases that break expected outputs.',
       'Speed and analytical lateral thinking are essential.',
       'Points awarded for rigorous proofs and counter-examples.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43216' }
     ]
   },
   {
-    id: 'project-competition',
+    slug: 'project-competition',
     name: 'Project Competition',
     category: 'Technical',
     branch: 'Multi-branch',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 10:00 IST',
+    date: 'March 15, 2026',
+    startTime: '10:00 IST',
+    endTime: '15:00 IST',
     venue: 'Innovation Hub // Main Courtyard',
     teamSize: '2–4 members',
+    minTeamSize: 2,
+    maxTeamSize: 4,
+    capacity: 50,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Grand Cash Prizes & Trophies',
     description: 'Students present innovative technical projects for evaluation.',
     rules: [
@@ -200,22 +215,25 @@ export const eventsData = [
       'Working prototype demonstration is mandatory during jury evaluation.',
       'Teams must present a 5-minute pitch followed by technical Q&A.',
       'Judging criteria: Innovation (30%), Technical Depth (30%), Practical Impact (20%), Presentation (20%).'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43217' }
     ]
   },
   {
-    id: 'technical-paper-presentation',
+    slug: 'technical-paper-presentation',
     name: 'Technical Paper Presentation',
     category: 'Technical',
     branch: 'Multi-branch',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 13:30 IST',
+    date: 'March 15, 2026',
+    startTime: '13:30 IST',
+    endTime: '16:30 IST',
     venue: 'Conference Auditorium 1',
     teamSize: '1–3 members',
+    minTeamSize: 1,
+    maxTeamSize: 3,
+    capacity: 40,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Publication Certificates',
     description: 'Formal presentation of research and technical papers.',
     rules: [
@@ -223,22 +241,25 @@ export const eventsData = [
       'Each team receives 8 minutes for presentation and 2 minutes for questions from the panel of professors.',
       'Plagiarism limit strictly enforced (below 15%).',
       'Evaluation based on research novelty, methodology, conclusions, and delivery.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43218' }
     ]
   },
   {
-    id: 'breaking-the-ai',
+    slug: 'breaking-the-ai',
     name: 'Breaking the AI',
     category: 'Technical',
     branch: 'Computer',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 16, 2026 // 14:30 IST',
+    date: 'March 16, 2026',
+    startTime: '14:30 IST',
+    endTime: '16:30 IST',
     venue: 'Machine Learning Lab // Room 304',
     teamSize: 'Solo / Duo (1–2 members)',
+    minTeamSize: 1,
+    maxTeamSize: 2,
+    capacity: 50,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Tech Gear',
     description: 'Contest to test and challenge AI systems creatively.',
     rules: [
@@ -246,22 +267,25 @@ export const eventsData = [
       'Participants must induce guarded AI models to reveal hidden flags, bypass safety alignment, or produce logical paradoxes.',
       'Each successfully uncovered vulnerability or jailbreak earns points based on difficulty tier.',
       'All prompt logs are recorded for impartial jury verification.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43219' }
     ]
   },
   {
-    id: 'technical-debate',
+    slug: 'technical-debate',
     name: 'Technical Debate',
     category: 'Technical',
     branch: 'Multi-branch',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 15:00 IST',
+    date: 'March 15, 2026',
+    startTime: '15:00 IST',
+    endTime: '17:00 IST',
     venue: 'Seminar Hall B // Academic Block',
     teamSize: '2 members',
+    minTeamSize: 2,
+    maxTeamSize: 2,
+    capacity: 32,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Trophies',
     description: 'Structured debate on engineering and technology topics.',
     rules: [
@@ -269,22 +293,25 @@ export const eventsData = [
       'Teams are allotted stance (For / Against) 10 minutes prior to the round.',
       'Format includes opening statements, cross-examination, and closing arguments.',
       'Scoring based on argumentative rigor, technical facts, rebuttal quality, and poise.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43220' }
     ]
   },
   {
-    id: 'technical-quiz',
+    slug: 'technical-quiz',
     name: 'Technical Quiz',
     category: 'Technical',
     branch: 'Multi-branch',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 16, 2026 // 10:30 IST',
+    date: 'March 16, 2026',
+    startTime: '10:30 IST',
+    endTime: '12:30 IST',
     venue: 'Auditorium 2',
     teamSize: '2 members',
+    minTeamSize: 2,
+    maxTeamSize: 2,
+    capacity: 60,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Certificates',
     description: 'Quiz competition testing knowledge of engineering and IT.',
     rules: [
@@ -292,22 +319,25 @@ export const eventsData = [
       'Top 6 teams advance to live onstage buzzer finals.',
       'Finals include visual connect rounds, rapid-fire gauntlets, and high-risk wager questions.',
       'Use of smartphones or external aids will result in disqualification.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43221' }
     ]
   },
   {
-    id: 'volt-rush',
+    slug: 'volt-rush',
     name: 'Volt Rush',
     category: 'Technical',
     branch: 'Electrical',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 11:00 IST',
+    date: 'March 15, 2026',
+    startTime: '11:00 IST',
+    endTime: '13:00 IST',
     venue: 'Power & Electronics Lab // Room 108',
     teamSize: '1–2 members',
+    minTeamSize: 1,
+    maxTeamSize: 2,
+    capacity: 40,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Hardware Kits',
     description: 'Electrical engineering challenge involving circuits and innovation.',
     rules: [
@@ -315,22 +345,25 @@ export const eventsData = [
       'Participants must diagnose schematic anomalies, assemble breadboard circuits, and measure waveforms.',
       'Safety protocols and insulation equipment must be observed at all times.',
       'Evaluated on circuit accuracy, noise suppression, and speed.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43222' }
     ]
   },
   {
-    id: 'cad-design-sprint',
+    slug: 'cad-design-sprint',
     name: 'CAD Design Sprint',
     category: 'Technical',
     branch: 'Mechanical',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 16, 2026 // 11:30 IST',
+    date: 'March 16, 2026',
+    startTime: '11:30 IST',
+    endTime: '13:30 IST',
     venue: 'CAD/CAM Modeling Studio // Room 202',
     teamSize: 'Solo / Duo (1–2 members)',
+    minTeamSize: 1,
+    maxTeamSize: 2,
+    capacity: 40,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Trophies',
     description: 'Mechanical design contest using CAD software to model parts/assemblies quickly.',
     rules: [
@@ -338,22 +371,25 @@ export const eventsData = [
       'Participants must model 3D parametric components and assemblies within the sprint timer.',
       'Supported CAD tools: AutoCAD, SolidWorks, Fusion 360, CATIA.',
       'Scoring based on dimensional accuracy, constraint definition, rendering quality, and speed.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43223' }
     ]
   },
   {
-    id: 'embedded-systems-showdown',
+    slug: 'embedded-systems-showdown',
     name: 'Embedded Systems Showdown',
     category: 'Technical',
     branch: 'Electronics',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 16, 2026 // 13:30 IST',
+    date: 'March 16, 2026',
+    startTime: '13:30 IST',
+    endTime: '16:00 IST',
     venue: 'Microcontroller & IoT Lab // Room 112',
     teamSize: '2–3 members',
+    minTeamSize: 2,
+    maxTeamSize: 3,
+    capacity: 35,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Development Boards',
     description: 'Electronics-focused challenge building microcontroller-based solutions (Arduino, ESP32, etc.).',
     rules: [
@@ -361,26 +397,27 @@ export const eventsData = [
       'The objective is to implement firmware and interface hardware to satisfy an embedded specification.',
       'Proper pin multiplexing, interrupt handling, and sensor telemetry must be demonstrated.',
       'Judged on firmware stability, wiring elegance, and problem resolution.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43224' }
     ]
   },
 
-  // ==========================================
-  // NON-TECHNICAL EVENTS (8)
-  // ==========================================
+  // NON-TECHNICAL (8)
   {
-    id: 'lazar-room',
+    slug: 'lazar-room',
     name: 'Lazar Room',
     category: 'Non-Technical',
     branch: 'Electronics / Electrical',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 10:30 IST',
+    date: 'March 15, 2026',
+    startTime: '10:30 IST',
+    endTime: '13:30 IST',
     venue: 'Sensor Optics Lab // Ground Floor',
     teamSize: '2–4 members',
+    minTeamSize: 2,
+    maxTeamSize: 4,
+    capacity: 50,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Merch',
     description: 'A puzzle-based lab challenge testing engineering problem-solving.',
     rules: [
@@ -388,22 +425,25 @@ export const eventsData = [
       'Solve engineering riddles, calibrate optical alignments, and redirect beams to hit designated targets.',
       'Points awarded based on puzzle completion time and penalty-free moves.',
       'Safety eyewear must be worn throughout the trial.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43225' }
     ]
   },
   {
-    id: 'robo-sumo',
+    slug: 'robo-sumo',
     name: 'Robo Sumo',
     category: 'Non-Technical',
     branch: 'Electronics / Mechanical',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 16, 2026 // 11:00 IST',
+    date: 'March 16, 2026',
+    startTime: '11:00 IST',
+    endTime: '14:00 IST',
     venue: 'Combat Ring // Central Arena',
     teamSize: '2–4 members',
+    minTeamSize: 2,
+    maxTeamSize: 4,
+    capacity: 32,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Trophies',
     description: 'Robots battle in a sumo-style arena, showcasing design and control.',
     rules: [
@@ -411,22 +451,25 @@ export const eventsData = [
       'The bot that first pushes the opponent out of the ring or disables it wins the round.',
       'Weight limit: Max 5 kg; no destructive weapons (saws, flames) allowed; traction and pushing power only.',
       'Match consists of three 2-minute rounds.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43226' }
     ]
   },
   {
-    id: 'rc-racing',
+    slug: 'rc-racing',
     name: 'RC Racing',
     category: 'Non-Technical',
     branch: 'Mechanical',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 14:00 IST',
+    date: 'March 15, 2026',
+    startTime: '14:00 IST',
+    endTime: '17:00 IST',
     venue: 'Outdoor Velocity Track // Quadrangle',
     teamSize: 'Solo / Team (1–2 members)',
+    minTeamSize: 1,
+    maxTeamSize: 2,
+    capacity: 40,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Trophies',
     description: 'Remote-controlled cars race on tracks, testing speed and precision.',
     rules: [
@@ -434,22 +477,25 @@ export const eventsData = [
       'Format includes time-trial qualifying laps followed by elimination grid races.',
       'Battery voltage must adhere to track safety regulations.',
       'Fastest overall lap time wins the championship title.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43227' }
     ]
   },
   {
-    id: 'vr',
+    slug: 'vr',
     name: 'VR (Virtual Reality)',
     category: 'Non-Technical',
     branch: 'Computer',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 12:00 IST',
+    date: 'March 15, 2026',
+    startTime: '12:00 IST',
+    endTime: '15:00 IST',
     venue: 'Immersive Tech Lounge // Room 301',
     teamSize: 'Solo / Duo (1–2 members)',
+    minTeamSize: 1,
+    maxTeamSize: 2,
+    capacity: 60,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & VR Merchandise',
     description: 'Exploring and building virtual reality experiences.',
     rules: [
@@ -457,22 +503,25 @@ export const eventsData = [
       'High-performance VR headsets and sensory motion controllers provided on site.',
       'Scoring based on agility, spatial orientation, and score tallies in simulated trials.',
       'Fair play and safety guidelines strictly monitored by lab marshals.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43228' }
     ]
   },
   {
-    id: 'escape-room',
+    slug: 'escape-room',
     name: 'Escape Room',
     category: 'Non-Technical',
     branch: 'Multi-branch',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 16, 2026 // 10:00 IST',
+    date: 'March 16, 2026',
+    startTime: '10:00 IST',
+    endTime: '13:00 IST',
     venue: 'Mystery Chambers // Basement Lab B',
     teamSize: '3–5 members',
+    minTeamSize: 3,
+    maxTeamSize: 5,
+    capacity: 50,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Goodies',
     description: 'A problem-solving challenge where teams escape using logic and tech clues.',
     rules: [
@@ -480,22 +529,25 @@ export const eventsData = [
       'Crack encrypted physical locks, discover hidden infrared clues, and bypass logic relays.',
       'Three hints are available with timed point penalties.',
       'The team that breaks out in the shortest time claims victory.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43229' }
     ]
   },
   {
-    id: 'squid-games',
+    slug: 'squid-games',
     name: 'Squid Games',
     category: 'Non-Technical',
     branch: 'Multi-branch',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 16, 2026 // 14:00 IST',
+    date: 'March 16, 2026',
+    startTime: '14:00 IST',
+    endTime: '17:00 IST',
     venue: 'Campus Sports Ground // Sector 4',
     teamSize: 'Solo / Squad (up to 4 members)',
+    minTeamSize: 1,
+    maxTeamSize: 4,
+    capacity: 100,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Trophies',
     description: 'A set of competitive survival-style tasks adapted with technical twists.',
     rules: [
@@ -503,22 +555,25 @@ export const eventsData = [
       'Elimination format after each mini-game round.',
       'Referees and automated sensors judge boundary crossings and timer violations.',
       'Last remaining contestants contest the final showdown.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43230' }
     ]
   },
   {
-    id: 'ipl-auction',
+    slug: 'ipl-auction',
     name: 'IPL Auction',
     category: 'Non-Technical',
     branch: 'Multi-branch',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 15:30 IST',
+    date: 'March 15, 2026',
+    startTime: '15:30 IST',
+    endTime: '18:30 IST',
     venue: 'Management Seminar Hall // Room 105',
     teamSize: '2–4 members',
+    minTeamSize: 2,
+    maxTeamSize: 4,
+    capacity: 40,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Trophies',
     description: 'Simulation of IPL-style bidding and team formation.',
     rules: [
@@ -526,22 +581,25 @@ export const eventsData = [
       'Dynamic live bidding on marquee batsmen, bowlers, all-rounders, and emerging cricket stars.',
       'Budget management, squad rating balance, and strategic bidding determine the final leaderboard.',
       'Franchises exceeding purse limits or failing team quota are penalized.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43231' }
     ]
   },
   {
-    id: 'neon-sports',
+    slug: 'neon-sports',
     name: 'Neon Football / Neon Cricket',
     category: 'Non-Technical',
     branch: 'Multi-branch',
     isBranchExclusive: false,
     fee: 'TBA',
-    date: 'March 15, 2026 // 18:00 IST',
+    date: 'March 15, 2026',
+    startTime: '18:00 IST',
+    endTime: '21:00 IST',
     venue: 'Indoor Sports Complex // Neon Arena',
     teamSize: 'Squad (5–7 members)',
+    minTeamSize: 5,
+    maxTeamSize: 7,
+    capacity: 50,
+    registrationOpen: true,
+    status: 'open',
     prizePool: 'Exciting Cash Prizes & Medals',
     description: 'Glow-in-the-dark sports event with neon lighting.',
     rules: [
@@ -549,28 +607,33 @@ export const eventsData = [
       'Short 10-minute halves for Football; 4-over super-over brackets for Cricket.',
       'Strict non-contact rules to ensure player safety.',
       'Tournament follows single-elimination knockout format.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Student Coordinator', contact: '+91 98765 43232' }
     ]
   }
 ]
 
-/**
- * Helper to fetch events filtered by category
- */
-export function getEventsByCategory(category) {
-  if (!category) return eventsData
-  return eventsData.filter(
-    (e) => e.category.toLowerCase() === category.toLowerCase()
-  )
+async function syncAllEvents() {
+  console.log('Connecting to MongoDB Atlas...')
+  await connectDB()
+
+  console.log(`Starting sync for ${officialEvents.length} official proposed events...`)
+
+  // Upsert all official events
+  for (const evt of officialEvents) {
+    await Event.findOneAndUpdate(
+      { slug: evt.slug },
+      { $set: evt },
+      { upsert: true, new: true }
+    )
+    console.log(`✓ Upserted [${evt.category.toUpperCase()}] ${evt.name} (${evt.slug})`)
+  }
+
+  const total = await Event.countDocuments()
+  console.log(`\nSynchronization complete! Total events in MongoDB Atlas: ${total}`)
+  await mongoose.disconnect()
+  process.exit(0)
 }
 
-/**
- * Helper to get a single event by ID/slug
- */
-export function getEventById(id) {
-  if (!id) return null
-  return eventsData.find((e) => e.id.toLowerCase() === id.toLowerCase())
-}
+syncAllEvents().catch((err) => {
+  console.error('Failed to sync events:', err)
+  process.exit(1)
+})
