@@ -65,15 +65,15 @@ export default function Events() {
     return Array.from(branches)
   }, [activeCategory, techEvents, nonTechEvents])
 
-  // Category Switch Handler
+  // Category Switch Handler — push to history stack so browser back works naturally
   const handleSelectCategory = (cat) => {
     setSelectedBranch('ALL')
-    setSearchParams({ category: cat })
+    setSearchParams({ category: cat }, { replace: false })
   }
 
   const handleClearCategory = () => {
     setSelectedBranch('ALL')
-    setSearchParams({})
+    setSearchParams({}, { replace: false })
   }
 
   return (
@@ -90,9 +90,16 @@ export default function Events() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.5 }}
-              className="space-y-12 sm:space-y-16"
+              transition={{ duration: 0.4 }}
+              className="space-y-10 sm:space-y-14"
             >
+              {/* Contextual Breadcrumb */}
+              <nav aria-label="Breadcrumb" className="flex items-center gap-2 font-mono text-xs text-text-muted">
+                <Link to="/" className="hover:text-doom-glow transition-colors">Home</Link>
+                <span className="text-white/30">/</span>
+                <span className="text-doom-glow font-bold">Events</span>
+              </nav>
+
               {/* Header */}
               <div className="text-center space-y-3 sm:space-y-4 max-w-2xl mx-auto">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-doom-bg2 border border-doom-glow/30">
@@ -257,19 +264,36 @@ export default function Events() {
               {/* Top Navigation & Category Switcher Bar */}
               <div className="flex flex-col gap-5 border-b border-white/[0.08] pb-6">
                 
-                {/* Upper row: Return button + Telemetry */}
+                {/* Upper row: Breadcrumbs & Return button */}
                 <div className="flex items-center justify-between flex-wrap gap-4">
-                  <button
-                    onClick={handleClearCategory}
-                    className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-text-muted hover:text-doom-glow transition-colors cursor-pointer py-1"
-                  >
-                    <ArrowLeft size={15} />
-                    <span>← RETURN TO SECTOR SELECTION</span>
-                  </button>
+                  <nav aria-label="Breadcrumb" className="flex items-center gap-2 font-mono text-xs text-text-muted">
+                    <Link to="/" className="hover:text-doom-glow transition-colors">Home</Link>
+                    <span className="text-white/30">/</span>
+                    <button
+                      onClick={handleClearCategory}
+                      className="hover:text-doom-glow transition-colors cursor-pointer"
+                    >
+                      Events
+                    </button>
+                    <span className="text-white/30">/</span>
+                    <span className="text-doom-glow font-bold uppercase">
+                      {activeCategory === 'technical' ? 'Technical Events' : 'Non-Technical Events'}
+                    </span>
+                  </nav>
 
-                  <span className="font-mono text-[11px] tracking-wider text-doom-glow bg-doom-glow/10 px-2.5 py-1 border border-doom-glow/30">
-                    DISCIPLINE // {activeCategory === 'technical' ? 'TECHNICAL' : 'NON-TECHNICAL'}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleClearCategory}
+                      className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-text-muted hover:text-doom-glow transition-colors cursor-pointer py-1.5 px-3 bg-white/[0.04] border border-white/[0.08] hover:border-doom-glow/30"
+                    >
+                      <ArrowLeft size={13} />
+                      <span>Change Sector</span>
+                    </button>
+
+                    <span className="font-mono text-[11px] tracking-wider text-doom-glow bg-doom-glow/10 px-2.5 py-1 border border-doom-glow/30 hidden sm:inline-block">
+                      {activeCategory === 'technical' ? 'SECTOR // 01' : 'SECTOR // 02'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Primary Category Switcher Tabs */}

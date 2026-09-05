@@ -22,7 +22,7 @@ export default function Signup() {
 
   // Redirect if already logged in
   if (user) {
-    return <Navigate to="/events" replace />
+    return <Navigate to="/" replace />
   }
 
   const handleSubmit = async (e) => {
@@ -42,7 +42,7 @@ export default function Signup() {
     setLoading(true)
     try {
       await signup(email, password, displayName)
-      navigate('/events', { replace: true })
+      navigate('/', { replace: true })
     } catch (err) {
       const code = err.code
       if (code === 'auth/email-already-in-use') {
@@ -64,7 +64,7 @@ export default function Signup() {
     setError(null)
     try {
       await loginWithGoogle()
-      navigate('/events', { replace: true })
+      navigate('/', { replace: true })
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') {
         setLoading(false)

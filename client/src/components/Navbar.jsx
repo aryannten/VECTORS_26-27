@@ -161,7 +161,9 @@ export default function Navbar() {
         {user && (
           <nav className="hidden md:flex items-center gap-1 lg:gap-3" aria-label="Main Navigation">
             {navItems.map((item) => {
-              const isActive = location.pathname === item.to
+              const isActive = item.to === '/'
+                ? location.pathname === '/'
+                : location.pathname.startsWith(item.to)
               return (
                 <Link
                   key={item.to}
@@ -273,14 +275,30 @@ export default function Navbar() {
             {/* Top Seam Glow inside mobile menu */}
             <div className="absolute top-16 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-doom-glow/40 to-transparent shadow-[0_0_10px_rgba(30,255,160,0.5)]" />
 
+            {/* Mobile Header with Close Action */}
+            <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-text-muted">Navigation Menu</span>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-1.5 font-mono text-xs text-text-muted hover:text-doom-glow uppercase tracking-wider px-2 py-1 bg-white/[0.04] border border-white/[0.08]"
+                aria-label="Close menu"
+              >
+                <span>✕</span>
+                <span>Close</span>
+              </button>
+            </div>
+
             {/* Nav links */}
             <nav className="flex flex-col gap-2">
               {navItems.map((item, i) => {
-                const isActive = location.pathname === item.to
+                const isActive = item.to === '/'
+                  ? location.pathname === '/'
+                  : location.pathname.startsWith(item.to)
                 return (
                   <motion.div key={item.to} custom={i} variants={itemVariants}>
                     <Link
                       to={item.to}
+                      onClick={() => setIsOpen(false)}
                       className={cn(
                         'flex items-center gap-4 py-3.5 border-b border-white/[0.04] transition-colors',
                         isActive ? 'text-doom-glow border-doom-glow/30' : 'text-text-muted hover:text-text-primary'

@@ -44,19 +44,27 @@ export default function EventDetail() {
     <div className="min-h-screen px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-36 relative z-10">
       <div className="max-w-3xl mx-auto space-y-8 sm:space-y-10">
         
-        {/* Top Back Navigation (Preserves Category View) */}
-        <div className="flex items-center justify-between flex-wrap gap-4 border-b border-white/[0.08] pb-4">
+        {/* Breadcrumb Navigation & Top Action */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 font-mono text-xs text-text-muted flex-wrap">
+            <Link to="/" className="hover:text-doom-glow transition-colors">Home</Link>
+            <span className="text-white/30">/</span>
+            <Link to="/events" className="hover:text-doom-glow transition-colors">Events</Link>
+            <span className="text-white/30">/</span>
+            <Link to={`/events?category=${categoryQuery}`} className="hover:text-doom-glow transition-colors">
+              {event.category} Events
+            </Link>
+            <span className="text-white/30">/</span>
+            <span className="text-doom-glow font-bold truncate max-w-[180px] sm:max-w-xs">{event.name}</span>
+          </nav>
+
           <Link
             to={`/events?category=${categoryQuery}`}
-            className="inline-flex items-center gap-2 font-mono text-xs text-text-muted hover:text-doom-glow transition-colors uppercase tracking-widest py-1"
+            className="inline-flex items-center gap-2 font-mono text-xs text-text-muted hover:text-doom-glow transition-colors uppercase tracking-widest py-1 px-2.5 bg-white/[0.03] border border-white/[0.06] hover:border-doom-glow/30 self-start sm:self-auto"
           >
-            <ArrowLeft size={14} />
-            <span>← Back to {event.category} Events</span>
+            <ArrowLeft size={13} />
+            <span>Back to {event.category}</span>
           </Link>
-
-          <span className="font-mono text-[11px] tracking-wider text-text-muted bg-white/[0.03] px-2.5 py-0.5 border border-white/[0.06]">
-            SPEC // PROTOCOL-{event.id.toUpperCase()}
-          </span>
         </div>
 
         {/* Event Header */}
