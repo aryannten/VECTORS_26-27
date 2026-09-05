@@ -1,14 +1,14 @@
-# VECTORS 26-27 — Doomsday Protocol
+# VECTORS 26-27
 
-The official web platform and digital entry system for VECTORS 2026, the annual college technical festival. Built around an **Avengers: Doomsday** visual identity (Doctor Doom / Latverian architecture aesthetic) featuring interactive WebGL shaders, role-based access control, digital entry passes with QR check-in, and an admin command center.
+The official web platform and digital entry system for VECTORS 26-27, the annual college technical festival. Features an immersive brutalist visual identity, interactive WebGL shaders, role-based access control, digital entry passes with QR check-in, and an admin command center.
 
 ---
 
 ## Overview
 
-VECTORS 26 is a full-stack web application designed to handle both festival experience and logistics:
+VECTORS 26-27 is a full-stack web application designed to handle both festival experience and logistics:
 
-1. **Cinematic Fest Experience**: Immersive dark-mode visual interface with Latverian architectural elements, custom SVG wordmarks, interactive liquid metal (OGL ferrofluid simulation), and Framer Motion micro-interactions.
+1. **Cinematic Fest Experience**: Immersive dark-mode visual interface with brutalist architectural elements, custom SVG typography, interactive liquid metal (OGL ferrofluid simulation), and Framer Motion micro-interactions.
 2. **Access-Gated Event Discovery**: Event vaults (Technical and Non-Technical) are locked behind an mandatory verified digital Entry Pass. Visitors must register their details to unlock event schedules, problem statements, and registration links.
 3. **QR Pass & Gate Scanner System**: Participants receive a unique digital pass (`VEC-XXXXXXXX`) with an on-screen QR code. Security personnel at the college gate scan passes with a mobile-optimized camera scanner to approve entry and prevent duplicate check-ins.
 4. **Admin Command Center**: Organizers get real-time metrics on total registrations, live gate check-in counts, active events, and user account management (role promotion, password resets, and user creation).
@@ -157,7 +157,7 @@ VECTORS 26 is a full-stack web application designed to handle both festival expe
 All routes are defined in `client/src/App.jsx`.
 
 ### Public Routes
-- `/` (`Home.jsx`): Hero portal featuring interactive `<Ferrofluid />` WebGL background, SVG Doomsday wordmark with Latverian ogival arch, event narrative, and entry CTAs.
+- `/` (`Home.jsx`): Hero portal featuring interactive `<Ferrofluid />` WebGL background, custom SVG brand wordmark, event narrative, and entry CTAs.
 - `/login` (`Login.jsx`): User sign-in supporting email/password and Google authentication. Redirects back to intended route after authentication.
 - `/signup` (`Signup.jsx`): New account creation with display name, email, and password.
 
@@ -181,8 +181,8 @@ Wrapped in `AdminLayout.jsx` with persistent sidebar navigation:
 
 ## Key Components Explained
 
-- **`Navbar.jsx` (`/client/src/components/Navbar.jsx`)**: Sticky header with backdrop blur (`rgba(10,12,14,0.75)` + 14px blur) and a 1px radioactive emerald glow seam along the bottom border. Shows a back button on nested routes, conditional nav links (`Home`, `Events`, `My Pass`), user avatar ring, and a slide-down mobile menu.
-- **`DoomsdayWordmark.jsx` (`/client/src/components/DoomsdayWordmark.jsx`)**: High-detail SVG wordmark for the festival title. Uses brushed chrome linear gradients, crimson core fracture lines, and an emerald energy glow filter (`#1EFFA0`) set behind an ogival Latverian Gothic arch.
+- **`Navbar.jsx` (`/client/src/components/Navbar.jsx`)**: Sticky header with backdrop blur (`rgba(10,12,14,0.75)` + 14px blur) and a 1px accent glow seam along the bottom border. Shows a back button on nested routes, conditional nav links (`Home`, `Events`, `My Pass`), user avatar ring, and a slide-down mobile menu.
+- **`DoomsdayWordmark.jsx` (`/client/src/components/DoomsdayWordmark.jsx`)**: High-detail SVG wordmark for the festival title. Uses brushed chrome linear gradients, crimson core fracture lines, and an emerald energy glow filter (`#1EFFA0`) set behind an architectural arch framework.
 - **`EntryPassGate.jsx` (`/client/src/components/EntryPassGate.jsx`)**: Intercepts access on the `/events` page. If a logged-in user does not possess an active entry pass in MongoDB, it locks the view and prompts them to complete pass registration.
 - **`Ferrofluid.jsx` (`/client/src/components/ui/Ferrofluid.jsx`)**: An OGL WebGL fragment shader simulating viscous magnetic liquid metal that ripples and shifts in real-time based on mouse coordinates and scroll velocity.
 - **`Particles.jsx` (`/client/src/components/ui/Particles.jsx`)**: Lightweight canvas particle system in emerald and chrome tones rendered on non-landing subpages for atmospheric depth.
@@ -196,7 +196,7 @@ Wrapped in `AdminLayout.jsx` with persistent sidebar navigation:
 
 VECTORS is re-themed and reused annually across different departments. Here is how to customize the site for future iterations:
 
-###  Theme, Palette & Fonts
+### Theme, Palette & Fonts
 All design tokens are centralized in `client/src/index.css` inside the `@theme` block:
 ```css
 @theme {
@@ -217,12 +217,9 @@ All design tokens are centralized in `client/src/index.css` inside the `@theme` 
 ```
 To change the aesthetic (e.g. cybernetic blue, synthwave neon, or minimal monochrome), edit these CSS variables and update the Google Fonts import in `client/index.html`.
 
-Update this array to add or modify events. The UI automatically generates the category tabs, branch filter pills, and detail pages.
-
 ---
-
 
 ## Credits & Team
 
 - **Festival**: VECTORS 26-27
-- **Theme**: Avengers: Doomsday / The Monolithic Engine
+- **Engineering & Art Direction**: VECTORS Technical Team
