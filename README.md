@@ -1,4 +1,4 @@
-# VECTORS 26 — Doomsday Protocol
+# VECTORS 26-27 — Doomsday Protocol
 
 The official web platform and digital entry system for VECTORS 2026, the annual college technical festival. Built around an **Avengers: Doomsday** visual identity (Doctor Doom / Latverian architecture aesthetic) featuring interactive WebGL shaders, role-based access control, digital entry passes with QR check-in, and an admin command center.
 
@@ -224,5 +224,5 @@ Update this array to add or modify events. The UI automatically generates the ca
 
 ## Credits & Team
 
-- **Festival**: VECTORS 2026
+- **Festival**: VECTORS 26-27
 - **Theme**: Avengers: Doomsday / The Monolithic Engine
