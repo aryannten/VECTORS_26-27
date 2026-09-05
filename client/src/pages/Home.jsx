@@ -2,19 +2,19 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import FaultyTerminal from '../components/ui/FaultyTerminal'
+import Ferrofluid from '../components/ui/Ferrofluid'
 import DoomsdayWordmark from '../components/DoomsdayWordmark'
 
 /**
  * Home — VECTORS 26 "Doomsday Protocol" Portal
  * 
- * Implements the Doomsday Protocol visual redesign:
+ * Features:
+ * - Interactive <Ferrofluid /> magnetic liquid metal background (React Bits)
  * - Fractured VECTORS 26 mark in brushed chrome with crimson cracks & emerald bleed
  * - Gothic Latverian ogival stained-glass arch framework
  * - Refined typography hierarchy: Inter body copy, Cinzel decrees, Space Mono UI
  * - Armor-plated primary CTA with 45° clipped corners & light surge sweep
  * - Ghost secondary CTA with animated arrow & expanding emerald energy underline
- * - Atmospheric gunmetal (#0A0C0E) and deep emerald (#0B7A4E) environmental shader
  */
 export default function Home() {
   const navigate = useNavigate()
@@ -58,26 +58,23 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-doom-bg overflow-hidden flex flex-col">
 
-      {/* === SHADER BACKGROUND WITH DEEP EMERALD TINT === */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <FaultyTerminal
-          scale={1.5}
-          gridMul={[2, 1]}
-          digitSize={1.2}
-          timeScale={0.85}
-          pause={false}
-          scanlineIntensity={0.85}
-          glitchAmount={0.8}
-          flickerAmount={0.6}
-          noiseAmp={0.8}
-          chromaticAberration={0}
-          dither={0}
-          curvature={0}
-          tint="#0B7A4E"
-          mouseReact={true}
-          mouseStrength={0.4}
-          pageLoadAnimation={false}
-          brightness={0.85}
+      {/* === FERROFLUID INTERACTIVE LIQUID METAL BACKGROUND === */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <Ferrofluid
+          colors={["#cccccc", "#196c2d", "#757373"]}
+          speed={0.5}
+          scale={1}
+          turbulence={1}
+          fluidity={0.1}
+          rimWidth={0.2}
+          sharpness={3}
+          shimmer={1}
+          glow={2}
+          flowDirection="down"
+          opacity={0.88}
+          mouseInteraction={true}
+          mouseStrength={1}
+          mouseRadius={0.3}
         />
       </div>
 
