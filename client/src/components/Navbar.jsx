@@ -60,12 +60,16 @@ export default function Navbar() {
     })
   }
 
-  // Navigation Links
-  const navItems = [
-    { to: '/', label: 'Home', index: '01' },
-    { to: '/events', label: 'Events', index: '02' },
-    { to: user ? '/entry-registration' : '/login', label: 'Entry Pass', index: '03' },
-  ]
+  // Navigation Links — only show protected routes when authenticated
+  const navItems = user
+    ? [
+        { to: '/', label: 'Home', index: '01' },
+        { to: '/events', label: 'Events', index: '02' },
+        { to: '/entry-registration', label: 'Entry Pass', index: '03' },
+      ]
+    : [
+        { to: '/', label: 'Home', index: '01' },
+      ]
 
   const handleLogout = async () => {
     await logout()
@@ -153,21 +157,23 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Center: Desktop Nav Links */}
-        <nav className="hidden md:flex items-center gap-1 lg:gap-3" aria-label="Main Navigation">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.to
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn('doom-nav-link', isActive && 'active')}
-              >
-                {item.label}
-              </Link>
-            )
-          })}
-        </nav>
+        {/* Center: Desktop Nav Links (Only visible when user is logged in) */}
+        {user && (
+          <nav className="hidden md:flex items-center gap-1 lg:gap-3" aria-label="Main Navigation">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.to
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn('doom-nav-link', isActive && 'active')}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
+          </nav>
+        )}
 
         {/* Right: Auth, CTA & Mobile Hamburger */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
