@@ -5,6 +5,8 @@ const { verifyFirebaseToken, requireRole } = require('../middleware/auth')
 const User = require('../models/User')
 const EntryRegistration = require('../models/EntryRegistration')
 const Event = require('../models/Event')
+const EventRegistration = require('../models/EventRegistration')
+const AuditLog = require('../models/AuditLog')
 
 // All admin routes require admin role
 router.use(verifyFirebaseToken, requireRole('admin'))
@@ -21,12 +23,14 @@ router.get('/stats', async (req, res) => {
       totalEvents,
       totalUsers,
       securityUsers,
+      totalEventRegistrations,
     ] = await Promise.all([
       EntryRegistration.countDocuments(),
       EntryRegistration.countDocuments({ checkedIn: true }),
       Event.countDocuments(),
       User.countDocuments(),
       User.countDocuments({ role: 'security' }),
+      EventRegistration.countDocuments({ status: 'confirmed' }),
     ])
 
     res.status(200).json({
@@ -35,6 +39,7 @@ router.get('/stats', async (req, res) => {
       totalEvents,
       totalUsers,
       securityUsers,
+      totalEventRegistrations,
     })
   } catch (error) {
     console.error('[Admin] Stats error:', error.message)
@@ -84,6 +89,276 @@ router.get('/registrations', async (req, res) => {
     })
   } catch (error) {
     console.error('[Admin] Registrations error:', error.message)
+    res.status(500).json({ message: 'Internal server error.' })
+  }
+})
+
+/**
+ * GET /api/admin/event-registrations
+ * Paginated list of all event-specific registrations with search & filters.
+ * Query params: page, limit, search, eventSlug
+ */
+router.get('/event-registrations', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 20
+    const search = req.query.search || ''
+    const eventSlug = req.query.eventSlug || ''
+    const skip = (page - 1) * limit
+
+    const filter = {}
+    if (eventSlug) {
+      filter.eventSlug = eventSlug.toLowerCase()
+    }
+    if (search) {
+      filter.$or = [
+        { userName: { $regex: search, $options: 'i' } },
+        { userEmail: { $regex: search, $options: 'i' } },
+        { userCollege: { $regex: search, $options: 'i' } },
+        { registrationId: { $regex: search, $options: 'i' } },
+        { teamName: { $regex: search, $options: 'i' } },
+        { eventName: { $regex: search, $options: 'i' } },
+      ]
+    }
+
+    const [registrations, total] = await Promise.all([
+      EventRegistration.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      EventRegistration.countDocuments(filter),
+    ])
+
+    res.status(200).json({
+      registrations,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    })
+  } catch (error) {
+    console.error('[Admin] Event Registrations error:', error.message)
+    res.status(500).json({ message: 'Internal server error.' })
+  }
+})
+
+/**
+ * GET /api/admin/event-registrations/export
+ * Export event registrations as CSV.
+ * Optional query param: eventSlug
+ */
+router.get('/event-registrations/export', async (req, res) => {
+  try {
+    const { eventSlug } = req.query
+    const filter = {}
+    if (eventSlug) filter.eventSlug = eventSlug.toLowerCase()
+
+    const records = await EventRegistration.find(filter).sort({ createdAt: -1 })
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""'
+      const str = String(val).replace(/"/g, '""')
+      return `"${str}"`
+    }
+
+    const headers = [
+      'Registration ID',
+      'Event Name',
+      'Event Slug',
+      'User Name',
+      'User Email',
+      'User Phone',
+      'User College',
+      'Team Name',
+      'Team Members',
+      'Status',
+      'Created At',
+    ]
+
+    const rows = records.map((r) => {
+      const teamMems = (r.teamMembers || [])
+        .map((m) => `${m.name} (${m.email || 'N/A'})`)
+        .join('; ')
+      return [
+        escapeCsv(r.registrationId),
+        escapeCsv(r.eventName),
+        escapeCsv(r.eventSlug),
+        escapeCsv(r.userName),
+        escapeCsv(r.userEmail),
+        escapeCsv(r.userPhone || ''),
+        escapeCsv(r.userCollege || ''),
+        escapeCsv(r.teamName || ''),
+        escapeCsv(teamMems),
+        escapeCsv(r.status),
+        escapeCsv(r.createdAt ? new Date(r.createdAt).toISOString() : ''),
+      ].join(',')
+    })
+
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const filename = `vectors_event_registrations_${eventSlug || 'all'}_${Date.now()}.csv`
+
+    res.setHeader('Content-Type', 'text/csv')
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    return res.status(200).send(csvContent)
+  } catch (error) {
+    console.error('[Admin] Export event registrations error:', error.message)
+    res.status(500).json({ message: 'Failed to export CSV.' })
+  }
+})
+
+/**
+ * GET /api/admin/registrations/export
+ * Export entry pass registrations as CSV.
+ */
+router.get('/registrations/export', async (req, res) => {
+  try {
+    const records = await EntryRegistration.find().sort({ createdAt: -1 })
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""'
+      const str = String(val).replace(/"/g, '""')
+      return `"${str}"`
+    }
+
+    const headers = [
+      'Pass ID',
+      'Name',
+      'Email',
+      'Phone',
+      'College',
+      'Branch',
+      'Year',
+      'Checked In',
+      'Checked In At',
+      'Created At',
+    ]
+
+    const rows = records.map((r) => [
+      escapeCsv(r.registrationId),
+      escapeCsv(r.name),
+      escapeCsv(r.email),
+      escapeCsv(r.phone),
+      escapeCsv(r.college),
+      escapeCsv(r.branch),
+      escapeCsv(r.year),
+      escapeCsv(r.checkedIn ? 'YES' : 'NO'),
+      escapeCsv(r.checkedInAt ? new Date(r.checkedInAt).toISOString() : ''),
+      escapeCsv(r.createdAt ? new Date(r.createdAt).toISOString() : ''),
+    ].join(','))
+
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const filename = `vectors_entry_passes_${Date.now()}.csv`
+
+    res.setHeader('Content-Type', 'text/csv')
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    return res.status(200).send(csvContent)
+  } catch (error) {
+    console.error('[Admin] Export entry passes error:', error.message)
+    res.status(500).json({ message: 'Failed to export CSV.' })
+  }
+})
+
+/**
+ * PUT /api/admin/events/:id
+ * Admin updates event properties (capacity, status, venue, deadline, registrationOpen).
+ */
+router.put('/events/:id', async (req, res) => {
+  try {
+    const {
+      capacity,
+      registrationOpen,
+      status,
+      venue,
+      venueDetails,
+      date,
+      startTime,
+      endTime,
+      registrationDeadline,
+      prizePool,
+    } = req.body
+
+    const event = await Event.findById(req.params.id)
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found.' })
+    }
+
+    const previousState = {
+      capacity: event.capacity,
+      registrationOpen: event.registrationOpen,
+      status: event.status,
+      venue: event.venue,
+    }
+
+    if (capacity !== undefined) event.capacity = Number(capacity)
+    if (registrationOpen !== undefined) event.registrationOpen = Boolean(registrationOpen)
+    if (status !== undefined) event.status = status
+    if (venue !== undefined) event.venue = venue
+    if (venueDetails !== undefined) event.venueDetails = { ...event.venueDetails, ...venueDetails }
+    if (date !== undefined) event.date = date
+    if (startTime !== undefined) event.startTime = startTime
+    if (endTime !== undefined) event.endTime = endTime
+    if (registrationDeadline !== undefined) event.registrationDeadline = registrationDeadline
+    if (prizePool !== undefined) event.prizePool = prizePool
+
+    await event.save()
+
+    // Audit log
+    await AuditLog.create({
+      action: 'EVENT_UPDATED',
+      performedBy: req.user.email,
+      targetType: 'Event',
+      targetId: event._id.toString(),
+      details: {
+        slug: event.slug,
+        name: event.name,
+        previousState,
+        newState: {
+          capacity: event.capacity,
+          registrationOpen: event.registrationOpen,
+          status: event.status,
+          venue: event.venue,
+        },
+      },
+    }).catch(err => console.error('[AuditLog] Error:', err.message))
+
+    res.status(200).json({ event })
+  } catch (error) {
+    console.error('[Admin] Update event error:', error.message)
+    res.status(500).json({ message: 'Failed to update event: ' + error.message })
+  }
+})
+
+/**
+ * GET /api/admin/audit-logs
+ * Paginated list of audit logs.
+ */
+router.get('/audit-logs', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 30
+    const skip = (page - 1) * limit
+
+    const [logs, total] = await Promise.all([
+      AuditLog.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      AuditLog.countDocuments(),
+    ])
+
+    res.status(200).json({
+      logs,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    })
+  } catch (error) {
+    console.error('[Admin] Audit logs error:', error.message)
     res.status(500).json({ message: 'Internal server error.' })
   }
 })

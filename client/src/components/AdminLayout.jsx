@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { LayoutDashboard, Users, Ticket, Calendar, LogOut, Shield, ArrowLeft, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Users, Ticket, Calendar, LogOut, Shield, ArrowLeft, Menu, X, Bell, ClipboardList } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 /**
@@ -25,9 +25,11 @@ export default function AdminLayout() {
 
   const navLinks = [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
-    { to: '/admin/registrations', label: 'Registrations', icon: Ticket },
-    { to: '/admin/events', label: 'Events', icon: Calendar },
-    { to: '/admin/users', label: 'Users', icon: Users },
+    { to: '/admin/registrations', label: 'Entry Passes', icon: Ticket },
+    { to: '/admin/event-registrations', label: 'Event Signups', icon: ClipboardList },
+    { to: '/admin/events', label: 'Events Control', icon: Calendar },
+    { to: '/admin/announcements', label: 'Announcements', icon: Bell },
+    { to: '/admin/users', label: 'User Roles', icon: Users },
   ]
 
   const userInitial = user?.displayName?.[0] || user?.email?.[0] || '?'

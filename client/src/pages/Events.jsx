@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -6,13 +6,15 @@ import {
   Gamepad2, 
   ArrowLeft, 
   ArrowRight, 
-  Sparkles, 
-  Trophy, 
-  Layers, 
   Calendar, 
   MapPin, 
   Users, 
-  Filter
+  Search, 
+  Filter, 
+  X, 
+  RotateCcw, 
+  CheckCircle2, 
+  Clock 
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { eventsData } from '../data/events'
@@ -20,22 +22,37 @@ import { useAuth } from '../contexts/AuthContext'
 import EntryPassGate from '../components/EntryPassGate'
 
 /**
- * Events — VECTORS 26 "Doomsday Protocol" Event Vaults
- * 
- * UX Flow:
- * 1. Entry Pass Gate: If user does not have a verified Entry Pass,
- *    displays EntryPassGate. Events data/listings are NEVER rendered.
- * 2. Gate Passed: Displays two prominent category cards:
- *    - Technical Events
- *    - Non-Technical Events
- * 3. Category Selected: Shows filtered event cards with a category switcher tab bar.
- * 4. Individual Event: Routes cleanly to /events/:eventId.
+ * Events — VECTORS 26–27 Event Vaults & Discovery
+ * Features:
+ * - Real-time keyword search (name, rules, description)
+ * - Multi-filter: Category, Department/Branch, Participation Mode (Solo/Team), and Status
+ * - Reactive empty states with "Reset Filters"
+ * - Live capacity status badges
+ * - Strict Entry Pass gating
  */
 export default function Events() {
   const { user, hasPass, passLoading, checkPassStatus } = useAuth()
   const [verificationError, setVerificationError] = useState(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const categoryParam = searchParams.get('category')?.toLowerCase()
+
+  const [allEvents, setAllEvents] = useState(eventsData)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedBranch, setSelectedBranch] = useState('ALL')
+  const [selectedMode, setSelectedMode] = useState('ALL')
+  const [selectedStatus, setSelectedStatus] = useState('ALL')
+
+  // Fetch live events from API with fallback to static eventsData
+  useEffect(() => {
+    fetch('/api/events')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setAllEvents(data)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   // Selected category state ('technical' | 'non-technical' | null)
   const activeCategory = useMemo(() => {
@@ -45,33 +62,61 @@ export default function Events() {
     return null
   }, [categoryParam])
 
-  // Optional branch filter
-  const [selectedBranch, setSelectedBranch] = useState('ALL')
+  // Split datasets
+  const techEvents = useMemo(() => allEvents.filter(e => e.category?.toLowerCase() === 'technical'), [allEvents])
+  const nonTechEvents = useMemo(() => allEvents.filter(e => e.category?.toLowerCase() === 'non-technical'), [allEvents])
 
-  // Counts
-  const techEvents = useMemo(() => eventsData.filter(e => e.category.toLowerCase() === 'technical'), [])
-  const nonTechEvents = useMemo(() => eventsData.filter(e => e.category.toLowerCase() === 'non-technical'), [])
-
-  // Filtered event list
-  const currentEvents = useMemo(() => {
-    if (!activeCategory) return []
-    const list = activeCategory === 'technical' ? techEvents : nonTechEvents
-    if (selectedBranch === 'ALL') return list
-    return list.filter(e => e.branch.toLowerCase().includes(selectedBranch.toLowerCase()))
-  }, [activeCategory, techEvents, nonTechEvents, selectedBranch])
-
-  // Available branches for current category
+  // Available branches
   const availableBranches = useMemo(() => {
-    if (!activeCategory) return []
-    const list = activeCategory === 'technical' ? techEvents : nonTechEvents
+    const list = activeCategory ? (activeCategory === 'technical' ? techEvents : nonTechEvents) : allEvents
     const branches = new Set(['ALL'])
     list.forEach(e => {
-      e.branch.split('/').forEach(b => branches.add(b.trim()))
+      if (e.branch) {
+        e.branch.split('/').forEach(b => branches.add(b.trim()))
+      }
     })
     return Array.from(branches)
-  }, [activeCategory, techEvents, nonTechEvents])
+  }, [activeCategory, techEvents, nonTechEvents, allEvents])
 
-  // Category Switch Handler — push to history stack so browser back works naturally
+  // Comprehensive reactive filtering
+  const currentEvents = useMemo(() => {
+    let list = activeCategory
+      ? (activeCategory === 'technical' ? techEvents : nonTechEvents)
+      : allEvents
+
+    // 1. Search Query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      list = list.filter(e => 
+        e.name.toLowerCase().includes(q) ||
+        (e.description && e.description.toLowerCase().includes(q)) ||
+        (e.branch && e.branch.toLowerCase().includes(q)) ||
+        (e.rules && e.rules.some(r => r.toLowerCase().includes(q)))
+      )
+    }
+
+    // 2. Branch Filter
+    if (selectedBranch !== 'ALL') {
+      list = list.filter(e => e.branch && e.branch.toLowerCase().includes(selectedBranch.toLowerCase()))
+    }
+
+    // 3. Participation Mode
+    if (selectedMode === 'Solo') {
+      list = list.filter(e => e.teamSize?.toLowerCase().includes('solo') || e.maxTeamSize === 1)
+    } else if (selectedMode === 'Team') {
+      list = list.filter(e => !e.teamSize?.toLowerCase().includes('solo') || (e.maxTeamSize && e.maxTeamSize > 1))
+    }
+
+    // 4. Status
+    if (selectedStatus === 'Open') {
+      list = list.filter(e => e.status === 'open' || e.status === 'almost_full' || e.registrationOpen !== false)
+    } else if (selectedStatus === 'Full') {
+      list = list.filter(e => e.status === 'full')
+    }
+
+    return list
+  }, [activeCategory, techEvents, nonTechEvents, allEvents, searchQuery, selectedBranch, selectedMode, selectedStatus])
+
   const handleSelectCategory = (cat) => {
     setSelectedBranch('ALL')
     setSearchParams({ category: cat }, { replace: false })
@@ -81,6 +126,15 @@ export default function Events() {
     setSelectedBranch('ALL')
     setSearchParams({}, { replace: false })
   }
+
+  const resetAllFilters = () => {
+    setSearchQuery('')
+    setSelectedBranch('ALL')
+    setSelectedMode('ALL')
+    setSelectedStatus('ALL')
+  }
+
+  const hasActiveFilters = searchQuery.trim() !== '' || selectedBranch !== 'ALL' || selectedMode !== 'ALL' || selectedStatus !== 'ALL'
 
   // Gate: If pass status is loading, render clearance scanner
   if (passLoading) {
@@ -173,10 +227,8 @@ export default function Events() {
                   className="relative p-[1.5px] doom-btn-clipped group cursor-pointer bg-gradient-to-b from-white/15 via-doom-glow/30 to-white/5 hover:from-doom-glow hover:via-doom-glow-muted hover:to-doom-glow transition-all duration-500 shadow-[0_10px_35px_rgba(0,0,0,0.7)]"
                 >
                   <div className="h-full p-6 sm:p-8 md:p-10 doom-btn-clipped bg-doom-bg2 flex flex-col justify-between relative overflow-hidden">
-                    {/* Background Radial Glow */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-doom-glow/5 rounded-full blur-3xl pointer-events-none group-hover:bg-doom-glow/15 transition-all duration-500" />
                     
-                    {/* Top Telemetry */}
                     <div className="relative z-10 flex items-center justify-between pb-6 border-b border-white/[0.08]">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-sm bg-doom-glow/10 border border-doom-glow/40 flex items-center justify-center text-doom-glow">
@@ -191,16 +243,14 @@ export default function Events() {
                       </span>
                     </div>
 
-                    {/* Card Body */}
                     <div className="relative z-10 py-6 sm:py-8 space-y-4">
                       <h2 className="font-display font-bold text-2xl sm:text-3xl md:text-4xl tracking-wider text-text-primary group-hover:text-doom-glow transition-colors">
                         TECHNICAL EVENTS
                       </h2>
                       <p className="font-body text-sm sm:text-base text-text-muted leading-relaxed">
-                        Where algorithms clash and machines awaken. Dive into high-pressure 24-hour hackathons, kinetic combat robotics, hardware circuitry gauntlets, and competitive coding sprints.
+                        Where algorithms clash and machines awaken. Dive into 24-hour hackathons, kinetic combat robotics, hardware circuitry gauntlets, and competitive coding sprints.
                       </p>
 
-                      {/* Disciplines Tags */}
                       <div className="flex flex-wrap gap-2 pt-2">
                         {['CSE', 'IT', 'AIML', 'EXTC', 'MECHANICAL', 'CIVIL'].map(tag => (
                           <span
@@ -213,7 +263,6 @@ export default function Events() {
                       </div>
                     </div>
 
-                    {/* Action Bar */}
                     <div className="relative z-10 pt-6 border-t border-white/[0.08] flex items-center justify-between">
                       <span className="font-mono text-xs uppercase tracking-widest text-text-muted group-hover:text-white transition-colors">
                         ENTER SECTOR 01
@@ -234,10 +283,8 @@ export default function Events() {
                   className="relative p-[1.5px] doom-btn-clipped group cursor-pointer bg-gradient-to-b from-white/15 via-white/20 to-white/5 hover:from-doom-glow hover:via-doom-glow-muted hover:to-doom-glow transition-all duration-500 shadow-[0_10px_35px_rgba(0,0,0,0.7)]"
                 >
                   <div className="h-full p-6 sm:p-8 md:p-10 doom-btn-clipped bg-doom-bg2 flex flex-col justify-between relative overflow-hidden">
-                    {/* Background Radial Glow */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none group-hover:bg-doom-glow/15 transition-all duration-500" />
                     
-                    {/* Top Telemetry */}
                     <div className="relative z-10 flex items-center justify-between pb-6 border-b border-white/[0.08]">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-sm bg-white/[0.06] border border-white/20 flex items-center justify-center text-chrome-light group-hover:text-doom-glow group-hover:border-doom-glow/40 transition-colors">
@@ -252,7 +299,6 @@ export default function Events() {
                       </span>
                     </div>
 
-                    {/* Card Body */}
                     <div className="relative z-10 py-6 sm:py-8 space-y-4">
                       <h2 className="font-display font-bold text-2xl sm:text-3xl md:text-4xl tracking-wider text-text-primary group-hover:text-doom-glow transition-colors">
                         NON-TECHNICAL EVENTS
@@ -261,9 +307,8 @@ export default function Events() {
                         Where strategy, reflexes, and raw stage presence take the spotlight. Compete in high-stakes esports tournaments, rapid-fire pop trivia gauntlets, and creative performance arenas.
                       </p>
 
-                      {/* Disciplines Tags */}
                       <div className="flex flex-wrap gap-2 pt-2">
-                        {['ESPORTS', 'BGMI / VALORANT', 'TRIVIA', 'STAGE ARTS', 'CASUAL GAMING'].map(tag => (
+                        {['ESPORTS', 'VALORANT / BGMI', 'TRIVIA', 'STAGE ARTS', 'CASUAL GAMING'].map(tag => (
                           <span
                             key={tag}
                             className="font-mono text-[10px] tracking-wider text-chrome-light px-2 py-1 bg-white/[0.04] border border-white/[0.08]"
@@ -274,7 +319,6 @@ export default function Events() {
                       </div>
                     </div>
 
-                    {/* Action Bar */}
                     <div className="relative z-10 pt-6 border-t border-white/[0.08] flex items-center justify-between">
                       <span className="font-mono text-xs uppercase tracking-widest text-text-muted group-hover:text-white transition-colors">
                         ENTER SECTOR 02
@@ -291,7 +335,7 @@ export default function Events() {
             </motion.div>
           ) : (
             /* ====================================================
-               SCENARIO 2: CATEGORY EVENT LISTING WITH SWITCHER
+               SCENARIO 2: CATEGORY EVENT LISTING WITH DISCOVERY BAR
                ==================================================== */
             <motion.div
               key="event-listing"
@@ -348,8 +392,8 @@ export default function Events() {
                           : 'text-text-muted hover:text-white'
                       )}
                     >
-                      <Cpu size={15} className={activeCategory === 'technical' ? 'text-doom-glow' : 'text-text-muted'} />
-                      <span>Technical Events ({techEvents.length})</span>
+                      <Cpu size={15} />
+                      <span>Technical ({techEvents.length})</span>
                     </button>
 
                     <button
@@ -361,134 +405,156 @@ export default function Events() {
                           : 'text-text-muted hover:text-white'
                       )}
                     >
-                      <Gamepad2 size={15} className={activeCategory === 'non-technical' ? 'text-doom-glow' : 'text-text-muted'} />
-                      <span>Non-Technical Events ({nonTechEvents.length})</span>
+                      <Gamepad2 size={15} />
+                      <span>Non-Technical ({nonTechEvents.length})</span>
                     </button>
                   </div>
+                </div>
 
-                  {/* Branch filter pills */}
-                  {availableBranches.length > 2 && (
+                {/* Search Bar & Multi-Filter Matrix */}
+                <div className="space-y-4 pt-2">
+                  {/* Search Input */}
+                  <div className="relative w-full">
+                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search protocols by name, discipline, keywords, or rules..."
+                      className="w-full bg-doom-bg2 border border-white/[0.12] text-text-primary pl-11 pr-10 py-3 font-mono text-xs sm:text-sm focus:outline-none focus:border-doom-glow focus:ring-1 focus:ring-doom-glow transition-all"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-white p-1"
+                        aria-label="Clear search"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Filter Controls Row */}
+                  <div className="flex items-center justify-between flex-wrap gap-3 pt-1">
+                    {/* Branch Pills */}
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider mr-1 flex items-center gap-1">
-                        <Filter size={11} />
-                        Branch:
-                      </span>
-                      {availableBranches.map(branch => (
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted mr-1">Branch:</span>
+                      {availableBranches.map((branch) => (
                         <button
                           key={branch}
                           onClick={() => setSelectedBranch(branch)}
                           className={cn(
-                            'font-mono text-[10px] sm:text-xs px-2.5 py-1 tracking-wider uppercase transition-colors cursor-pointer',
+                            'px-2.5 py-1 font-mono text-[10px] tracking-wider uppercase transition-all duration-200 cursor-pointer',
                             selectedBranch === branch
-                              ? 'bg-doom-glow/15 text-doom-glow border border-doom-glow/40 font-bold'
-                              : 'bg-white/[0.02] text-text-muted border border-white/[0.06] hover:text-white'
+                              ? 'bg-doom-glow text-doom-bg font-bold border border-doom-glow'
+                              : 'bg-white/[0.04] text-text-muted border border-white/[0.08] hover:border-white/20'
                           )}
                         >
                           {branch}
                         </button>
                       ))}
                     </div>
-                  )}
-                </div>
 
-                {/* Section Title */}
-                <div className="pt-2">
-                  <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold uppercase tracking-wider text-text-primary">
-                    {activeCategory === 'technical' ? 'Technical Protocols' : 'Non-Technical Protocols'}
-                  </h2>
-                  <p className="font-body text-xs sm:text-sm text-text-muted mt-1">
-                    {activeCategory === 'technical'
-                      ? 'Competitive engineering challenges, coding sprints, hardware design, and robotics.'
-                      : 'Casual competitions, strategy gauntlets, stage performances, and esports tournaments.'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Event Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {currentEvents.length === 0 ? (
-                  <div className="col-span-full py-16 text-center border border-white/[0.06] bg-doom-bg2/40 p-8">
-                    <p className="font-mono text-sm text-text-muted">No events matching the selected criteria.</p>
-                    <button
-                      onClick={() => setSelectedBranch('ALL')}
-                      className="mt-4 font-mono text-xs text-doom-glow underline tracking-wider cursor-pointer"
-                    >
-                      Reset branch filter
-                    </button>
-                  </div>
-                ) : (
-                  currentEvents.map((event) => (
-                    <motion.div
-                      key={event.id}
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Link
-                        to={`/events/${event.id}`}
-                        className="block h-full relative doom-btn-clipped p-[1px] bg-gradient-to-b from-white/10 to-white/5 hover:from-doom-glow hover:to-doom-glow-muted transition-all duration-300 group"
-                        id={`event-${event.id}`}
+                    {/* Mode & Reset */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Solo / Team Filter */}
+                      <select
+                        value={selectedMode}
+                        onChange={(e) => setSelectedMode(e.target.value)}
+                        className="bg-doom-bg2 border border-white/[0.12] text-text-primary font-mono text-xs px-2.5 py-1 focus:outline-none focus:border-doom-glow cursor-pointer"
                       >
-                        <div className="h-full p-6 sm:p-7 doom-btn-clipped bg-doom-bg2 flex flex-col justify-between relative overflow-hidden">
-                          
-                          {/* Top Badges: Category & Branch Alignment */}
-                          <div>
-                            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-                              <span className="font-mono text-[10px] tracking-widest text-doom-glow px-2 py-0.5 bg-doom-glow/10 border border-doom-glow/30 uppercase font-bold">
-                                {event.category}
-                              </span>
+                        <option value="ALL">All Modes</option>
+                        <option value="Solo">Solo</option>
+                        <option value="Team">Team</option>
+                      </select>
 
-                              {/* Branch Alignment Badge */}
-                              <span className="font-mono text-[10px] tracking-wider text-chrome-light px-2 py-0.5 bg-white/[0.04] border border-white/[0.08] uppercase">
-                                Branch: <strong className="text-text-primary font-semibold">{event.branch}</strong>
-                              </span>
-                            </div>
+                      {hasActiveFilters && (
+                        <button
+                          onClick={resetAllFilters}
+                          className="inline-flex items-center gap-1.5 font-mono text-xs text-doom-crimson-bright hover:underline px-2 py-1 cursor-pointer"
+                        >
+                          <RotateCcw size={12} />
+                          <span>Clear Filters</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
-                            {/* Event Title */}
-                            <h3 className="font-display text-xl sm:text-2xl font-bold tracking-wide text-text-primary group-hover:text-doom-glow transition-colors">
-                              {event.name}
-                            </h3>
-
-                            {/* Description */}
-                            <p className="font-body text-xs sm:text-sm text-text-muted mt-3 leading-relaxed line-clamp-3">
-                              {event.description}
-                            </p>
-                          </div>
-
-                          {/* Telemetry metadata row */}
-                          <div className="mt-6 pt-4 border-t border-white/[0.06] space-y-4">
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
-                              <div>
-                                <span className="text-[10px] text-text-muted uppercase block">Fee</span>
-                                <span className="text-chrome-light font-bold">{event.fee}</span>
-                              </div>
-                              <div>
-                                <span className="text-[10px] text-text-muted uppercase block">Team</span>
-                                <span className="text-chrome-light">{event.teamSize}</span>
-                              </div>
-                              <div className="col-span-2 sm:col-span-2">
-                                <span className="text-[10px] text-text-muted uppercase block">Venue</span>
-                                <span className="text-chrome-light truncate block">{event.venue}</span>
-                              </div>
-                            </div>
-
-                            {/* Action Link */}
-                            <div className="flex items-center justify-between pt-2">
-                              <span className="font-mono text-[11px] tracking-widest text-text-muted uppercase group-hover:text-white transition-colors">
-                                Access Event Vault
-                              </span>
-                              <span className="text-doom-glow text-sm font-bold group-hover:translate-x-1.5 transition-transform duration-200">
-                                →
-                              </span>
-                            </div>
-                          </div>
-
-                        </div>
-                      </Link>
-                    </motion.div>
-                  ))
-                )}
               </div>
+
+              {/* Event Cards Grid or Empty State */}
+              {currentEvents.length === 0 ? (
+                <div className="py-16 px-6 text-center bg-doom-bg2 border border-white/[0.08] doom-btn-clipped max-w-md mx-auto space-y-4">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center text-text-muted">
+                    <Filter size={20} />
+                  </div>
+                  <h3 className="font-display text-xl font-bold uppercase tracking-wider text-text-primary">
+                    NO MATCHING PROTOCOLS
+                  </h3>
+                  <p className="font-mono text-xs text-text-muted leading-relaxed">
+                    No events matched your current search and filter criteria. Try resetting your filters to discover all available sectors.
+                  </p>
+                  <button
+                    onClick={resetAllFilters}
+                    className="py-2.5 px-5 bg-doom-glow text-doom-bg font-mono text-xs uppercase tracking-wider font-bold hover:bg-white transition-colors cursor-pointer"
+                  >
+                    Reset All Filters
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {currentEvents.map((evt) => (
+                    <Link
+                      key={evt.slug || evt.id}
+                      to={`/events/${evt.slug || evt.id}`}
+                      className="group p-6 bg-doom-bg2 border border-white/[0.08] doom-btn-clipped hover:border-doom-glow/50 transition-all flex flex-col justify-between space-y-5"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-[10px] text-doom-glow uppercase tracking-widest px-2 py-0.5 bg-doom-glow/10 border border-doom-glow/30 font-bold">
+                            {evt.branch || 'Open to All'}
+                          </span>
+                          <span className="font-mono text-[10px] text-text-muted uppercase">
+                            {evt.teamSize || 'Individual'}
+                          </span>
+                        </div>
+
+                        <h3 className="font-display text-xl font-bold uppercase tracking-wide text-text-primary group-hover:text-doom-glow transition-colors">
+                          {evt.name}
+                        </h3>
+
+                        <p className="font-body text-xs text-text-muted line-clamp-2 leading-relaxed">
+                          {evt.description}
+                        </p>
+                      </div>
+
+                      <div className="space-y-3 pt-3 border-t border-white/[0.06]">
+                        <div className="grid grid-cols-2 gap-2 font-mono text-[11px] text-text-muted">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <Calendar size={12} className="text-doom-glow shrink-0" />
+                            <span className="truncate">{evt.date}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 truncate">
+                            <MapPin size={12} className="text-doom-glow shrink-0" />
+                            <span className="truncate">{evt.venue}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="font-mono text-xs text-text-primary font-bold">
+                            {evt.fee}
+                          </span>
+                          <span className="inline-flex items-center gap-1 font-mono text-xs text-doom-glow group-hover:translate-x-1 transition-transform">
+                            <span>ACCESS VAULT</span>
+                            <ArrowRight size={13} />
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

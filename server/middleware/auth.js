@@ -1,5 +1,6 @@
 const { getAuth } = require('firebase-admin/auth')
 const User = require('../models/User')
+const EntryRegistration = require('../models/EntryRegistration')
 
 /**
  * verifyFirebaseToken — Extracts and verifies the Firebase ID token
@@ -50,4 +51,31 @@ const requireRole = (...roles) => {
   }
 }
 
-module.exports = { verifyFirebaseToken, requireRole }
+/**
+ * requireEntryPass — Verifies that the authenticated user owns a valid
+ * EntryRegistration pass in MongoDB. Blocks access if pass is missing.
+ * Must be used AFTER verifyFirebaseToken.
+ */
+const requireEntryPass = async (req, res, next) => {
+  try {
+    if (!req.user || !req.user.email) {
+      return res.status(401).json({ message: 'Authentication required.' })
+    }
+
+    const pass = await EntryRegistration.findOne({ email: req.user.email.toLowerCase() })
+    if (!pass) {
+      return res.status(403).json({
+        code: 'PASS_REQUIRED',
+        message: 'A verified Entry Pass is required to perform this action. Claim your entry pass first.',
+      })
+    }
+
+    req.entryPass = pass
+    next()
+  } catch (error) {
+    console.error('[Auth] requireEntryPass error:', error.message)
+    res.status(500).json({ message: 'Internal security verification error.' })
+  }
+}
+
+module.exports = { verifyFirebaseToken, requireRole, requireEntryPass }

@@ -1,25 +1,75 @@
-import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ArrowLeft, MapPin, Calendar, Users, DollarSign, Trophy, ShieldCheck, UserCheck, ExternalLink } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Calendar, 
+  Users, 
+  DollarSign, 
+  Trophy, 
+  ShieldCheck, 
+  UserCheck, 
+  HelpCircle, 
+  CheckCircle2, 
+  ChevronDown, 
+  Compass 
+} from 'lucide-react'
 import { getEventById } from '../data/events'
 import { useAuth } from '../contexts/AuthContext'
 import EntryPassGate from '../components/EntryPassGate'
+import EventRegistrationModal from '../components/EventRegistrationModal'
 
 /**
  * EventDetail — Individual Event Vault & Specifications
- * 
- * Styled with the Doomsday Protocol aesthetic:
- * - Direct return link back to active category (/events?category=...)
- * - Category and Branch Alignment badges
- * - Rules of engagement telemetry list
- * - Armor-plated registration CTA
+ * Features:
+ * - Live capacity tracking & registration status
+ * - Structured venue specifications (Building, Floor, Room, Directions)
+ * - In-app 4-step registration modal integration
+ * - Event-specific FAQ accordion
+ * - Sector coordinator contact cards
  */
 export default function EventDetail() {
-  const { user, hasPass, passLoading, checkPassStatus } = useAuth()
-  const [verificationError, setVerificationError] = useState(null)
+  const { user, hasPass, passLoading, checkPassStatus, getToken } = useAuth()
+  const navigate = useNavigate()
   const { eventId } = useParams()
-  const event = getEventById(eventId || '')
+  
+  const [verificationError, setVerificationError] = useState(null)
+  const [eventData, setEventData] = useState(() => getEventById(eventId || ''))
+  const [isRegistered, setIsRegistered] = useState(false)
+  const [registrationRecord, setRegistrationRecord] = useState(null)
+  const [showRegisterModal, setShowRegisterModal] = useState(false)
+  const [openFaq, setOpenFaq] = useState(null)
+
+  // Fetch live event data and user's registration status
+  useEffect(() => {
+    if (!eventId) return
+
+    // 1. Fetch live event metadata from API with local fallback
+    fetch(`/api/events/${eventId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) setEventData(prev => ({ ...prev, ...data }))
+      })
+      .catch(() => {})
+
+    // 2. Check if authenticated user is already registered for this event
+    if (user) {
+      getToken().then(token => {
+        if (!token) return
+        fetch(`/api/events/${eventId}/my-registration`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data?.isRegistered) {
+              setIsRegistered(true)
+              setRegistrationRecord(data.registration)
+            }
+          })
+          .catch(() => {})
+      })
+    }
+  }, [eventId, user, getToken])
 
   // Gate: If pass status is loading, render clearance scanner
   if (passLoading) {
@@ -45,7 +95,7 @@ export default function EventDetail() {
     )
   }
 
-  if (!event) {
+  if (!eventData) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 relative z-10">
         <div className="text-center p-8 bg-doom-bg2 border border-white/[0.08] max-w-md w-full doom-btn-clipped">
@@ -67,7 +117,9 @@ export default function EventDetail() {
     )
   }
 
-  const categoryQuery = event.category.toLowerCase()
+  const categoryQuery = eventData.category?.toLowerCase() || 'technical'
+  const isFull = eventData.status === 'full'
+  const isClosed = eventData.status === 'closed' || eventData.status === 'completed' || !eventData.registrationOpen
 
   return (
     <div className="min-h-screen px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-36 relative z-10">
@@ -81,10 +133,10 @@ export default function EventDetail() {
             <Link to="/events" className="hover:text-doom-glow transition-colors">Events</Link>
             <span className="text-white/30">/</span>
             <Link to={`/events?category=${categoryQuery}`} className="hover:text-doom-glow transition-colors">
-              {event.category} Events
+              {eventData.category}
             </Link>
             <span className="text-white/30">/</span>
-            <span className="text-doom-glow font-bold truncate max-w-[180px] sm:max-w-xs">{event.name}</span>
+            <span className="text-doom-glow font-bold truncate max-w-[180px] sm:max-w-xs">{eventData.name}</span>
           </nav>
 
           <Link
@@ -92,7 +144,7 @@ export default function EventDetail() {
             className="inline-flex items-center gap-2 font-mono text-xs text-text-muted hover:text-doom-glow transition-colors uppercase tracking-widest py-1 px-2.5 bg-white/[0.03] border border-white/[0.06] hover:border-doom-glow/30 self-start sm:self-auto"
           >
             <ArrowLeft size={13} />
-            <span>Back to {event.category}</span>
+            <span>Back to {eventData.category}</span>
           </Link>
         </div>
 
@@ -101,36 +153,69 @@ export default function EventDetail() {
           <div className="flex items-center gap-3 flex-wrap">
             {/* Category Badge */}
             <span className="font-mono text-xs tracking-widest text-doom-glow px-3 py-1 bg-doom-glow/10 border border-doom-glow/40 uppercase font-bold">
-              {event.category} Event
+              {eventData.category} Event
             </span>
 
             {/* Branch Alignment Badge */}
             <span className="font-mono text-xs tracking-wider text-chrome-light px-3 py-1 bg-white/[0.04] border border-white/[0.1] uppercase">
-              Branch Alignment: <strong className="text-text-primary font-bold">{event.branch}</strong>
+              Branch: <strong className="text-text-primary font-bold">{eventData.branch}</strong>
             </span>
 
-            {/* Participation note */}
-            <span className="font-mono text-[10px] text-text-muted/80 tracking-wider">
-              {event.isBranchExclusive ? '(Branch Restricted)' : '(Open to all branches)'}
-            </span>
+            {/* Registration Status Badge */}
+            {isRegistered ? (
+              <span className="font-mono text-xs tracking-wider text-doom-glow px-3 py-1 bg-doom-glow/20 border border-doom-glow uppercase font-bold flex items-center gap-1">
+                <CheckCircle2 size={12} />
+                <span>You are Registered</span>
+              </span>
+            ) : isFull ? (
+              <span className="font-mono text-xs tracking-wider text-doom-crimson-bright px-3 py-1 bg-doom-crimson/20 border border-doom-crimson uppercase font-bold">
+                Capacity Full
+              </span>
+            ) : isClosed ? (
+              <span className="font-mono text-xs tracking-wider text-text-muted px-3 py-1 bg-white/[0.04] border border-white/[0.1] uppercase font-bold">
+                Registration Closed
+              </span>
+            ) : (
+              <span className="font-mono text-xs tracking-wider text-doom-glow px-3 py-1 bg-doom-glow/10 border border-doom-glow/40 uppercase font-bold animate-pulse">
+                Registration Open
+              </span>
+            )}
           </div>
 
           <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-wide text-text-primary drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
-            {event.name}
+            {eventData.name}
           </h1>
 
           <p className="font-body text-sm sm:text-base text-text-primary/90 leading-relaxed pt-1">
-            {event.description}
+            {eventData.description}
           </p>
+
+          {isRegistered && registrationRecord && (
+            <div className="p-4 bg-doom-glow/10 border border-doom-glow/40 rounded flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono text-xs">
+              <div className="flex items-center gap-2 text-doom-glow">
+                <CheckCircle2 size={16} />
+                <span>
+                  Confirmed Entry: <strong>{registrationRecord.registrationId}</strong>
+                  {registrationRecord.teamName && ` (Team: ${registrationRecord.teamName})`}
+                </span>
+              </div>
+              <Link
+                to="/dashboard"
+                className="text-text-primary hover:text-doom-glow underline underline-offset-4 uppercase tracking-wider text-[11px]"
+              >
+                Manage in Dashboard →
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Specifications Matrix */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {[
-            { label: 'Date & Time', value: event.date, icon: Calendar },
-            { label: 'Venue Location', value: event.venue, icon: MapPin },
-            { label: 'Registration Fee', value: event.fee, icon: DollarSign },
-            { label: 'Team Structure', value: event.teamSize, icon: Users },
+            { label: 'Date & Time', value: `${eventData.date} // ${eventData.startTime || '09:00 IST'}`, icon: Calendar },
+            { label: 'Venue Location', value: eventData.venue, icon: MapPin },
+            { label: 'Registration Fee', value: eventData.fee, icon: DollarSign },
+            { label: 'Team Structure', value: eventData.teamSize, icon: Users },
           ].map((item) => {
             const Icon = item.icon
             return (
@@ -150,8 +235,39 @@ export default function EventDetail() {
           })}
         </div>
 
+        {/* Structured Venue Details */}
+        {eventData.venueDetails && (
+          <div className="p-4 sm:p-5 bg-doom-bg2 border border-white/[0.08] doom-btn-clipped space-y-3">
+            <div className="flex items-center gap-2">
+              <Compass size={16} className="text-doom-glow" />
+              <h2 className="font-display text-base font-bold uppercase tracking-wider text-text-primary">
+                VENUE & DIRECTIONS
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs text-text-muted">
+              <div>
+                <span className="text-[10px] text-text-muted/60 uppercase block">Building</span>
+                <span className="text-text-primary font-bold">{eventData.venueDetails.building || 'Campus Tech Block'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-text-muted/60 uppercase block">Floor & Sector</span>
+                <span className="text-text-primary font-bold">{eventData.venueDetails.floor || 'Ground Level'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-text-muted/60 uppercase block">Room / Hall</span>
+                <span className="text-text-primary font-bold">{eventData.venueDetails.room || eventData.venue}</span>
+              </div>
+            </div>
+            {eventData.venueDetails.directions && (
+              <p className="font-mono text-xs text-text-muted border-t border-white/[0.04] pt-2">
+                <strong>Directions:</strong> {eventData.venueDetails.directions}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Prize Pool Banner (if applicable) */}
-        {event.prizePool && (
+        {eventData.prizePool && (
           <div className="p-4 sm:p-5 bg-gradient-to-r from-doom-glow/10 via-doom-bg2 to-doom-bg2 border border-doom-glow/40 doom-btn-clipped flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-sm bg-doom-glow/20 border border-doom-glow/50 flex items-center justify-center text-doom-glow shrink-0">
@@ -159,10 +275,10 @@ export default function EventDetail() {
               </div>
               <div>
                 <span className="font-mono text-[10px] tracking-widest text-doom-glow uppercase font-bold block">
-                  PRIZE POOL & MERCHANDISE
+                  PRIZE POOL & REWARDS
                 </span>
                 <p className="font-display text-lg sm:text-xl font-bold text-text-primary tracking-wide">
-                  {event.prizePool}
+                  {eventData.prizePool}
                 </p>
               </div>
             </div>
@@ -179,7 +295,7 @@ export default function EventDetail() {
           </div>
 
           <div className="space-y-3">
-            {event.rules.map((rule, idx) => (
+            {eventData.rules && eventData.rules.map((rule, idx) => (
               <div
                 key={idx}
                 className="flex items-start gap-3.5 p-3.5 sm:p-4 bg-doom-bg2 border-l-2 border-doom-glow border-y border-r border-white/[0.04]"
@@ -196,7 +312,7 @@ export default function EventDetail() {
         </div>
 
         {/* Event Coordinators */}
-        {event.coordinators && event.coordinators.length > 0 && (
+        {eventData.coordinators && eventData.coordinators.length > 0 && (
           <div className="space-y-3 pt-2">
             <div className="flex items-center gap-2">
               <UserCheck size={18} className="text-doom-glow" />
@@ -206,10 +322,41 @@ export default function EventDetail() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {event.coordinators.map((c, i) => (
+              {eventData.coordinators.map((c, i) => (
                 <div key={i} className="p-3.5 bg-doom-bg2 border border-white/[0.06] font-mono text-xs">
                   <span className="text-text-primary font-bold block">{c.name}</span>
                   <span className="text-doom-glow/90 mt-0.5 block">{c.contact}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Event-Specific FAQ */}
+        {eventData.faq && eventData.faq.length > 0 && (
+          <div className="space-y-3 pt-4 border-t border-white/[0.08]">
+            <div className="flex items-center gap-2">
+              <HelpCircle size={18} className="text-doom-glow" />
+              <h2 className="font-display text-lg sm:text-xl font-bold tracking-wider uppercase text-text-primary">
+                EVENT FAQ
+              </h2>
+            </div>
+
+            <div className="space-y-2">
+              {eventData.faq.map((item, idx) => (
+                <div key={idx} className="bg-doom-bg2 border border-white/[0.06] doom-btn-clipped">
+                  <button
+                    onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                    className="w-full p-3.5 text-left flex items-center justify-between text-xs font-mono font-bold text-text-primary hover:text-doom-glow transition-colors cursor-pointer"
+                  >
+                    <span>{item.question}</span>
+                    <ChevronDown size={14} className={openFaq === idx ? 'rotate-180 text-doom-glow' : ''} />
+                  </button>
+                  {openFaq === idx && (
+                    <p className="px-3.5 pb-3.5 text-xs text-text-muted font-body leading-relaxed border-t border-white/[0.04] pt-2">
+                      {item.answer}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -223,27 +370,75 @@ export default function EventDetail() {
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
           <div className="min-w-0 hidden sm:block">
             <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider block truncate">
-              {event.category} // {event.branch}
+              {eventData.category} // {eventData.branch}
             </span>
             <span className="font-display text-sm font-bold text-text-primary truncate block">
-              {event.name}
+              {eventData.name}
             </span>
           </div>
 
-          <a
-            href={event.googleFormUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="doom-btn-primary w-full sm:w-auto sm:min-w-[260px] text-center"
-            id="btn-register-participate"
-          >
-            <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3.5 text-xs tracking-widest">
-              <span>REGISTER TO PARTICIPATE</span>
-              <ExternalLink size={14} />
-            </span>
-          </a>
+          <div className="w-full sm:w-auto flex items-center gap-3 justify-end">
+            {eventData.googleFormUrl && eventData.googleFormUrl.startsWith('http') ? (
+              <a
+                href={eventData.googleFormUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="doom-btn-primary w-full sm:w-auto sm:min-w-[260px] text-center inline-block"
+                id="btn-register-google-form"
+              >
+                <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3.5 text-xs tracking-widest uppercase">
+                  <span>OPEN REGISTRATION FORM ↗</span>
+                </span>
+              </a>
+            ) : isRegistered ? (
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="doom-btn-primary w-full sm:w-auto sm:min-w-[260px] text-center"
+              >
+                <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3.5 text-xs tracking-widest">
+                  <CheckCircle2 size={14} />
+                  <span>VIEW IN DASHBOARD</span>
+                </span>
+              </button>
+            ) : (
+              <button
+                disabled={isClosed || isFull}
+                onClick={() => {
+                  if (eventData.googleFormUrl && eventData.googleFormUrl !== '#') {
+                    window.open(eventData.googleFormUrl, '_blank', 'noopener,noreferrer')
+                  } else {
+                    // Fallback to in-app registration modal or coming-soon alert
+                    setShowRegisterModal(true)
+                  }
+                }}
+                className="doom-btn-primary w-full sm:w-auto sm:min-w-[260px] text-center disabled:opacity-50 disabled:pointer-events-none"
+                id="btn-register-participate"
+              >
+                <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3.5 text-xs tracking-widest">
+                  <span>
+                    {isFull 
+                      ? 'EVENT FULL' 
+                      : isClosed 
+                      ? 'REGISTRATION CLOSED' 
+                      : 'REGISTER VIA FORM / PORTAL'}
+                  </span>
+                </span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* In-App Registration Modal */}
+      <EventRegistrationModal
+        event={eventData}
+        isOpen={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        onSuccess={(reg) => {
+          setIsRegistered(true)
+          setRegistrationRecord(reg)
+        }}
+      />
     </div>
   )
 }

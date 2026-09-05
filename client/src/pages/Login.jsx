@@ -29,10 +29,7 @@ export default function Login() {
   if (user && !loading) {
     if (userRole === 'security') return <Navigate to="/security" replace />
     if (userRole === 'admin') return <Navigate to="/admin" replace />
-    const from = (location.state?.from?.pathname && !location.state.from.pathname.startsWith('/events')) 
-      ? location.state.from.pathname 
-      : '/'
-    return <Navigate to={from} replace />
+    return <Navigate to="/" replace />
   }
 
   const handleSubmit = async (e) => {
@@ -46,10 +43,8 @@ export default function Login() {
       } else if (backendUser?.role === 'admin') {
         navigate('/admin', { replace: true })
       } else {
-        const from = (location.state?.from?.pathname && !location.state.from.pathname.startsWith('/events')) 
-          ? location.state.from.pathname 
-          : '/'
-        navigate(from, { replace: true })
+        // Enforce strict Home-first product flow
+        navigate('/', { replace: true })
       }
     } catch (err) {
       const code = err.code
@@ -77,10 +72,8 @@ export default function Login() {
       } else if (backendUser?.role === 'admin') {
         navigate('/admin', { replace: true })
       } else {
-        const from = (location.state?.from?.pathname && !location.state.from.pathname.startsWith('/events')) 
-          ? location.state.from.pathname 
-          : '/'
-        navigate(from, { replace: true })
+        // Enforce strict Home-first product flow
+        navigate('/', { replace: true })
       }
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') {
