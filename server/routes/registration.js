@@ -72,6 +72,40 @@ router.post('/register', verifyFirebaseToken, async (req, res) => {
 })
 
 /**
+ * GET /api/register/status (and alias /api/status)
+ * Check if the currently authenticated user has an entry pass.
+ * Returns { hasPass: true, pass: { ... } } or { hasPass: false }
+ */
+router.get(['/register/status', '/status'], verifyFirebaseToken, async (req, res) => {
+  try {
+    const userEmail = req.user?.email?.toLowerCase()
+    if (!userEmail) {
+      return res.status(400).json({ message: 'User email not found in token.' })
+    }
+
+    const registration = await EntryRegistration.findOne({ email: userEmail })
+    if (!registration) {
+      return res.status(200).json({ hasPass: false })
+    }
+
+    return res.status(200).json({
+      hasPass: true,
+      pass: {
+        registrationId: registration.registrationId,
+        name: registration.name,
+        college: registration.college,
+        email: registration.email,
+        checkedIn: registration.checkedIn,
+        status: 'VERIFIED',
+      },
+    })
+  } catch (error) {
+    console.error('[API] Check pass status error:', error.message)
+    res.status(500).json({ message: 'Internal server error.' })
+  }
+})
+
+/**
  * GET /api/verify/:registrationId
  * Verify an entry pass (used by gate scanner).
  * Requires security or admin role.

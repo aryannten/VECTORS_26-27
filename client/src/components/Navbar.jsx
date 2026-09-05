@@ -21,7 +21,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, userRole, logout, loading } = useAuth()
+  const { user, userRole, logout, loading, hasPass } = useAuth()
 
   // Top-level pages don't show a back button
   const topLevelPaths = ['/', '/events', '/login', '/signup']
@@ -65,7 +65,7 @@ export default function Navbar() {
     ? [
         { to: '/', label: 'Home', index: '01' },
         { to: '/events', label: 'Events', index: '02' },
-        { to: '/entry-registration', label: 'Entry Pass', index: '03' },
+        { to: hasPass ? '/my-pass' : '/entry-registration', label: hasPass ? 'My Pass' : 'Entry Pass', index: '03' },
       ]
     : [
         { to: '/', label: 'Home', index: '01' },
@@ -210,11 +210,11 @@ export default function Navbar() {
 
                   {/* Clear Armor CTA: Entry Pass or My Pass */}
                   <Link
-                    to="/entry-registration"
+                    to={hasPass ? "/my-pass" : "/entry-registration"}
                     className="doom-btn-primary !p-[1px] hidden sm:inline-flex"
                   >
                     <span className="doom-btn-primary-inner !py-1.5 !px-3.5 !text-[11px] !tracking-wider">
-                      Passes
+                      {hasPass ? 'My Pass' : 'Get Pass'}
                     </span>
                   </Link>
 

@@ -16,18 +16,24 @@ import {
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { eventsData } from '../data/events'
+import { useAuth } from '../contexts/AuthContext'
+import EntryPassGate from '../components/EntryPassGate'
 
 /**
  * Events — VECTORS 26 "Doomsday Protocol" Event Vaults
  * 
  * UX Flow:
- * 1. Initial State: Displays two prominent category cards:
+ * 1. Entry Pass Gate: If user does not have a verified Entry Pass,
+ *    displays EntryPassGate. Events data/listings are NEVER rendered.
+ * 2. Gate Passed: Displays two prominent category cards:
  *    - Technical Events
  *    - Non-Technical Events
- * 2. Category Selected: Shows filtered event cards with a category switcher tab bar.
- * 3. Individual Event: Routes cleanly to /events/:eventId.
+ * 3. Category Selected: Shows filtered event cards with a category switcher tab bar.
+ * 4. Individual Event: Routes cleanly to /events/:eventId.
  */
 export default function Events() {
+  const { user, hasPass, passLoading, checkPassStatus } = useAuth()
+  const [verificationError, setVerificationError] = useState(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const categoryParam = searchParams.get('category')?.toLowerCase()
 
@@ -76,6 +82,30 @@ export default function Events() {
     setSearchParams({}, { replace: false })
   }
 
+  // Gate: If pass status is loading, render clearance scanner
+  if (passLoading) {
+    return <EntryPassGate user={user} loading={true} />
+  }
+
+  // Gate: If user does not possess an active Entry Pass, block access strictly
+  if (!hasPass) {
+    return (
+      <EntryPassGate
+        user={user}
+        loading={false}
+        error={verificationError}
+        onRetry={async () => {
+          setVerificationError(null)
+          try {
+            await checkPassStatus(user)
+          } catch (err) {
+            setVerificationError(err.message || 'Verification failed.')
+          }
+        }}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-20 relative z-10">
       <div className="max-w-6xl mx-auto">
@@ -93,12 +123,22 @@ export default function Events() {
               transition={{ duration: 0.4 }}
               className="space-y-10 sm:space-y-14"
             >
-              {/* Contextual Breadcrumb */}
-              <nav aria-label="Breadcrumb" className="flex items-center gap-2 font-mono text-xs text-text-muted">
-                <Link to="/" className="hover:text-doom-glow transition-colors">Home</Link>
-                <span className="text-white/30">/</span>
-                <span className="text-doom-glow font-bold">Events</span>
-              </nav>
+              {/* Contextual Navigation & Breadcrumb */}
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-text-muted hover:text-doom-glow transition-colors cursor-pointer py-1.5 px-3 bg-white/[0.04] border border-white/[0.08] hover:border-doom-glow/30"
+                >
+                  <ArrowLeft size={13} />
+                  <span>Return to Home</span>
+                </Link>
+
+                <nav aria-label="Breadcrumb" className="flex items-center gap-2 font-mono text-xs text-text-muted">
+                  <Link to="/" className="hover:text-doom-glow transition-colors">Home</Link>
+                  <span className="text-white/30">/</span>
+                  <span className="text-doom-glow font-bold">Events</span>
+                </nav>
+              </div>
 
               {/* Header */}
               <div className="text-center space-y-3 sm:space-y-4 max-w-2xl mx-auto">

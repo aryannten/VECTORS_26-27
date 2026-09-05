@@ -20,26 +20,21 @@ router.post('/sync', async (req, res) => {
   try {
     const decodedToken = await getAuth().verifyIdToken(idToken)
 
-    let user = await User.findOne({ firebaseUid: decodedToken.uid })
-
-    if (user) {
-      // Existing user — update last login
-      user.lastLoginAt = new Date()
-      if (decodedToken.name && !user.displayName) user.displayName = decodedToken.name
-      if (decodedToken.picture && !user.photoURL) user.photoURL = decodedToken.picture
-      await user.save()
-    } else {
-      // New user — create with default role
-      user = await User.create({
-        firebaseUid: decodedToken.uid,
-        email: decodedToken.email,
-        displayName: decodedToken.name || '',
-        photoURL: decodedToken.picture || null,
-        role: 'user',
-        lastLoginAt: new Date(),
-      })
-      console.log(`[Auth] New user created: ${user.email}`)
-    }
+    const user = await User.findOneAndUpdate(
+      { firebaseUid: decodedToken.uid },
+      {
+        $set: {
+          email: decodedToken.email,
+          lastLoginAt: new Date(),
+          ...(decodedToken.name ? { displayName: decodedToken.name } : {}),
+          ...(decodedToken.picture ? { photoURL: decodedToken.picture } : {}),
+        },
+        $setOnInsert: {
+          role: 'user',
+        }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    )
 
     res.status(200).json({
       user: {

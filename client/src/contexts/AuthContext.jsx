@@ -55,16 +55,89 @@ export function AuthProvider({ children }) {
     return null
   }
 
+  const [hasPass, setHasPass] = useState(false)
+  const [userPass, setUserPass] = useState(null)
+  const [passLoading, setPassLoading] = useState(true)
+
+  /**
+   * Check and sync entry pass verification status with the backend.
+   */
+  const checkPassStatus = async (firebaseUser) => {
+    setPassLoading(true)
+    try {
+      // 1. Instant optimistic check from localStorage
+      const cached = localStorage.getItem('vectorsPass')
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          if (parsed && parsed.registrationId) {
+            setHasPass(true)
+            setUserPass(parsed)
+          }
+        } catch {
+          // ignore corrupted local storage
+        }
+      }
+
+      // 2. Authoritative backend verification
+      if (firebaseUser) {
+        const token = await firebaseUser.getIdToken()
+        const res = await fetch('/api/register/status', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          if (data.hasPass) {
+            setHasPass(true)
+            setUserPass(data.pass)
+            localStorage.setItem('vectorsPass', JSON.stringify(data.pass))
+          } else {
+            setHasPass(false)
+            setUserPass(null)
+            localStorage.removeItem('vectorsPass')
+          }
+        }
+      } else {
+        setHasPass(false)
+        setUserPass(null)
+      }
+    } catch (err) {
+      console.error('[Auth] Pass status check error:', err)
+    } finally {
+      setPassLoading(false)
+    }
+  }
+
+  /**
+   * Direct setter called when a pass is newly generated in the frontend.
+   */
+  const setPassData = (passData) => {
+    if (passData && passData.registrationId) {
+      setHasPass(true)
+      setUserPass(passData)
+      localStorage.setItem('vectorsPass', JSON.stringify(passData))
+    } else {
+      setHasPass(false)
+      setUserPass(null)
+      localStorage.removeItem('vectorsPass')
+    }
+  }
+
   // Listen to Firebase auth state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser)
         await syncWithBackend(firebaseUser)
+        await checkPassStatus(firebaseUser)
       } else {
         setUser(null)
         setUserRole(null)
         setIdToken(null)
+        setHasPass(false)
+        setUserPass(null)
+        setPassLoading(false)
       }
       setLoading(false)
     })
@@ -177,6 +250,11 @@ export function AuthProvider({ children }) {
     userRole,
     loading,
     idToken,
+    hasPass,
+    userPass,
+    passLoading,
+    setPassData,
+    checkPassStatus,
     login,
     loginWithGoogle,
     signup,

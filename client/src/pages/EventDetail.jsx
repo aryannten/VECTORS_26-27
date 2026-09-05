@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, MapPin, Calendar, Users, DollarSign, Trophy, ShieldCheck, UserCheck, ExternalLink } from 'lucide-react'
 import { getEventById } from '../data/events'
+import { useAuth } from '../contexts/AuthContext'
+import EntryPassGate from '../components/EntryPassGate'
 
 /**
  * EventDetail — Individual Event Vault & Specifications
@@ -13,8 +16,34 @@ import { getEventById } from '../data/events'
  * - Armor-plated registration CTA
  */
 export default function EventDetail() {
+  const { user, hasPass, passLoading, checkPassStatus } = useAuth()
+  const [verificationError, setVerificationError] = useState(null)
   const { eventId } = useParams()
   const event = getEventById(eventId || '')
+
+  // Gate: If pass status is loading, render clearance scanner
+  if (passLoading) {
+    return <EntryPassGate user={user} loading={true} />
+  }
+
+  // Gate: If user does not possess an active Entry Pass, block access strictly
+  if (!hasPass) {
+    return (
+      <EntryPassGate
+        user={user}
+        loading={false}
+        error={verificationError}
+        onRetry={async () => {
+          setVerificationError(null)
+          try {
+            await checkPassStatus(user)
+          } catch (err) {
+            setVerificationError(err.message || 'Verification failed.')
+          }
+        }}
+      />
+    )
+  }
 
   if (!event) {
     return (
