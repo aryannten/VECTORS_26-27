@@ -19,18 +19,32 @@ router.post('/sync', async (req, res) => {
 
   try {
     const decodedToken = await getAuth().verifyIdToken(idToken)
+    const userEmail = (decodedToken.email || '').toLowerCase()
+
+    const adminEmailsRaw = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || ''
+    const adminEmails = adminEmailsRaw
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+    const isAdmin = adminEmails.includes(userEmail)
+
+    const updateSet = {
+      email: decodedToken.email,
+      lastLoginAt: new Date(),
+      ...(decodedToken.name ? { displayName: decodedToken.name } : {}),
+      ...(decodedToken.picture ? { photoURL: decodedToken.picture } : {}),
+    }
+
+    if (isAdmin) {
+      updateSet.role = 'admin'
+    }
 
     const user = await User.findOneAndUpdate(
       { firebaseUid: decodedToken.uid },
       {
-        $set: {
-          email: decodedToken.email,
-          lastLoginAt: new Date(),
-          ...(decodedToken.name ? { displayName: decodedToken.name } : {}),
-          ...(decodedToken.picture ? { photoURL: decodedToken.picture } : {}),
-        },
+        $set: updateSet,
         $setOnInsert: {
-          role: 'user',
+          role: isAdmin ? 'admin' : 'user',
         }
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }

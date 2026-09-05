@@ -470,15 +470,26 @@ const seedAnnouncements = async () => {
  * Seed the admin user on startup.
  */
 const seedDefaults = async () => {
-  const adminEmail = process.env.ADMIN_EMAIL
-  if (adminEmail) {
-    const existingAdmin = await User.findOne({ email: adminEmail.toLowerCase() })
-    if (existingAdmin && existingAdmin.role !== 'admin') {
-      existingAdmin.role = 'admin'
-      await existingAdmin.save()
-      console.log(`[Seed] Promoted ${adminEmail} to admin.`)
-    } else if (!existingAdmin) {
-      console.log(`[Seed] Admin user ${adminEmail} not found yet — will be promoted on first login.`)
+  const adminEmailsRaw = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || ''
+  const adminEmails = adminEmailsRaw
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+
+  for (const email of adminEmails) {
+    try {
+      const existingAdmin = await User.findOne({ email })
+      if (existingAdmin && existingAdmin.role !== 'admin') {
+        existingAdmin.role = 'admin'
+        await existingAdmin.save()
+        console.log(`[Seed] Promoted ${email} to admin.`)
+      } else if (existingAdmin && existingAdmin.role === 'admin') {
+        console.log(`[Seed] Confirmed admin account: ${email}`)
+      } else {
+        console.log(`[Seed] Admin user ${email} not registered yet — will be auto-promoted to admin on login.`)
+      }
+    } catch (err) {
+      console.warn(`[Seed] Error verifying admin ${email}:`, err.message)
     }
   }
 }
