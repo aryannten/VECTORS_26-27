@@ -19,6 +19,11 @@ const eventSchema = new mongoose.Schema(
       enum: ['Technical', 'Non-Technical'],
       required: true,
     },
+    branch: {
+      type: String,
+      default: 'Open to All',
+      trim: true,
+    },
     description: {
       type: String,
       required: true,

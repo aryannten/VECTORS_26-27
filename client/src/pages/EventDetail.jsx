@@ -1,151 +1,209 @@
 import { useParams, Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { ArrowLeft, MapPin, Calendar, Users, DollarSign, Trophy, ShieldCheck, UserCheck, ExternalLink } from 'lucide-react'
+import { getEventById } from '../data/events'
 
 /**
- * Event Detail — Individual event page with rules, details, and Google Form CTA.
- * Phase 7: Functional scaffold with mock data.
+ * EventDetail — Individual Event Vault & Specifications
+ * 
+ * Styled with the Doomsday Protocol aesthetic:
+ * - Direct return link back to active category (/events?category=...)
+ * - Category and Branch Alignment badges
+ * - Rules of engagement telemetry list
+ * - Armor-plated registration CTA
  */
-const mockEventData = {
-  hackathon: {
-    name: 'Hackathon',
-    category: 'Technical',
-    fee: 'Free',
-    date: 'TBD',
-    venue: 'Main Auditorium',
-    teamSize: '2–4 members',
-    description: 'Build, break, and innovate in a 24-hour sprint. Bring your laptop, your ideas, and your determination.',
-    rules: [
-      'Teams of 2–4 members.',
-      'All code must be written during the event.',
-      'Pre-built libraries and frameworks are allowed.',
-      'Judging criteria: Innovation, Execution, Presentation.',
-    ],
-    googleFormUrl: '#', // Admin will configure this
-  },
-  'robo-wars': {
-    name: 'Robo Wars',
-    category: 'Technical',
-    fee: '₹500',
-    date: 'TBD',
-    venue: 'Arena Block B',
-    teamSize: '3–5 members',
-    description: 'Engineer your machine. Destroy the competition. The last bot standing wins.',
-    rules: [
-      'Weight limit: 25kg.',
-      'No flammable weapons.',
-      'Radio-controlled only.',
-      'Round duration: 3 minutes.',
-    ],
-    googleFormUrl: '#',
-  },
-  'gaming-arena': {
-    name: 'Gaming Arena',
-    category: 'Non-Technical',
-    fee: '₹200',
-    date: 'TBD',
-    venue: 'Lab Complex',
-    teamSize: 'Solo / Duo',
-    description: 'Compete in high-stakes esports tournaments across multiple titles.',
-    rules: [
-      'Bring your own peripherals.',
-      'PCs will be provided.',
-      'No cheating software.',
-      'Best of 3 elimination rounds.',
-    ],
-    googleFormUrl: '#',
-  },
-  'cultural-night': {
-    name: 'Cultural Night',
-    category: 'Non-Technical',
-    fee: 'Free',
-    date: 'TBD',
-    venue: 'Open Air Theatre',
-    teamSize: 'Solo / Group',
-    description: 'Music, dance, and performance under the stars. Showcase your talent.',
-    rules: [
-      'Performance duration: 5–10 minutes.',
-      'No offensive content.',
-      'Sound equipment provided.',
-      'Registration required.',
-    ],
-    googleFormUrl: '#',
-  },
-}
-
 export default function EventDetail() {
   const { eventId } = useParams()
-  const event = mockEventData[eventId]
+  const event = getEventById(eventId || '')
 
   if (!event) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="font-display text-3xl text-crimson">Vault Not Found</h2>
-          <Link to="/events" className="font-mono text-brass mt-4 inline-block hover:text-emerald">
-            ← Return to Vaults
+      <div className="min-h-screen flex items-center justify-center px-4 relative z-10">
+        <div className="text-center p-8 bg-doom-bg2 border border-white/[0.08] max-w-md w-full doom-btn-clipped">
+          <h2 className="font-display text-2xl sm:text-3xl text-doom-crimson-bright font-bold uppercase tracking-wider">
+            VAULT NOT FOUND
+          </h2>
+          <p className="font-mono text-xs text-text-muted mt-2">
+            The requested protocol [ID: {eventId}] does not exist in the active archives.
+          </p>
+          <Link
+            to="/events"
+            className="mt-6 inline-flex items-center gap-2 font-mono text-xs text-doom-glow uppercase tracking-widest hover:underline"
+          >
+            <ArrowLeft size={14} />
+            Return to Event Vaults
           </Link>
         </div>
       </div>
     )
   }
 
+  const categoryQuery = event.category.toLowerCase()
+
   return (
-    <div className="min-h-screen px-4 sm:px-6 pt-20 sm:pt-24 pb-32">
-      <div className="max-w-2xl mx-auto">
-        {/* Back Link */}
-        <Link to="/events" className="font-mono text-brass text-sm hover:text-emerald transition-colors duration-300">
-          ← All Events
-        </Link>
+    <div className="min-h-screen px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-36 relative z-10">
+      <div className="max-w-3xl mx-auto space-y-8 sm:space-y-10">
+        
+        {/* Top Back Navigation (Preserves Category View) */}
+        <div className="flex items-center justify-between flex-wrap gap-4 border-b border-white/[0.08] pb-4">
+          <Link
+            to={`/events?category=${categoryQuery}`}
+            className="inline-flex items-center gap-2 font-mono text-xs text-text-muted hover:text-doom-glow transition-colors uppercase tracking-widest py-1"
+          >
+            <ArrowLeft size={14} />
+            <span>← Back to {event.category} Events</span>
+          </Link>
+
+          <span className="font-mono text-[11px] tracking-wider text-text-muted bg-white/[0.03] px-2.5 py-0.5 border border-white/[0.06]">
+            SPEC // PROTOCOL-{event.id.toUpperCase()}
+          </span>
+        </div>
 
         {/* Event Header */}
-        <div className="mt-6 mb-8">
-          <span className="font-mono text-xs text-brass uppercase tracking-widest">
-            {event.category}
-          </span>
-          <h1 className="font-display text-2xl sm:text-4xl md:text-5xl tracking-widest mt-2">{event.name}</h1>
-          <p className="font-mono text-steel text-sm sm:text-base mt-4 leading-relaxed">{event.description}</p>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Category Badge */}
+            <span className="font-mono text-xs tracking-widest text-doom-glow px-3 py-1 bg-doom-glow/10 border border-doom-glow/40 uppercase font-bold">
+              {event.category} Event
+            </span>
+
+            {/* Branch Alignment Badge */}
+            <span className="font-mono text-xs tracking-wider text-chrome-light px-3 py-1 bg-white/[0.04] border border-white/[0.1] uppercase">
+              Branch Alignment: <strong className="text-text-primary font-bold">{event.branch}</strong>
+            </span>
+
+            {/* Participation note */}
+            <span className="font-mono text-[10px] text-text-muted/80 tracking-wider">
+              {event.isBranchExclusive ? '(Branch Restricted)' : '(Open to all branches)'}
+            </span>
+          </div>
+
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-wide text-text-primary drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+            {event.name}
+          </h1>
+
+          <p className="font-body text-sm sm:text-base text-text-primary/90 leading-relaxed pt-1">
+            {event.description}
+          </p>
         </div>
 
-        {/* Details Grid */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 mb-12 relative z-10">
+        {/* Specifications Matrix */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {[
-            { label: 'Date', value: event.date },
-            { label: 'Venue', value: event.venue },
-            { label: 'Fee', value: event.fee },
-            { label: 'Team Size', value: event.teamSize },
-          ].map((item) => (
-            <div key={item.label} className="glass-panel p-3 sm:p-4 md:p-6 border-brass-dim/20 hover:border-emerald/30 transition-colors duration-500">
-              <span className="font-mono text-[10px] md:text-xs text-emerald tracking-widest uppercase block mb-1">{item.label}</span>
-              <p className="font-mono text-bone text-xs sm:text-sm md:text-base drop-shadow-md break-words">{item.value}</p>
-            </div>
-          ))}
+            { label: 'Date & Time', value: event.date, icon: Calendar },
+            { label: 'Venue Location', value: event.venue, icon: MapPin },
+            { label: 'Registration Fee', value: event.fee, icon: DollarSign },
+            { label: 'Team Structure', value: event.teamSize, icon: Users },
+          ].map((item) => {
+            const Icon = item.icon
+            return (
+              <div
+                key={item.label}
+                className="p-4 bg-doom-bg2 border border-white/[0.08] doom-btn-clipped space-y-1.5"
+              >
+                <div className="flex items-center gap-1.5 text-doom-glow font-mono text-[10px] uppercase tracking-wider">
+                  <Icon size={12} />
+                  <span>{item.label}</span>
+                </div>
+                <p className="font-mono text-xs sm:text-sm text-text-primary font-bold break-words">
+                  {item.value}
+                </p>
+              </div>
+            )
+          })}
         </div>
 
-        {/* Rules */}
-        <div className="mb-24 relative z-10">
-          <h2 className="font-display text-xl sm:text-2xl tracking-widest mb-6 text-brass drop-shadow-[0_0_10px_rgba(212,175,55,0.2)]">Rules of Engagement</h2>
-          <ul className="space-y-3 sm:space-y-4">
-            {event.rules.map((rule, i) => (
-              <li key={i} className="font-mono text-xs sm:text-sm md:text-base text-steel flex gap-3 sm:gap-4 bg-iron/10 p-3.5 sm:p-4 border-l-2 border-emerald/50">
-                <span className="text-emerald shrink-0 font-bold drop-shadow-[0_0_5px_rgba(0,255,102,0.5)]">
-                  {String(i + 1).padStart(2, '0')}
+        {/* Prize Pool Banner (if applicable) */}
+        {event.prizePool && (
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-doom-glow/10 via-doom-bg2 to-doom-bg2 border border-doom-glow/40 doom-btn-clipped flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-sm bg-doom-glow/20 border border-doom-glow/50 flex items-center justify-center text-doom-glow shrink-0">
+                <Trophy size={20} />
+              </div>
+              <div>
+                <span className="font-mono text-[10px] tracking-widest text-doom-glow uppercase font-bold block">
+                  PRIZE POOL & MERCHANDISE
                 </span>
-                <span className="leading-relaxed text-bone/90">{rule}</span>
-              </li>
+                <p className="font-display text-lg sm:text-xl font-bold text-text-primary tracking-wide">
+                  {event.prizePool}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rules of Engagement */}
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={18} className="text-doom-glow" />
+            <h2 className="font-display text-xl sm:text-2xl font-bold tracking-wider uppercase text-text-primary">
+              RULES OF ENGAGEMENT
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            {event.rules.map((rule, idx) => (
+              <div
+                key={idx}
+                className="flex items-start gap-3.5 p-3.5 sm:p-4 bg-doom-bg2 border-l-2 border-doom-glow border-y border-r border-white/[0.04]"
+              >
+                <span className="font-mono text-xs font-bold text-doom-glow tracking-wider shrink-0 mt-0.5">
+                  [{String(idx + 1).padStart(2, '0')}]
+                </span>
+                <p className="font-body text-xs sm:text-sm text-text-muted leading-relaxed">
+                  {rule}
+                </p>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
-        {/* Sticky Registration CTA */}
-        <div className="fixed bottom-0 left-0 right-0 p-3.5 sm:p-6 bg-charcoal/80 backdrop-blur-xl border-t border-brass-dim/20 z-50">
+        {/* Event Coordinators */}
+        {event.coordinators && event.coordinators.length > 0 && (
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center gap-2">
+              <UserCheck size={18} className="text-doom-glow" />
+              <h2 className="font-display text-lg sm:text-xl font-bold tracking-wider uppercase text-text-primary">
+                SECTOR COORDINATORS
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {event.coordinators.map((c, i) => (
+                <div key={i} className="p-3.5 bg-doom-bg2 border border-white/[0.06] font-mono text-xs">
+                  <span className="text-text-primary font-bold block">{c.name}</span>
+                  <span className="text-doom-glow/90 mt-0.5 block">{c.contact}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* Floating / Sticky Registration CTA Bar */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 sm:p-5 bg-doom-bg/95 backdrop-blur-xl border-t border-doom-glow/30 shadow-[0_-10px_35px_rgba(0,0,0,0.8)] z-40">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
+          <div className="min-w-0 hidden sm:block">
+            <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider block truncate">
+              {event.category} // {event.branch}
+            </span>
+            <span className="font-display text-sm font-bold text-text-primary truncate block">
+              {event.name}
+            </span>
+          </div>
+
           <a
             href={event.googleFormUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full max-w-2xl mx-auto py-3.5 sm:py-4 text-center font-display text-xs sm:text-sm tracking-[0.15em] uppercase text-emerald border border-emerald/40 transition-all duration-300 hover:text-charcoal hover:bg-emerald hover:shadow-[0_0_40px_rgba(0,255,102,0.6)]"
-            style={{ background: 'rgba(0,255,102,0.06)', backdropFilter: 'blur(12px)', boxShadow: '0 0 15px rgba(0,255,102,0.08), inset 0 0 15px rgba(0,255,102,0.05)' }}
+            className="doom-btn-primary w-full sm:w-auto sm:min-w-[260px] text-center"
             id="btn-register-participate"
           >
-            Register to Participate
+            <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3.5 text-xs tracking-widest">
+              <span>REGISTER TO PARTICIPATE</span>
+              <ExternalLink size={14} />
+            </span>
           </a>
         </div>
       </div>
