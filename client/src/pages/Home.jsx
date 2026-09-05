@@ -1,11 +1,20 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { ArrowRight } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import FaultyTerminal from '../components/ui/FaultyTerminal'
+import DoomsdayWordmark from '../components/DoomsdayWordmark'
 
 /**
- * Home — The VECTORS 26 Portal.
- * Features the signature Beyond Logic VECTORS 26 logo, lore narrative, and gateway CTAs.
+ * Home — VECTORS 26 "Doomsday Protocol" Portal
+ * 
+ * Implements the Doomsday Protocol visual redesign:
+ * - Fractured VECTORS 26 mark in brushed chrome with crimson cracks & emerald bleed
+ * - Gothic Latverian ogival stained-glass arch framework
+ * - Refined typography hierarchy: Inter body copy, Cinzel decrees, Space Mono UI
+ * - Armor-plated primary CTA with 45° clipped corners & light surge sweep
+ * - Ghost secondary CTA with animated arrow & expanding emerald energy underline
+ * - Atmospheric gunmetal (#0A0C0E) and deep emerald (#0B7A4E) environmental shader
  */
 export default function Home() {
   const navigate = useNavigate()
@@ -13,14 +22,23 @@ export default function Home() {
 
   // Orchestrated entrance sequence
   const seq = {
-    logo: { initial: { opacity: 0, scale: 0.92 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] } },
-    text: { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { duration: 1, delay: 0.5, ease: 'easeOut' } },
-    cta:  { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.8, delay: 1.0, ease: 'easeOut' } },
+    logo: {
+      initial: { opacity: 0, scale: 0.95, y: -8 },
+      animate: { opacity: 1, scale: 1, y: 0 },
+      transition: { duration: 1.1, ease: [0.16, 1, 0.3, 1] }
+    },
+    text: {
+      initial: { opacity: 0, y: 12 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.8, delay: 0.45, ease: 'easeOut' }
+    },
+    cta: {
+      initial: { opacity: 0, y: 14 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.7, delay: 0.85, ease: 'easeOut' }
+    },
   }
 
-  /**
-   * Gate CTA buttons behind auth — if not logged in, redirect to /login.
-   */
   const handleEntryPass = () => {
     if (user) {
       navigate('/entry-registration')
@@ -38,111 +56,125 @@ export default function Home() {
   }
 
   return (
-    <div className="relative min-h-screen bg-charcoal overflow-hidden flex flex-col">
+    <div className="relative min-h-screen bg-doom-bg overflow-hidden flex flex-col">
 
-      {/* === FAULTY TERMINAL BACKGROUND === */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      {/* === SHADER BACKGROUND WITH DEEP EMERALD TINT === */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <FaultyTerminal
           scale={1.5}
           gridMul={[2, 1]}
           digitSize={1.2}
-          timeScale={1}
+          timeScale={0.85}
           pause={false}
-          scanlineIntensity={1}
-          glitchAmount={1}
-          flickerAmount={1}
-          noiseAmp={1}
+          scanlineIntensity={0.85}
+          glitchAmount={0.8}
+          flickerAmount={0.6}
+          noiseAmp={0.8}
           chromaticAberration={0}
           dither={0}
           curvature={0}
-          tint="#2F5D3A"
+          tint="#0B7A4E"
           mouseReact={true}
-          mouseStrength={0.5}
+          mouseStrength={0.4}
           pageLoadAnimation={false}
-          brightness={1}
+          brightness={0.85}
         />
       </div>
 
-      {/* Atmospheric vignette blending terminal with monolithic architecture */}
+      {/* Environmental vignette: Gunmetal depth blending */}
       <div
         className="absolute inset-0 pointer-events-none z-[1]"
         style={{
-          background: 'radial-gradient(ellipse 70% 60% at 50% 40%, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.65) 60%, rgba(10,10,10,0.94) 100%)'
+          background: 'radial-gradient(ellipse 75% 65% at 50% 40%, rgba(10,12,14,0.15) 0%, rgba(10,12,14,0.75) 60%, #0A0C0E 100%)'
         }}
       />
 
-      {/* Atmospheric crimson backlight glow behind the logo */}
+      {/* Atmospheric Doom emerald underglow */}
       <div
         className="absolute inset-0 pointer-events-none z-[2]"
         style={{
-          background: 'radial-gradient(ellipse 50% 40% at 50% 32%, rgba(220,38,38,0.12) 0%, rgba(184,156,73,0.04) 50%, transparent 75%)'
+          background: 'radial-gradient(ellipse 60% 45% at 50% 32%, rgba(30,255,160,0.06) 0%, rgba(11,122,78,0.03) 50%, transparent 75%)'
         }}
       />
 
-      {/* Architectural edge frame */}
-      <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white/[0.03] to-transparent" />
-      <div className="absolute top-0 right-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white/[0.03] to-transparent" />
+      {/* Architectural subtle vertical edge seams */}
+      <div className="absolute top-0 left-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white/[0.04] to-transparent pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[1px] h-full bg-gradient-to-b from-transparent via-white/[0.04] to-transparent pointer-events-none" />
 
-      {/* Upper darkness */}
-      <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-charcoal to-transparent z-10" />
+      {/* Top and bottom fade masks */}
+      <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-doom-bg to-transparent z-10 pointer-events-none" />
 
       {/* === SCENE CONTENT === */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-20 pb-16 min-h-screen">
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-24 pb-16 min-h-screen">
 
-        {/* LOGO — BEYOND LOGIC / VECTORS 26 */}
-        <motion.div {...seq.logo} className="w-full max-w-xl flex justify-center mb-6 sm:mb-8">
-          <img
-            src="/vectors-logo.png"
-            alt="VECTORS 26 — Beyond Logic"
-            className="w-full max-w-[320px] xs:max-w-[400px] sm:max-w-[480px] md:max-w-[540px] h-auto object-contain drop-shadow-[0_0_40px_rgba(220,38,38,0.35)] select-none"
-          />
+        {/* 1. FRACTURED WORDMARK & OGIVAL ARCH EMBLEM */}
+        <motion.div {...seq.logo} className="w-full max-w-xl flex justify-center mb-4 sm:mb-6">
+          <DoomsdayWordmark />
         </motion.div>
 
-        {/* NARRATIVE TEXT */}
+        {/* 2. NARRATIVE TEXT (Inter geometric sans for body, Cinzel for Latverian decrees) */}
         <motion.div {...seq.text} className="max-w-xl mx-auto text-center space-y-4 sm:space-y-5 px-2">
-          <p className="font-mono text-xs sm:text-sm text-steel/90 tracking-wider leading-relaxed">
+          
+          {/* Lead paragraph: clean Inter geometric sans */}
+          <p className="font-body text-sm sm:text-base text-text-primary/95 leading-relaxed font-normal">
             The world is changing.<br />
             Technology is evolving.<br />
             And the next generation is being called.
           </p>
 
-          <p className="font-mono text-xs sm:text-sm text-steel/90 tracking-wider leading-relaxed">
-            <strong className="text-crimson font-bold">VECTORS</strong> is where minds collide, machines awaken, and ideas become reality.
+          {/* Core statement */}
+          <p className="font-body text-sm sm:text-base text-text-primary/95 leading-relaxed">
+            <strong className="font-display font-bold text-base sm:text-lg tracking-wider text-chrome-light">VECTORS</strong> is where minds collide, machines awaken, and ideas become reality.
           </p>
 
-          <p className="font-mono text-xs sm:text-sm text-steel/90 tracking-wider leading-relaxed">
-            From <strong className="text-bone font-semibold">robotics and coding</strong> to <strong className="text-bone font-semibold">hackathons and futuristic challenges</strong>, every battle demands skill, strategy, and innovation.
+          {/* Pillars statement */}
+          <p className="font-body text-sm sm:text-base text-text-muted leading-relaxed">
+            From <span className="text-text-primary font-medium">robotics and coding</span> to <span className="text-text-primary font-medium">hackathons and futuristic challenges</span>, every battle demands skill, strategy, and innovation.
           </p>
 
-          <div className="font-mono text-xs sm:text-sm tracking-widest uppercase font-bold leading-relaxed pt-2 text-brass">
-            The arena is set.<br />
-            The challenge awaits.<br />
-            <span className="text-emerald drop-shadow-[0_0_12px_rgba(0,255,102,0.4)]">Will you answer the call?</span>
+          {/* Latverian decree + final callout in Cinzel */}
+          <div className="pt-2 sm:pt-3 space-y-2">
+            <p className="font-accent text-xs sm:text-sm font-semibold tracking-[0.25em] text-chrome-light uppercase">
+              The arena is set.<br />
+              The challenge awaits.
+            </p>
+            <p className="font-accent text-sm sm:text-base font-bold tracking-[0.22em] uppercase text-doom-glow drop-shadow-[0_0_15px_rgba(30,255,160,0.5)]">
+              Will you answer the call?
+            </p>
           </div>
         </motion.div>
 
-        {/* CTAs */}
-        <motion.div {...seq.cta} className="mt-8 sm:mt-10 md:mt-12 w-full max-w-sm flex flex-col gap-3">
+        {/* 3. GATEWAY CTAs */}
+        <motion.div {...seq.cta} className="mt-8 sm:mt-10 md:mt-12 w-full max-w-sm flex flex-col items-center gap-3">
+          
+          {/* Primary Armor-Plated Button */}
           <button
             onClick={handleEntryPass}
-            className="w-full py-4 text-center font-mono text-xs tracking-[0.2em] uppercase text-charcoal bg-emerald hover:bg-emerald-dim transition-colors cursor-pointer"
+            className="doom-btn-primary w-full"
+            aria-label="Get Entry Pass"
           >
-            {user ? 'Get Entry Pass' : 'Sign In → Get Entry Pass'}
+            <span className="doom-btn-primary-inner">
+              Get Entry Pass
+            </span>
           </button>
+
+          {/* Secondary Ghost Button */}
           <button
             onClick={handleExploreEvents}
-            className="w-full py-4 text-center font-mono text-xs tracking-[0.2em] uppercase text-steel border border-white/[0.08] hover:border-white/[0.15] hover:text-bone transition-all bg-white/[0.02] cursor-pointer"
+            className="doom-btn-ghost w-full"
+            aria-label="Explore Events"
           >
-            {user ? 'Explore Events' : 'Sign In → Explore Events'}
+            <span>Explore Events</span>
+            <ArrowRight size={14} className="ghost-arrow text-doom-glow shrink-0" />
           </button>
         </motion.div>
-      </div>
+      </main>
 
-      {/* === GROUND FOG === */}
+      {/* === SUBTLE GROUND FOG === */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none z-20"
+        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-20"
         style={{
-          background: 'linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.4) 50%, transparent 100%)'
+          background: 'linear-gradient(to top, rgba(10,12,14,0.95) 0%, rgba(10,12,14,0.4) 50%, transparent 100%)'
         }}
       />
     </div>

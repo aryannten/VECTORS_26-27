@@ -23,12 +23,12 @@ function App() {
   const isLandingPage = location.pathname === '/'
 
   return (
-    <div className="relative min-h-screen bg-charcoal">
+    <div className="relative min-h-screen bg-doom-bg">
       {/* 3D Particle background for all pages except the landing page */}
       {!isLandingPage && (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
           <Particles
-            particleColors={['#ffffff', '#b89c49', '#e2e8f0']}
+            particleColors={['#1EFFA0', '#C7CCD1', '#5C6270']}
             particleCount={200}
             particleSpread={10}
             speed={0.1}

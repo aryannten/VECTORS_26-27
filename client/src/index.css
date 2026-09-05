@@ -6,33 +6,40 @@
    ================================================ */
 
 @theme {
-  /* Architecture (Primary Base - Depth & Structure) */
-  --color-charcoal: #0a0a0a;
-  --color-gunmetal: #1a1d21;
-  --color-iron: #141311;
+  /* Doomsday Protocol Color Palette */
+  --color-doom-bg: #0A0C0E;
+  --color-doom-bg2: #171A1E;
+  --color-doom-glow: #1EFFA0;
+  --color-doom-glow-muted: #0B7A4E;
+  --color-doom-crimson: #8B0000;
+  --color-doom-crimson-bright: #C21807;
 
-  /* Machinery & Accents (Secondary Base) */
-  --color-bronze: #231c17;
-  --color-brass: #b89c49;
-  --color-brass-dim: #7a652a;
+  --color-chrome-light: #C7CCD1;
+  --color-chrome-dark: #5C6270;
 
-  /* Energy (Primary Action / Illumination) */
-  --color-emerald: #00FF66;
-  --color-emerald-dim: #008f39;
+  --color-text-primary: #EDEFF1;
+  --color-text-muted: #8A909B;
 
-  /* Typography Colors */
-  --color-bone: #F4F4F5;
-  --color-steel: #8F939C;
-  --color-slate: #5e646d;
-
-  /* Danger / Warning */
-  --color-crimson: #FF0033;
+  /* Backward compatibility tokens */
+  --color-charcoal: #0A0C0E;
+  --color-gunmetal: #171A1E;
+  --color-iron: #101316;
+  --color-bronze: #1e2227;
+  --color-brass: #C7CCD1;
+  --color-brass-dim: #5C6270;
+  --color-emerald: #1EFFA0;
+  --color-emerald-dim: #0B7A4E;
+  --color-bone: #EDEFF1;
+  --color-steel: #8A909B;
+  --color-slate: #5C6270;
+  --color-crimson: #C21807;
   --color-amber: #FFB800;
 
-  /* Font families - Explicit Hierarchy */
-  --font-display: 'Cinzel', serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Typography Hierarchy */
+  --font-display: 'Rajdhani', sans-serif;
+  --font-accent: 'Cinzel', serif;
   --font-body: 'Inter', sans-serif;
+  --font-mono: 'Space Mono', monospace;
 }
 
 /* ================================================
@@ -50,6 +57,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     max-width: 100%;
+    background-color: var(--color-doom-bg);
   }
 
   img, svg, video, canvas {
@@ -62,8 +70,8 @@
 
   body {
     font-family: var(--font-body);
-    background-color: var(--color-charcoal);
-    color: var(--color-bone);
+    background-color: var(--color-doom-bg);
+    color: var(--color-text-primary);
     overflow-x: hidden;
     min-height: 100vh;
   }
@@ -76,26 +84,32 @@
     z-index: 9999;
     pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    opacity: 0.02;
+    opacity: 0.025;
     mix-blend-mode: overlay;
   }
 
   /* Scrollbar - Mechanical styling */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--color-charcoal); }
-  ::-webkit-scrollbar-thumb { background: var(--color-brass-dim); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--color-brass); }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--color-doom-bg); }
+  ::-webkit-scrollbar-thumb { background: #22272e; border: 1px solid rgba(30, 255, 160, 0.2); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-doom-glow-muted); }
 
   ::selection {
-    background: var(--color-emerald);
-    color: var(--color-charcoal);
+    background: var(--color-doom-glow);
+    color: var(--color-doom-bg);
+  }
+
+  /* Keyboard focus states */
+  :focus-visible {
+    outline: 2px solid var(--color-doom-glow);
+    outline-offset: 2px;
   }
 
   /* Heading Hierarchy */
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    letter-spacing: 0.05em;
-    font-weight: 400;
+    letter-spacing: 0.04em;
+    font-weight: 700;
   }
 }
 
@@ -190,7 +204,196 @@
   .vectors-divider {
     height: 1px;
     width: 100%;
-    background: linear-gradient(90deg, transparent, var(--color-brass-dim), transparent);
+    background: linear-gradient(90deg, transparent, var(--color-chrome-dark), transparent);
     opacity: 0.5;
+  }
+
+  /* ================================================
+     Doomsday Protocol Design System Additions
+     ================================================ */
+
+  /* Navbar Sticky Seam */
+  .doom-navbar {
+    background: rgba(10, 12, 14, 0.75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 1px 0 0 rgba(30, 255, 160, 0.25), 0 4px 20px rgba(30, 255, 160, 0.05);
+  }
+
+  /* Navbar Nav Links */
+  .doom-nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    padding: 0.5rem 0.75rem;
+    transition: color 0.25s ease;
+  }
+
+  .doom-nav-link:hover,
+  .doom-nav-link.active {
+    color: var(--color-doom-glow);
+  }
+
+  .doom-nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 1.5px;
+    background: var(--color-doom-glow);
+    box-shadow: 0 0 8px rgba(30, 255, 160, 0.8);
+    transform: translateX(-50%);
+    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .doom-nav-link:hover::after,
+  .doom-nav-link.active::after {
+    width: 80%;
+  }
+
+  /* Clipped Armor Primary Button */
+  .doom-btn-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5px;
+    background: linear-gradient(135deg, rgba(30, 255, 160, 0.85), rgba(11, 122, 78, 0.35), rgba(30, 255, 160, 0.85));
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    box-shadow: 0 0 20px rgba(30, 255, 160, 0.28);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .doom-btn-primary:hover {
+    background: linear-gradient(135deg, #1EFFA0, #0B7A4E, #1EFFA0);
+    box-shadow: 0 0 32px rgba(30, 255, 160, 0.55), 0 0 50px rgba(30, 255, 160, 0.2);
+  }
+
+  .doom-btn-primary-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: var(--color-doom-bg2);
+    color: var(--color-doom-glow);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 0.9rem 2rem;
+    clip-path: polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px);
+    transition: background 0.3s ease, color 0.3s ease;
+    overflow: hidden;
+  }
+
+  .doom-btn-primary:hover .doom-btn-primary-inner {
+    background: #1e242b;
+    color: #ffffff;
+  }
+
+  /* Light surge sweep across primary button */
+  .doom-btn-primary-inner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(30, 255, 160, 0.45) 50%, transparent 100%);
+    transform: skewX(-25deg);
+    transition: none;
+    pointer-events: none;
+  }
+
+  .doom-btn-primary:hover .doom-btn-primary-inner::after {
+    left: 200%;
+    transition: left 0.75s ease-in-out;
+  }
+
+  /* Ghost Secondary Button */
+  .doom-btn-ghost {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    background: transparent;
+    color: var(--color-text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0.875rem 2rem;
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    text-decoration: none;
+  }
+
+  .doom-btn-ghost:hover {
+    color: var(--color-doom-glow);
+  }
+
+  .doom-btn-ghost .ghost-arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .doom-btn-ghost:hover .ghost-arrow {
+    transform: translateX(4px);
+  }
+
+  .doom-btn-ghost::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    width: 0;
+    height: 1.5px;
+    background: var(--color-doom-glow);
+    box-shadow: 0 0 10px rgba(30, 255, 160, 0.7);
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .doom-btn-ghost:hover::after {
+    width: calc(100% - 3.5rem);
+    left: 1.75rem;
+  }
+
+  /* Wordmark Bleed Pulse */
+  @keyframes doom-bleed-pulse {
+    0%, 100% {
+      filter: drop-shadow(0 0 6px rgba(30, 255, 160, 0.35)) drop-shadow(0 0 16px rgba(30, 255, 160, 0.2));
+      opacity: 0.85;
+    }
+    50% {
+      filter: drop-shadow(0 0 14px rgba(30, 255, 160, 0.75)) drop-shadow(0 0 28px rgba(30, 255, 160, 0.45));
+      opacity: 1;
+    }
+  }
+
+  .doom-crack-glow {
+    animation: doom-bleed-pulse 2.8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .doom-crack-glow {
+      animation: none !important;
+      filter: drop-shadow(0 0 10px rgba(30, 255, 160, 0.45));
+    }
+    .doom-btn-primary-inner::after {
+      display: none !important;
+    }
   }
 }
