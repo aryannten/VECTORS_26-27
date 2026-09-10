@@ -7,6 +7,8 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Particles from './components/ui/Particles'
+import DoomsdayCommandCenter from './pages/DoomsdayCommandCenter'
+import Landing from './pages/Landing'
 
 // Lazy loaded pages
 const EntryRegistration = lazy(() => import('./pages/EntryRegistration'))
@@ -40,15 +42,15 @@ function PageLoading() {
 
 function App() {
   const location = useLocation()
-  const isLandingPage = location.pathname === '/'
+  const isLandingPage = location.pathname === '/' || location.pathname === '/command'
 
   return (
-    <div className="relative min-h-screen bg-doom-bg">
-      {/* 3D Particle background for all pages except the landing page */}
+    <div className="relative min-h-screen bg-cmd-bg">
+      {/* 3D Particle background for internal pages */}
       {!isLandingPage && (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
           <Particles
-            particleColors={['#1EFFA0', '#C7CCD1', '#5C6270']}
+            particleColors={['#7CFF00', '#C7CCD1', '#5C6270']}
             particleCount={200}
             particleSpread={10}
             speed={0.1}
@@ -63,9 +65,13 @@ function App() {
       <div className="relative z-10">
         <Suspense fallback={<PageLoading />}>
           <Routes>
+            {/* Primary Landing Page */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/command" element={<DoomsdayCommandCenter />} />
+
             {/* Public & User routes with main layout */}
             <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
+              <Route path="festival" element={<Home />} />
               <Route path="login" element={<Login />} />
               <Route path="signup" element={<Signup />} />
 

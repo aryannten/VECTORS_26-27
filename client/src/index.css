@@ -40,6 +40,24 @@
   --font-accent: 'Cinzel', serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'Space Mono', monospace;
+
+  /* Tactical Command Center Tokens */
+  --color-cmd-bg: #050606;
+  --color-cmd-panel: #101313;
+  --color-cmd-panel-subtle: #090B0B;
+  --color-cmd-border: #1B2123;
+  --color-cmd-border-strong: #2A3337;
+  --color-cmd-border-highlight: #3A464C;
+  --color-cmd-green: #7CFF00;
+  --color-cmd-green-dim: #3F7E00;
+  --color-cmd-green-glow: rgba(124, 255, 0, 0.25);
+  --color-cmd-gold: #C9A227;
+  --color-cmd-gold-dim: #7A6114;
+  --color-cmd-gold-glow: rgba(201, 162, 39, 0.25);
+  --color-cmd-silver: #A8ADB2;
+  --color-cmd-silver-dim: #555C63;
+  --color-cmd-danger: #8B0000;
+  --color-cmd-danger-bright: #D32F2F;
 }
 
 /* ================================================
@@ -394,6 +412,138 @@
     }
     .doom-btn-primary-inner::after {
       display: none !important;
+    }
+  }
+}
+
+/* ================================================
+   Tactical Doomsday Survival Command Center System
+   ================================================ */
+@layer utilities {
+  /* Technical Grid Background */
+  .tactical-grid {
+    background-size: 40px 40px, 40px 40px, 200px 200px;
+    background-image: 
+      linear-gradient(to right, rgba(124, 255, 0, 0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(124, 255, 0, 0.025) 1px, transparent 1px),
+      linear-gradient(to right, rgba(168, 173, 178, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(168, 173, 178, 0.05) 1px, transparent 1px);
+  }
+
+  /* Scanlines Overlay */
+  .tactical-scanlines {
+    background: linear-gradient(
+      to bottom,
+      rgba(255,255,255,0),
+      rgba(255,255,255,0) 50%,
+      rgba(0, 0, 0, 0.25) 50%,
+      rgba(0, 0, 0, 0.25)
+    );
+    background-size: 100% 4px;
+  }
+
+  /* Chamfered Tactical Cuts */
+  .chamfer-tr {
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  }
+  .chamfer-bl {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  .chamfer-both {
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+
+  /* Machined Border & Panel Glow */
+  .panel-machined {
+    background: #101313;
+    border: 1px solid #1B2123;
+    box-shadow: 
+      inset 0 1px 0 rgba(168, 173, 178, 0.08),
+      inset 0 0 16px rgba(0, 0, 0, 0.7),
+      0 4px 20px rgba(0, 0, 0, 0.6);
+  }
+
+  .panel-machined-active {
+    border-color: rgba(124, 255, 0, 0.3);
+    box-shadow: 
+      inset 0 1px 0 rgba(124, 255, 0, 0.2),
+      inset 0 0 20px rgba(124, 255, 0, 0.03),
+      0 4px 24px rgba(0, 0, 0, 0.8),
+      0 0 15px rgba(124, 255, 0, 0.08);
+  }
+
+  .panel-machined-gold {
+    border-color: rgba(201, 162, 39, 0.35);
+    box-shadow: 
+      inset 0 1px 0 rgba(201, 162, 39, 0.25),
+      inset 0 0 20px rgba(201, 162, 39, 0.03),
+      0 4px 24px rgba(0, 0, 0, 0.8),
+      0 0 15px rgba(201, 162, 39, 0.08);
+  }
+
+  /* LED Status Beacons */
+  @keyframes led-blink-green {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px #7CFF00); }
+    50% { opacity: 0.3; filter: none; }
+  }
+  @keyframes led-blink-gold {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px #C9A227); }
+    50% { opacity: 0.4; filter: none; }
+  }
+  @keyframes led-blink-red {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px #D32F2F); }
+    50% { opacity: 0.2; filter: none; }
+  }
+
+  .led-pulse-green {
+    animation: led-blink-green 2.4s ease-in-out infinite;
+  }
+  .led-pulse-gold {
+    animation: led-blink-gold 1.8s ease-in-out infinite;
+  }
+  .led-pulse-red {
+    animation: led-blink-red 1.2s ease-in-out infinite;
+  }
+
+  /* Radar Sweep Keyframe */
+  @keyframes radar-sweep {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .radar-sweep-beam {
+    transform-origin: 50% 50%;
+    animation: radar-sweep 4s linear infinite;
+  }
+
+  /* Audio Visualizer Waves */
+  @keyframes waveform-flux {
+    0%, 100% { height: 15%; }
+    25% { height: 75%; }
+    50% { height: 40%; }
+    75% { height: 95%; }
+  }
+
+  .waveform-bar-active {
+    animation: waveform-flux 1.1s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .radar-sweep-beam {
+      animation: none !important;
+      transform: rotate(45deg);
+    }
+    .led-pulse-green, .led-pulse-gold, .led-pulse-red {
+      animation: none !important;
+      opacity: 1;
+    }
+    .waveform-bar-active {
+      animation: none !important;
+      height: 50% !important;
     }
   }
 }
