@@ -102,41 +102,12 @@ export default function Navbar() {
             </button>
           )}
 
-          <Link to="/" className="flex items-center gap-2.5 group select-none">
-            {/* Minimal Cracked "V" Monogram */}
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              className="shrink-0 overflow-visible transition-transform duration-300 group-hover:scale-105"
-            >
-              <defs>
-                <linearGradient id="navVChrome" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#FFFFFF" />
-                  <stop offset="50%" stopColor="#8A909B" />
-                  <stop offset="100%" stopColor="#5C6270" />
-                </linearGradient>
-              </defs>
-              <polygon
-                points="2,2 8,2 12,18 16,2 22,2 14.5,22 9.5,22"
-                fill="url(#navVChrome)"
-                stroke="#171A1E"
-                strokeWidth="0.5"
-              />
-              {/* Crimson hairline fissure */}
-              <line x1="8" y1="2" x2="12" y2="13" stroke="#C21807" strokeWidth="0.75" />
-              <line x1="12" y1="13" x2="10.5" y2="22" stroke="#C21807" strokeWidth="0.5" />
-            </svg>
-
-            <div className="flex items-baseline gap-1">
-              <span className="font-display font-bold text-base sm:text-lg tracking-[0.2em] text-chrome-light group-hover:text-white transition-colors">
-                VECTORS
-              </span>
-              <span className="font-mono text-[9px] font-bold text-doom-glow tracking-widest px-1 py-0.2 bg-doom-glow/10 border border-doom-glow/30">
-                26–27
-              </span>
-            </div>
+          <Link to="/" className="flex items-center group select-none" aria-label="VECTORS 26 Home">
+            <img
+              src="/vector26-logo.svg"
+              alt="VECTORS 26"
+              className="h-10 sm:h-11 w-auto max-w-[170px] sm:max-w-[200px] object-contain transition-transform duration-300 group-hover:scale-105 mix-blend-screen"
+            />
           </Link>
         </div>
 
@@ -223,12 +194,6 @@ export default function Navbar() {
               ) : (
                 /* Logged Out State */
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <Link
-                    to="/login"
-                    className="font-mono text-xs tracking-wider uppercase text-text-muted hover:text-doom-glow transition-colors px-2 py-1"
-                  >
-                    Sign In
-                  </Link>
                   <Link
                     to="/login"
                     className="doom-btn-primary !p-[1px]"
@@ -356,7 +321,7 @@ export default function Navbar() {
                     className="doom-btn-primary w-full text-center"
                   >
                     <span className="doom-btn-primary-inner w-full py-2.5 text-xs">
-                      Sign In to Account
+                      Join Portal
                     </span>
                   </Link>
                 </div>

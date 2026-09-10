@@ -496,13 +496,19 @@ const seedDefaults = async () => {
 
 // Start server
 const start = async () => {
-  await connectDB()
-  await seedDefaults()
-  await seedMasterEvents()
-  await seedAnnouncements()
   app.listen(PORT, () => {
     console.log(`[Server] VECTORS 2026 API running on port ${PORT}`)
   })
+
+  try {
+    await connectDB()
+    await seedDefaults()
+    await seedMasterEvents()
+    await seedAnnouncements()
+  } catch (err) {
+    console.warn(`[Server] Database connection error: ${err.message}`)
+    console.warn('[Server] Running in offline/pending database mode. If using MongoDB Atlas, verify your IP is whitelisted in Network Access.')
+  }
 }
 
 start()

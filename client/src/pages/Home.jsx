@@ -19,7 +19,6 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import Ferrofluid from '../components/ui/Ferrofluid'
-import DoomsdayWordmark from '../components/DoomsdayWordmark'
 
 /**
  * Home — VECTORS 26–27 Official Portal
@@ -61,20 +60,15 @@ export default function Home() {
 
   // Hero animations
   const seq = {
-    logo: {
-      initial: { opacity: 0, scale: 0.95, y: -8 },
-      animate: { opacity: 1, scale: 1, y: 0 },
-      transition: { duration: 1.1, ease: [0.16, 1, 0.3, 1] }
-    },
     text: {
       initial: { opacity: 0, y: 12 },
       animate: { opacity: 1, y: 0 },
-      transition: { duration: 0.8, delay: 0.35, ease: 'easeOut' }
+      transition: { duration: 0.8, delay: 0.15, ease: 'easeOut' }
     },
     cta: {
       initial: { opacity: 0, y: 14 },
       animate: { opacity: 1, y: 0 },
-      transition: { duration: 0.7, delay: 0.7, ease: 'easeOut' }
+      transition: { duration: 0.7, delay: 0.45, ease: 'easeOut' }
     },
   }
 
@@ -173,11 +167,6 @@ export default function Home() {
 
         {/* Hero Content */}
         <main className="relative z-10 w-full flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-24 pb-16">
-          {/* Wordmark */}
-          <motion.div {...seq.logo} className="w-full max-w-xl flex justify-center mb-4 sm:mb-6">
-            <DoomsdayWordmark />
-          </motion.div>
-
           {/* Narrative text */}
           <motion.div {...seq.text} className="max-w-xl mx-auto text-center space-y-4 sm:space-y-5 px-2">
             <p className="font-body text-sm sm:text-base text-text-primary/95 leading-relaxed font-normal">
