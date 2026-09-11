@@ -1,40 +1,45 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
-  ArrowRight,
   ArrowDown,
-  Sparkles,
-  Calendar,
-  MapPin,
   Users,
   Trophy,
   ChevronRight,
-  Zap,
+  Shield,
+  Cpu,
+  Terminal,
+  Activity,
+  Radar,
+  Lock,
+  Award,
+  CheckCircle2,
+  MapPin
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import LandingNav from '../components/landing/LandingNav'
-import ScrollCanvas from '../components/landing/ScrollCanvas'
-import SpecularButton from '../components/ui/SpecularButton'
+import DoomsdayCanvas from '../components/landing/DoomsdayCanvas'
+import DoomButton from '../components/ui/DoomButton'
 import { eventsData } from '../data/events'
 
 gsap.registerPlugin(ScrollTrigger)
 
-/* ─── component ────────────────────────────────────────────── */
 export default function Landing() {
   const navigate = useNavigate()
   const { user, hasPass } = useAuth()
 
-  const [seqProgress, setSeqProgress] = useState(0)
-  const [currentFrame, setCurrentFrame] = useState(1)
+  // Active event category filter in protocols section
+  const [activeCategory, setActiveCategory] = useState('All')
 
-  const prologueRef = useRef(null)
-  const overviewRef = useRef(null)
-  const aboutRef = useRef(null)
+  // Section refs for GSAP ScrollTriggers
+  const heroRef = useRef(null)
+  const destinyRef = useRef(null)
+  const supremacyRef = useRef(null)
   const eventsRef = useRef(null)
-  const ctaRef = useRef(null)
+  const passesRef = useRef(null)
 
+  // Navigation callbacks
   const handleEntryPass = useCallback(() => {
     if (user) {
       navigate(hasPass ? '/my-pass' : '/entry-registration')
@@ -44,50 +49,31 @@ export default function Landing() {
   }, [user, hasPass, navigate])
 
   const handleExploreEvents = useCallback(() => {
-    navigate(user ? '/events' : '/login')
-  }, [user, navigate])
+    const el = document.getElementById('events')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [])
 
-  /* ─── GSAP scroll animations ─────────────────────────────── */
+  // GSAP ScrollTrigger animations (GPU-accelerated transforms, zero React re-renders)
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReducedMotion) return
 
     const ctx = gsap.context(() => {
-      // Overview section entrance reveals
-      if (overviewRef.current) {
-        const revealElements = overviewRef.current.querySelectorAll('.overview-reveal')
+      // Destiny section reveals
+      if (destinyRef.current) {
         gsap.fromTo(
-          revealElements,
-          { y: 50, opacity: 0 },
+          destinyRef.current.querySelectorAll('.destiny-reveal'),
+          { y: 35, opacity: 0 },
           {
             y: 0,
             opacity: 1,
             stagger: 0.08,
-            duration: 0.8,
+            duration: 0.75,
             ease: 'power3.out',
             scrollTrigger: {
-              trigger: overviewRef.current,
-              start: 'top 80%',
-              toggleActions: 'play none none reverse',
-            },
-          }
-        )
-      }
-
-      // About section reveals
-      if (aboutRef.current) {
-        const aboutElements = aboutRef.current.querySelectorAll('.reveal-up')
-        gsap.fromTo(
-          aboutElements,
-          { y: 50, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            stagger: 0.12,
-            duration: 0.85,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: aboutRef.current,
+              trigger: destinyRef.current,
               start: 'top 75%',
               toggleActions: 'play none none reverse',
             },
@@ -95,17 +81,36 @@ export default function Landing() {
         )
       }
 
-      // Events section
-      if (eventsRef.current) {
-        const eventCards = eventsRef.current.querySelectorAll('.event-card')
+      // Supremacy section reveals
+      if (supremacyRef.current) {
         gsap.fromTo(
-          eventCards,
-          { y: 50, opacity: 0 },
+          supremacyRef.current.querySelectorAll('.supremacy-reveal'),
+          { y: 35, opacity: 0 },
           {
             y: 0,
             opacity: 1,
             stagger: 0.08,
-            duration: 0.7,
+            duration: 0.75,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: supremacyRef.current,
+              start: 'top 70%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        )
+      }
+
+      // Events section reveals
+      if (eventsRef.current) {
+        gsap.fromTo(
+          eventsRef.current.querySelectorAll('.event-reveal-card'),
+          { y: 30, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            stagger: 0.06,
+            duration: 0.65,
             ease: 'power2.out',
             scrollTrigger: {
               trigger: eventsRef.current,
@@ -116,19 +121,19 @@ export default function Landing() {
         )
       }
 
-      // CTA section
-      if (ctaRef.current) {
+      // Passes section reveals
+      if (passesRef.current) {
         gsap.fromTo(
-          ctaRef.current.querySelectorAll('.cta-reveal'),
-          { y: 40, opacity: 0 },
+          passesRef.current.querySelectorAll('.pass-reveal'),
+          { y: 30, opacity: 0 },
           {
             y: 0,
             opacity: 1,
-            stagger: 0.12,
-            duration: 0.9,
+            stagger: 0.08,
+            duration: 0.75,
             ease: 'power3.out',
             scrollTrigger: {
-              trigger: ctaRef.current,
+              trigger: passesRef.current,
               start: 'top 75%',
               toggleActions: 'play none none reverse',
             },
@@ -136,591 +141,577 @@ export default function Landing() {
         )
       }
 
-      // Refresh ScrollTrigger to ensure all trigger positions are accurate
       ScrollTrigger.refresh()
     })
 
     return () => ctx.revert()
   }, [])
 
-  /* ─── data helpers ───────────────────────────────────────── */
-  const featuredTechnical = eventsData
-    .filter((e) => e.category === 'Technical')
-    .slice(0, 4)
-  const featuredNonTechnical = eventsData
-    .filter((e) => e.category === 'Non-Technical')
-    .slice(0, 4)
+  // Filtered events memo
+  const filteredEvents = useMemo(() => {
+    if (activeCategory === 'All') return eventsData.slice(0, 6)
+    if (activeCategory === 'Technical') return eventsData.filter((e) => e.category === 'Technical').slice(0, 6)
+    return eventsData.filter((e) => e.category === 'Non-Technical').slice(0, 6)
+  }, [activeCategory])
 
   return (
-    <div className="min-h-screen bg-doom-bg text-text-primary overflow-x-hidden">
+    <div className="relative min-h-screen bg-doom-bg text-text-primary selection:bg-doom-glow selection:text-black overflow-x-hidden font-sans">
+      {/* ── Ultra-smooth Optimized 3D WebGL Canvas Layer ── */}
+      <DoomsdayCanvas />
+
+      {/* ── Floating Sticky Navigation ── */}
       <LandingNav />
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 00 — CINEMATIC PROLOGUE (PINNED 50 FRAMES)
-          The viewport is pinned while all 50 frames play on scroll.
-          Zero visual overlap. Crisp, unobstructed Doom turnaround.
+          SECTION 01: THE MONOLITH ARRIVAL (HERO)
+          Doctor Doom & Celestial Mural Unobstructed in Grand Citadel
           ═══════════════════════════════════════════════════════ */}
       <section
-        ref={prologueRef}
-        id="prologue"
-        className="relative w-full h-screen overflow-hidden bg-doom-bg select-none"
+        ref={heroRef}
+        id="hero"
+        className="relative min-h-screen flex flex-col justify-between pt-24 pb-8 px-4 sm:px-6 md:px-8 z-10 select-none overflow-hidden"
       >
-        <ScrollCanvas
-          startFrame={1}
-          endFrame={50}
-          scrubDuration={0.3}
-          triggerRef={prologueRef}
-          pin={true}
-          pinSpacing={true}
-          start="top top"
-          end="+=2500"
-          onProgress={setSeqProgress}
-          onFrameChange={setCurrentFrame}
-          className="absolute inset-0"
-        />
-
-        {/* Cinematic Vignette */}
-        <div
-          className="absolute inset-0 z-[2] pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse 85% 75% at 50% 50%, transparent 40%, rgba(5,6,6,0.65) 100%)',
-          }}
-        />
-
-        {/* Ambient top & bottom fades */}
-        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-doom-bg/85 to-transparent pointer-events-none z-[2]" />
-        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-doom-bg/90 via-doom-bg/40 to-transparent pointer-events-none z-[2]" />
-
-        {/* Scroll Prompt — visible at scroll 0, gracefully fades out on initial scroll */}
-        <div
-          className="absolute inset-0 z-10 pointer-events-none flex flex-col items-center justify-end pb-14 transition-opacity duration-300"
-          style={{
-            opacity: Math.max(0, 1 - seqProgress * 18),
-            transform: `translateY(${seqProgress * 25}px)`,
-          }}
-        >
-          <div className="flex flex-col items-center gap-2.5">
-            <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.35em] uppercase text-doom-glow/90 px-3 py-1 bg-doom-glow/[0.08] border border-doom-glow/20 backdrop-blur-md">
-              AVENGERS: DOOMSDAY // TECHNICAL SYMPOSIUM
-            </span>
-            <div className="flex items-center gap-2 text-text-muted/70 font-mono text-[10px] tracking-[0.25em] uppercase mt-1">
-              <span className="w-5 h-[1px] bg-doom-glow/40" />
-              <span>Scroll to Play Sequence</span>
-              <span className="w-5 h-[1px] bg-doom-glow/40" />
-            </div>
-            <ArrowDown size={14} className="text-doom-glow/80 animate-bounce mt-0.5" />
-          </div>
-        </div>
-
-        {/* Top-Right HUD telemetry */}
-        <div className="absolute top-20 right-4 sm:right-8 z-10 pointer-events-none hidden sm:flex flex-col items-end gap-1">
-          <span className="font-mono text-[9px] tracking-[0.25em] uppercase text-text-muted/40">
-            CINEMATIC STREAM
-          </span>
-          <div className="flex items-center gap-2 px-2.5 py-1 bg-black/50 border border-white/[0.08] backdrop-blur-sm">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-doom-glow animate-pulse" />
-            <span className="font-mono text-[10px] tracking-[0.2em] text-doom-glow font-bold">
-              FRAME {String(currentFrame).padStart(2, '0')} / 50
-            </span>
-          </div>
-        </div>
-
-        {/* Completion Cue — appears when Doom finishes turning around (frame 48-50) */}
-        <div
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 pointer-events-none transition-all duration-300 flex flex-col items-center gap-2"
-          style={{
-            opacity: seqProgress >= 0.95 ? 1 : 0,
-            transform: `translate(-50%, ${seqProgress >= 0.95 ? '0px' : '15px'})`,
-          }}
-        >
-          <div className="flex items-center gap-2 px-4 py-1.5 bg-black/80 border border-doom-glow/50 shadow-[0_0_25px_rgba(30,255,160,0.3)] backdrop-blur-md">
-            <Sparkles size={12} className="text-doom-glow animate-spin" />
-            <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-doom-glow font-bold">
-              Sequence Complete • Scroll for Website
-            </span>
-          </div>
-          <ArrowDown size={14} className="text-doom-glow animate-pulse" />
-        </div>
-
-        {/* Bottom edge progress bar */}
-        <div className="absolute bottom-0 left-0 right-0 z-20 h-[3px] bg-white/[0.06]">
-          <div
-            className="h-full bg-gradient-to-r from-doom-glow/50 via-doom-glow to-doom-glow shadow-[0_0_12px_rgba(30,255,160,0.9)] origin-left transition-all duration-75"
-            style={{ width: `${Math.min(100, Math.round(seqProgress * 100))}%` }}
+        {/* Monumental Hero Visual: Fully illuminated artwork, clear character & mural */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <img
+            src="/doom2/ezgif-frame-050.jpg"
+            alt="Doctor Doom Citadel Throne Room"
+            className="w-full h-full object-cover object-top sm:object-center filter contrast-105 brightness-95"
+            loading="eager"
           />
+          {/* Subtle natural lighting overlays: minimal top navbar gradient & soft base fade */}
+          <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-[#060809] via-[#060809]/75 to-transparent" />
         </div>
-      </section>
 
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 01 — FESTIVAL OVERVIEW & COMMAND CENTER
-          The website content begins here AFTER the 50 frames finish!
-          ═══════════════════════════════════════════════════════ */}
-      <section
-        ref={overviewRef}
-        id="overview"
-        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center border-t border-white/[0.06] bg-gradient-to-b from-doom-bg via-doom-bg2/40 to-doom-bg overflow-hidden"
-      >
-        {/* Background glow effects */}
-        <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[350px] pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, rgba(30,255,160,0.06) 0%, transparent 70%)',
-          }}
-        />
-
-        <div className="relative z-10 max-w-5xl mx-auto w-full text-center">
-          {/* Overline */}
-          <div className="overview-reveal mb-5 inline-flex items-center gap-2 px-3.5 py-1.5 bg-doom-glow/[0.06] border border-doom-glow/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-doom-glow animate-ping" />
-            <span className="font-mono text-[10px] sm:text-xs tracking-[0.3em] uppercase text-doom-glow font-bold">
-              Technical Festival 2026 — Avengers: Doomsday
-            </span>
+        {/* Top Mission Telemetry Header */}
+        <div className="w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono tracking-widest text-text-muted/80 uppercase pt-2 z-10">
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-1.5 h-1.5 bg-doom-glow rounded-full animate-ping" />
+            <span className="text-doom-glow/90 font-semibold">[ LATVERIA SECTOR 07 // DOOMSDAY DIRECTIVE ]</span>
           </div>
+          <div className="flex items-center gap-4 text-[11px]">
+            <span>COORDINATES: 28.6139° N, 77.2090° E</span>
+            <span className="hidden md:inline text-white/20">|</span>
+            <span className="hidden md:inline text-doom-glow/90 font-bold">STATUS: SOVEREIGN REIGN</span>
+          </div>
+        </div>
 
-          {/* Main Display Title */}
-          <h1 className="overview-reveal font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold leading-[0.88] tracking-[0.06em] uppercase text-text-primary drop-shadow-[0_4px_35px_rgba(0,0,0,0.9)]">
+        {/* Bottom-Anchored Monolith Typography, Subtitle & Tactical CTAs */}
+        {/* Placed at lower third so Doctor Doom & the celestial mural up top remain 100% visible */}
+        <div className="relative mt-auto mb-2 flex flex-col items-center justify-center w-full max-w-5xl mx-auto z-10 text-center">
+          {/* Monumental Hero Headline Typography */}
+          <h1 className="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-[0.08em] uppercase text-text-primary drop-shadow-[0_8px_30px_rgba(0,0,0,0.95)] leading-none hover:scale-[1.01] transition-transform duration-300 cursor-default">
             VECTORS
           </h1>
 
-          {/* Tagline separator */}
-          <div className="overview-reveal mt-4 mb-4 flex items-center justify-center gap-3">
-            <div className="w-12 sm:w-20 h-[1px] bg-gradient-to-r from-transparent to-doom-glow/60" />
-            <p className="font-accent text-sm sm:text-base md:text-lg tracking-[0.25em] uppercase text-chrome-light/95 font-semibold">
-              Where Technology Meets Destiny
+          {/* Tagline & Subheading */}
+          <div className="mt-3 flex items-center justify-center gap-4">
+            <div className="w-8 sm:w-16 h-[1px] bg-gradient-to-r from-transparent to-doom-glow" />
+            <p className="font-accent text-xs sm:text-sm md:text-base tracking-[0.3em] uppercase text-emerald-300 font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
+              THE DOOMSDAY PROTOCOL
             </p>
-            <div className="w-12 sm:w-20 h-[1px] bg-gradient-to-l from-transparent to-doom-glow/60" />
+            <div className="w-8 sm:w-16 h-[1px] bg-gradient-to-l from-transparent to-doom-glow" />
           </div>
 
-          {/* Action CTAs */}
-          <div className="overview-reveal mt-10 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-            <SpecularButton
+          {/* Primary Action Buttons */}
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+            <DoomButton
               size="lg"
-              radius={16}
-              lineColor="#1EFFA0"
-              baseColor="#0B0F13"
-              textColor="#1EFFA0"
-              intensity={1.2}
-              shineSize={12}
-              shineFade={45}
-              thickness={1.5}
-              speed={0.35}
-              followMouse
-              proximity={280}
+              variant="doom"
               onClick={handleEntryPass}
-              aria-label={hasPass ? 'View My Entry Pass' : 'Claim Entry Pass'}
+              className="w-full sm:w-auto"
             >
-              {hasPass ? 'View My Pass' : 'Claim Entry Pass'}
-            </SpecularButton>
+              {hasPass ? 'VIEW YOUR PROTOCOL PASS' : 'CLAIM ACCESS PASS'}
+            </DoomButton>
 
-            <SpecularButton
+            <DoomButton
               size="lg"
-              radius={16}
               variant="titanium"
-              lineColor="#ffffff"
-              baseColor="#12171C"
-              textColor="#EDEFF1"
-              intensity={0.8}
-              shineSize={10}
-              thickness={1}
-              speed={0.35}
-              followMouse
-              proximity={250}
               onClick={handleExploreEvents}
-              aria-label="Explore Events"
+              className="w-full sm:w-auto"
             >
-              <span className="flex items-center gap-2">
-                <span>Explore Events</span>
-                <ArrowRight size={14} className="text-doom-glow transition-transform duration-300 group-hover:translate-x-1" />
-              </span>
-            </SpecularButton>
+              EXPLORE ARENAS
+            </DoomButton>
+          </div>
+
+          {/* Scroll Prompt at base — Threshold to Enter Citadel */}
+          <div
+            onClick={handleExploreEvents}
+            className="mt-6 flex flex-col items-center gap-2 text-zinc-400/80 hover:text-doom-glow font-mono text-[10px] tracking-[0.28em] uppercase cursor-pointer transition-all duration-300 group hover:-translate-y-0.5"
+          >
+            <span className="group-hover:tracking-[0.34em] transition-all duration-300">SCROLL TO ENTER CITADEL</span>
+            <div className="w-7 h-7 rounded-full border border-doom-glow/40 group-hover:border-doom-glow flex items-center justify-center bg-black/60 backdrop-blur-sm shadow-[0_0_12px_rgba(30,255,160,0.2)] group-hover:shadow-[0_0_20px_rgba(30,255,160,0.5)] transition-all duration-300">
+              <ArrowDown size={13} className="text-doom-glow animate-bounce" />
+            </div>
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 02 — ABOUT / INTRODUCTION
+          SECTION 02: WHERE TECHNOLOGY MEETS DESTINY
+          Monumental 3-Act Composition & Telemetry Grid
           ═══════════════════════════════════════════════════════ */}
       <section
-        ref={aboutRef}
-        id="about"
-        className="relative py-24 sm:py-32 md:py-40 px-4 sm:px-6 md:px-8"
+        ref={destinyRef}
+        id="destiny"
+        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/[0.08] bg-gradient-to-b from-transparent via-[rgba(10,12,14,0.7)] to-transparent backdrop-blur-[2px]"
       >
-        <div className="max-w-6xl mx-auto">
-          {/* Unified Section Header */}
-          <div className="reveal-up mb-8 flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-doom-glow/[0.07] border border-doom-glow/20 text-doom-glow font-mono text-[10px] tracking-[0.25em] uppercase font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-doom-glow animate-pulse" />
-              About The Symposium
+        <div className="max-w-7xl mx-auto w-full">
+          {/* Section Overline & Category Tag */}
+          <div className="destiny-reveal flex items-center gap-2 mb-4">
+            <span className="w-2 h-2 rounded-full bg-doom-glow" />
+            <span className="font-mono text-xs tracking-[0.3em] uppercase text-doom-glow font-bold">
+              DOCTRINE // SECTION 02
             </span>
-            <div className="flex-1 h-[1px] bg-gradient-to-r from-doom-glow/30 via-white/[0.05] to-transparent" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-            {/* Left — Large typography */}
-            <div className="space-y-6">
-              <h2 className="reveal-up font-display text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-bold uppercase tracking-wide leading-[1.05] text-text-primary">
-                Engineered
-                <br />
-                <span className="text-doom-glow">For Supremacy</span>
+          {/* Section Headline */}
+          <div className="destiny-reveal flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-12 border-b border-white/10">
+            <div>
+              <h2 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.04em] uppercase text-text-primary leading-[0.95]">
+                WHERE TECHNOLOGY <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-doom-glow via-emerald-400 to-teal-200 drop-shadow-[0_0_25px_rgba(30,255,160,0.3)]">
+                  MEETS DESTINY
+                </span>
               </h2>
-
-              <p className="reveal-up font-body text-sm sm:text-base text-text-muted leading-relaxed max-w-lg">
-                VECTORS 26–27 is our flagship annual inter-college symposium.
-                Two intensive days of algorithmic battles, metal combat,
-                hardware trials, and creative showdowns designed to push student
-                engineering to its limits.
-              </p>
-
-              <p className="reveal-up font-body text-sm sm:text-base text-text-muted leading-relaxed max-w-lg">
-                From robotics and coding to hackathons and futuristic
-                challenges, every battle demands skill, strategy, and
-                innovation. The arena is set. The challenge awaits.
+              <p className="font-accent text-xs sm:text-sm tracking-[0.25em] text-chrome-light/70 uppercase mt-3">
+                INTELLECTUS IMPERIUM // THE SOVEREIGN FORUM OF INNOVATION
               </p>
             </div>
+            <p className="font-mono text-xs sm:text-sm tracking-wider text-text-muted max-w-md uppercase leading-relaxed">
+              "Technology without supremacy is merely noise. In this arena, intellect commands destiny. The weak observe; the elite sculpt the new epoch."
+            </p>
+          </div>
 
-            {/* Right — Key facts */}
-            <div className="reveal-up space-y-5 lg:pt-8">
-              {[
-                { icon: Calendar, label: 'When', value: 'March 15–16, 2026' },
-                { icon: MapPin, label: 'Where', value: 'Campus Main Complex' },
-                { icon: Users, label: 'Scale', value: '1,500+ participants nationwide' },
-                { icon: Trophy, label: 'Stakes', value: '₹1,50,000+ in prizes and trophies' },
-              ].map((fact, i) => {
-                const Icon = fact.icon
-                return (
-                  <div
-                    key={i}
-                    className="flex items-start gap-4 p-4 bg-white/[0.02] border border-white/[0.06] hover:border-doom-glow/20 transition-colors duration-500 group"
-                  >
-                    <div className="w-10 h-10 shrink-0 flex items-center justify-center bg-doom-glow/5 border border-doom-glow/15 text-doom-glow/70 group-hover:text-doom-glow group-hover:border-doom-glow/40 transition-colors">
-                      <Icon size={18} />
-                    </div>
-                    <div>
-                      <span className="block font-mono text-[9px] tracking-[0.2em] uppercase text-text-muted/50">
-                        {fact.label}
-                      </span>
-                      <span className="block font-display text-sm sm:text-base font-bold text-text-primary tracking-wide mt-0.5">
-                        {fact.value}
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
+          {/* 3 Monumental Pillar Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            {/* Pillar 01: Quantum Intelligence */}
+            <div className="destiny-reveal relative group p-6 sm:p-8 bg-[rgba(16,19,22,0.75)] border border-white/10 hover:border-doom-glow/60 hover:bg-[rgba(18,24,28,0.85)] hover:-translate-y-2 hover:shadow-[0_20px_45px_rgba(0,0,0,0.85),0_0_25px_rgba(30,255,160,0.2)] transition-all duration-300 backdrop-blur-md overflow-hidden cursor-pointer">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-doom-glow/[0.05] rounded-bl-full pointer-events-none group-hover:scale-150 group-hover:opacity-40 transition-transform duration-500" />
+              <div className="w-12 h-12 rounded-none bg-black/60 border border-doom-glow/40 flex items-center justify-center text-doom-glow mb-6 shadow-[0_0_15px_rgba(30,255,160,0.2)] group-hover:scale-110 group-hover:border-doom-glow group-hover:shadow-[0_0_20px_rgba(30,255,160,0.5)] transition-all duration-300">
+                <Cpu size={22} />
+              </div>
+              <span className="font-mono text-[10px] tracking-[0.25em] text-doom-glow uppercase font-bold">PILLAR I // COGNITION</span>
+              <h3 className="font-display text-2xl sm:text-3xl font-bold tracking-wide uppercase text-text-primary group-hover:text-doom-glow transition-colors duration-300 mt-2">
+                QUANTUM AI & SYNTHESIS
+              </h3>
+              <p className="font-sans text-xs sm:text-sm text-text-muted mt-3 leading-relaxed">
+                Pioneering autonomous agents, neural architectures, and generative synthetic intelligence designed to outpace human intuition.
+              </p>
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-text-muted/80">
+                <span>BENCHMARK // REAL-TIME</span>
+                <span className="text-doom-glow font-bold">ACTIVE PROTOCOL</span>
+              </div>
+            </div>
+
+            {/* Pillar 02: Cryptographic Defense */}
+            <div className="destiny-reveal relative group p-6 sm:p-8 bg-[rgba(16,19,22,0.75)] border border-white/10 hover:border-doom-crimson/60 hover:bg-[rgba(24,14,16,0.85)] hover:-translate-y-2 hover:shadow-[0_20px_45px_rgba(0,0,0,0.85),0_0_25px_rgba(255,42,77,0.2)] transition-all duration-300 backdrop-blur-md overflow-hidden cursor-pointer">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-doom-crimson/[0.05] rounded-bl-full pointer-events-none group-hover:scale-150 group-hover:opacity-40 transition-transform duration-500" />
+              <div className="w-12 h-12 rounded-none bg-black/60 border border-doom-crimson/50 flex items-center justify-center text-doom-crimson-bright mb-6 shadow-[0_0_15px_rgba(194,24,7,0.2)] group-hover:scale-110 group-hover:border-doom-crimson group-hover:shadow-[0_0_20px_rgba(255,42,77,0.5)] transition-all duration-300">
+                <Shield size={22} />
+              </div>
+              <span className="font-mono text-[10px] tracking-[0.25em] text-doom-crimson-bright uppercase font-bold">PILLAR II // SECURITY</span>
+              <h3 className="font-display text-2xl sm:text-3xl font-bold tracking-wide uppercase text-text-primary group-hover:text-doom-crimson-bright transition-colors duration-300 mt-2">
+                CYBERNETIC WARFARE
+              </h3>
+              <p className="font-sans text-xs sm:text-sm text-text-muted mt-3 leading-relaxed">
+                Zero-knowledge cryptographic barriers, offensive penetration vectors, and fortress-grade perimeter defense.
+              </p>
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-text-muted/80">
+                <span>FIREWALL // ZERO-DAY</span>
+                <span className="text-doom-crimson-bright font-bold">DEFCON 1</span>
+              </div>
+            </div>
+
+            {/* Pillar 03: Autonomous Robotics */}
+            <div className="destiny-reveal relative group p-6 sm:p-8 bg-[rgba(16,19,22,0.75)] border border-white/10 hover:border-white/50 hover:bg-[rgba(22,25,30,0.85)] hover:-translate-y-2 hover:shadow-[0_20px_45px_rgba(0,0,0,0.85),0_0_25px_rgba(255,255,255,0.15)] transition-all duration-300 backdrop-blur-md overflow-hidden cursor-pointer">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/[0.05] rounded-bl-full pointer-events-none group-hover:scale-150 group-hover:opacity-40 transition-transform duration-500" />
+              <div className="w-12 h-12 rounded-none bg-black/60 border border-white/30 flex items-center justify-center text-chrome-light mb-6 shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:scale-110 group-hover:border-white group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300">
+                <Terminal size={22} />
+              </div>
+              <span className="font-mono text-[10px] tracking-[0.25em] text-chrome-light uppercase font-bold">PILLAR III // KINETICS</span>
+              <h3 className="font-display text-2xl sm:text-3xl font-bold tracking-wide uppercase text-text-primary group-hover:text-white transition-colors duration-300 mt-2">
+                BIONIC HEGEMONY
+              </h3>
+              <p className="font-sans text-xs sm:text-sm text-text-muted mt-3 leading-relaxed">
+                Autonomous robotic combatants, high-torque micro-servos, and synchronized swarm robotics executing high-precision operations.
+              </p>
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-text-muted/80">
+                <span>SERVO LOCK // ONLINE</span>
+                <span className="text-white font-bold">CALIBRATED</span>
+              </div>
+            </div>
+          </div>
+
+          {/* The Supreme Telemetry Metrics Bar */}
+          <div className="destiny-reveal mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-black/60 border border-white/10 backdrop-blur-md">
+            <div className="text-center p-3 border-r border-white/5 last:border-r-0">
+              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-text-muted">OPERATIVES</span>
+              <p className="font-display text-3xl sm:text-4xl font-bold text-doom-glow mt-1">1,500+</p>
+              <span className="text-[9px] font-mono text-text-muted/60 uppercase">VERIFIED ENTRIES</span>
+            </div>
+            <div className="text-center p-3 border-r border-white/5 last:border-r-0">
+              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-text-muted">ARENAS</span>
+              <p className="font-display text-3xl sm:text-4xl font-bold text-text-primary mt-1">24</p>
+              <span className="text-[9px] font-mono text-text-muted/60 uppercase">ACTIVE PROTOCOLS</span>
+            </div>
+            <div className="text-center p-3 border-r border-white/5 last:border-r-0">
+              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-text-muted">PRIZE POOL</span>
+              <p className="font-display text-3xl sm:text-4xl font-bold text-doom-glow mt-1">₹2,50,000+</p>
+              <span className="text-[9px] font-mono text-text-muted/60 uppercase">DIRECT ALLOCATION</span>
+            </div>
+            <div className="text-center p-3">
+              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-text-muted">DURATION</span>
+              <p className="font-display text-3xl sm:text-4xl font-bold text-text-primary mt-1">48 HRS</p>
+              <span className="text-[9px] font-mono text-text-muted/60 uppercase">NON-STOP ARENA</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 03 — EVENTS & SCHEDULE
+          SECTION 03: ENGINEERED FOR SUPREMACY
+          Tactical Command Grid & Architecture Breakdown
+          ═══════════════════════════════════════════════════════ */}
+      <section
+        ref={supremacyRef}
+        id="supremacy"
+        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/[0.08] bg-gradient-to-b from-transparent via-[rgba(8,10,12,0.8)] to-transparent backdrop-blur-[2px]"
+      >
+        <div className="max-w-7xl mx-auto w-full">
+          {/* Section Header */}
+          <div className="supremacy-reveal mb-12">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-doom-glow" />
+              <span className="font-mono text-xs tracking-[0.3em] uppercase text-doom-glow font-bold">
+                TACTICAL MATRIX // SECTION 03
+              </span>
+            </div>
+            <h2 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.04em] uppercase text-text-primary leading-[0.95]">
+              ENGINEERED FOR <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-chrome-light via-white to-chrome-dark">
+                SUPREMACY
+              </span>
+            </h2>
+          </div>
+
+          {/* Two-Column Grid: Dossier + Feature Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            {/* Left Column: Command Console & Latveria Radar (4 cols) */}
+            <div className="supremacy-reveal lg:col-span-4 p-6 sm:p-8 bg-[rgba(14,17,20,0.85)] border border-white/10 flex flex-col justify-between backdrop-blur-md relative overflow-hidden">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <span className="font-mono text-xs tracking-widest uppercase text-text-muted">TACTICAL DOSSIER</span>
+                  <Radar size={18} className="text-doom-glow animate-spin" />
+                </div>
+
+                {/* Radar HUD Circle Simulation */}
+                <div className="relative w-48 h-48 mx-auto my-6 rounded-full border border-doom-glow/20 flex items-center justify-center">
+                  <div className="absolute inset-4 rounded-full border border-dashed border-white/10 animate-[spin_30s_linear_infinite]" />
+                  <div className="absolute inset-12 rounded-full border border-doom-glow/30" />
+                  <div className="w-2 h-2 rounded-full bg-doom-glow animate-ping" />
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 font-mono text-[8px] text-doom-glow tracking-widest">NORTH 000°</div>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 font-mono text-[8px] text-text-muted tracking-widest">LATVERIA SECTOR</div>
+                </div>
+
+                <div className="space-y-2 font-mono text-xs text-text-muted/80">
+                  <div className="flex justify-between">
+                    <span>CLEARANCE:</span>
+                    <span className="text-doom-glow font-bold">SOVEREIGN LEVEL 5</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>SECURITY HASH:</span>
+                    <span className="text-white/60">0x7F2B...C91A</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>CAMPUS GRID:</span>
+                    <span className="text-white/60">ADGIPS SECTOR A-G</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-white/10">
+                <DoomButton
+                  size="md"
+                  variant="doom"
+                  onClick={handleEntryPass}
+                  className="w-full"
+                >
+                  ACQUIRE CLEARANCE
+                </DoomButton>
+              </div>
+            </div>
+
+            {/* Right Column: 4 Engineering Pillars (8 cols) */}
+            <div className="supremacy-reveal lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {/* Feature 01 */}
+              <div className="group p-6 bg-[rgba(14,17,20,0.7)] border border-white/10 hover:border-doom-glow/50 hover:bg-[rgba(18,22,26,0.85)] hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(30,255,160,0.15)] transition-all duration-300 backdrop-blur-md cursor-pointer">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-mono text-xs tracking-widest text-doom-glow font-bold">01 // EVALUATION</span>
+                  <Activity size={18} className="text-doom-glow group-hover:scale-125 group-hover:drop-shadow-[0_0_8px_#1EFFA0] transition-transform duration-300" />
+                </div>
+                <h4 className="font-display text-xl font-bold uppercase tracking-wide text-text-primary group-hover:text-white transition-colors duration-300">
+                  ZERO-LATENCY ARBITRATION
+                </h4>
+                <p className="font-sans text-xs sm:text-sm text-text-muted mt-2 leading-relaxed">
+                  Real-time telemetry, automated unit-test validation, and algorithmic scoring engines eliminate human bias and guarantee transparency.
+                </p>
+              </div>
+
+              {/* Feature 02 */}
+              <div className="group p-6 bg-[rgba(14,17,20,0.7)] border border-white/10 hover:border-doom-glow/50 hover:bg-[rgba(18,22,26,0.85)] hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(30,255,160,0.15)] transition-all duration-300 backdrop-blur-md cursor-pointer">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-mono text-xs tracking-widest text-doom-glow font-bold">02 // ARCHITECTS</span>
+                  <Award size={18} className="text-doom-glow group-hover:scale-125 group-hover:drop-shadow-[0_0_8px_#1EFFA0] transition-transform duration-300" />
+                </div>
+                <h4 className="font-display text-xl font-bold uppercase tracking-wide text-text-primary group-hover:text-white transition-colors duration-300">
+                  VANGUARD MENTORSHIP
+                </h4>
+                <p className="font-sans text-xs sm:text-sm text-text-muted mt-2 leading-relaxed">
+                  Keynotes, code audits, and strategic technical juries composed of principal software architects and engineering directors.
+                </p>
+              </div>
+
+              {/* Feature 03 */}
+              <div className="group p-6 bg-[rgba(14,17,20,0.7)] border border-white/10 hover:border-doom-glow/50 hover:bg-[rgba(18,22,26,0.85)] hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(30,255,160,0.15)] transition-all duration-300 backdrop-blur-md cursor-pointer">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-mono text-xs tracking-widest text-doom-glow font-bold">03 // PROTOCOL</span>
+                  <Lock size={18} className="text-doom-glow group-hover:scale-125 group-hover:drop-shadow-[0_0_8px_#1EFFA0] transition-transform duration-300" />
+                </div>
+                <h4 className="font-display text-xl font-bold uppercase tracking-wide text-text-primary group-hover:text-white transition-colors duration-300">
+                  CRYPTOGRAPHIC PASSES
+                </h4>
+                <p className="font-sans text-xs sm:text-sm text-text-muted mt-2 leading-relaxed">
+                  Instant tamper-proof digital entry credentials verified at all campus perimeters using decentralized verification protocols.
+                </p>
+              </div>
+
+              {/* Feature 04 */}
+              <div className="group p-6 bg-[rgba(14,17,20,0.7)] border border-white/10 hover:border-doom-glow/50 hover:bg-[rgba(18,22,26,0.85)] hover:-translate-y-1.5 hover:shadow-[0_15px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(30,255,160,0.15)] transition-all duration-300 backdrop-blur-md cursor-pointer">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-mono text-xs tracking-widest text-doom-glow font-bold">04 // BOUNTIES</span>
+                  <Trophy size={18} className="text-doom-glow group-hover:scale-125 group-hover:drop-shadow-[0_0_8px_#1EFFA0] transition-transform duration-300" />
+                </div>
+                <h4 className="font-display text-xl font-bold uppercase tracking-wide text-text-primary group-hover:text-white transition-colors duration-300">
+                  SUPREME DIVIDENDS
+                </h4>
+                <p className="font-sans text-xs sm:text-sm text-text-muted mt-2 leading-relaxed">
+                  Direct bounty payouts, incubation sponsorships, investor matchmaking, and custom hand-forged titanium victory trophies.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 04: THE PROTOCOLS (EVENTS SHOWCASE)
+          Category-Driven Arenas with Specular Interaction
           ═══════════════════════════════════════════════════════ */}
       <section
         ref={eventsRef}
         id="events"
-        className="relative py-24 sm:py-32 px-4 sm:px-6 md:px-8 border-t border-white/[0.06]"
+        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/[0.08] bg-gradient-to-b from-transparent via-[rgba(10,12,14,0.7)] to-transparent backdrop-blur-[2px]"
       >
-        <div className="max-w-6xl mx-auto">
-          {/* Section header */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+        <div className="max-w-7xl mx-auto w-full">
+          {/* Section Header & Category Filter Buttons */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
             <div>
-              <div className="mb-3 inline-flex items-center gap-2 px-3 py-1 bg-doom-glow/[0.07] border border-doom-glow/20 text-doom-glow font-mono text-[10px] tracking-[0.25em] uppercase font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-doom-glow animate-pulse" />
-                Event Arsenal
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2 h-2 rounded-full bg-doom-glow" />
+                <span className="font-mono text-xs tracking-[0.3em] uppercase text-doom-glow font-bold">
+                  CHALLENGES // SECTION 04
+                </span>
               </div>
-              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-wider text-text-primary">
-                Two Days. The Ultimate Arena.
+              <h2 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.04em] uppercase text-text-primary leading-[0.95]">
+                THE PROTOCOLS
               </h2>
             </div>
-            <Link
-              to="/events"
-              className="inline-flex items-center gap-2 font-mono text-[11px] text-doom-glow hover:text-white uppercase tracking-widest font-bold transition-colors shrink-0 py-2 px-4 bg-doom-glow/[0.08] border border-doom-glow/25 hover:bg-doom-glow/15"
-            >
-              <span>All Events</span>
-              <ArrowRight size={12} />
-            </Link>
-          </div>
 
-          {/* Day 1 & Day 2 schedule cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-14">
-            {/* Day 1 */}
-            <div className="event-card p-5 sm:p-6 bg-doom-bg2/60 border border-white/[0.06]">
-              <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/[0.06]">
-                <span className="font-display text-base sm:text-lg font-bold text-text-primary uppercase tracking-wider">
-                  Day 01 — March 15, 2026
-                </span>
-                <span className="hidden sm:inline font-mono text-[9px] text-doom-glow/70 px-2 py-0.5 bg-doom-glow/[0.08] border border-doom-glow/20">
-                  09:00 — 18:00
-                </span>
-              </div>
-              <ul className="space-y-2.5">
-                {eventsData
-                  .filter((e) => e.date.includes('March 15'))
-                  .slice(0, 5)
-                  .map((e) => (
-                    <li
-                      key={e.id}
-                      className="flex items-start gap-2.5 font-mono text-xs text-text-muted/70"
-                    >
-                      <span className="text-doom-glow/80 font-bold shrink-0 w-10">
-                        {e.date.split('//')[1]?.trim().substring(0, 5) || '—'}
-                      </span>
-                      <span className="text-text-muted">{e.name}</span>
-                      <span className="ml-auto text-[9px] text-text-muted/40 shrink-0 hidden sm:inline">
-                        {e.category}
-                      </span>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-
-            {/* Day 2 */}
-            <div className="event-card p-5 sm:p-6 bg-doom-bg2/60 border border-white/[0.06]">
-              <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/[0.06]">
-                <span className="font-display text-base sm:text-lg font-bold text-text-primary uppercase tracking-wider">
-                  Day 02 — March 16, 2026
-                </span>
-                <span className="hidden sm:inline font-mono text-[9px] text-doom-glow/70 px-2 py-0.5 bg-doom-glow/[0.08] border border-doom-glow/20">
-                  09:00 — 22:00
-                </span>
-              </div>
-              <ul className="space-y-2.5">
-                {eventsData
-                  .filter((e) => e.date.includes('March 16'))
-                  .slice(0, 5)
-                  .map((e) => (
-                    <li
-                      key={e.id}
-                      className="flex items-start gap-2.5 font-mono text-xs text-text-muted/70"
-                    >
-                      <span className="text-doom-glow/80 font-bold shrink-0 w-10">
-                        {e.date.split('//')[1]?.trim().substring(0, 5) || '—'}
-                      </span>
-                      <span className="text-text-muted">{e.name}</span>
-                      <span className="ml-auto text-[9px] text-text-muted/40 shrink-0 hidden sm:inline">
-                        {e.category}
-                      </span>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Featured events grid */}
-          <div className="mb-6">
-            <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-text-muted/50 block mb-5">
-              Featured Events
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...featuredTechnical.slice(0, 2), ...featuredNonTechnical.slice(0, 2)].map(
-              (event) => (
-                <Link
-                  key={event.id}
-                  to={`/events/${event.id}`}
-                  className="event-card group p-4 bg-white/[0.02] border border-white/[0.06] hover:border-doom-glow/25 transition-all duration-500 block"
+            {/* Filter Pills */}
+            <div className="flex items-center gap-2 p-1.5 bg-black/60 border border-white/10 backdrop-blur-md">
+              {['All', 'Technical', 'Non-Technical'].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-4 py-2 font-mono text-xs tracking-wider uppercase transition-all duration-300 cursor-pointer ${
+                    activeCategory === cat
+                      ? 'bg-doom-glow text-black font-bold shadow-[0_0_12px_rgba(30,255,160,0.5)]'
+                      : 'text-text-muted hover:text-white'
+                  }`}
                 >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span
-                      className={`font-mono text-[8px] tracking-[0.15em] uppercase px-1.5 py-0.5 border ${
-                        event.category === 'Technical'
-                          ? 'text-doom-glow/80 bg-doom-glow/[0.06] border-doom-glow/20'
-                          : 'text-amber/80 bg-amber/[0.06] border-amber/20'
-                      }`}
-                    >
-                      {event.category}
+                  {cat === 'All' ? 'ALL TRACKS' : cat.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Events Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEvents.map((event) => (
+              <div
+                key={event.id}
+                className="event-reveal-card relative group p-6 bg-[rgba(14,17,20,0.85)] border border-white/10 hover:border-doom-glow/60 hover:bg-[rgba(18,23,28,0.92)] hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.85),0_0_25px_rgba(30,255,160,0.2)] transition-all duration-300 flex flex-col justify-between backdrop-blur-md cursor-pointer"
+              >
+                <div>
+                  <div className="flex items-center justify-between text-xs font-mono text-text-muted/70 pb-3 border-b border-white/5">
+                    <span className="px-2 py-0.5 bg-white/5 border border-white/10 text-doom-glow font-bold group-hover:border-doom-glow/40 transition-colors">
+                      {event.category.toUpperCase()}
                     </span>
+                    <span>{event.branch || 'OPEN TRACK'}</span>
                   </div>
 
-                  <h3 className="font-display text-sm font-bold text-text-primary group-hover:text-doom-glow transition-colors duration-300 tracking-wide">
+                  <h3 className="font-display text-2xl font-bold uppercase tracking-wide text-text-primary mt-4 group-hover:text-doom-glow transition-colors duration-200">
                     {event.name}
                   </h3>
 
-                  <p className="mt-1.5 font-body text-[11px] text-text-muted/60 leading-relaxed line-clamp-2">
+                  <p className="font-sans text-xs text-text-muted mt-2 line-clamp-2 leading-relaxed">
                     {event.description}
                   </p>
 
-                  <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between font-mono text-[9px] text-text-muted/40">
-                    <span>{event.teamSize}</span>
-                    <ChevronRight
-                      size={10}
-                      className="text-doom-glow/0 group-hover:text-doom-glow transition-colors duration-300"
-                    />
+                  <div className="mt-4 space-y-1.5 text-[11px] font-mono text-text-muted/80">
+                    <div className="flex items-center gap-2">
+                      <Trophy size={13} className="text-doom-glow shrink-0 group-hover:scale-110 transition-transform" />
+                      <span className="group-hover:text-white transition-colors">{event.prizePool}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users size={13} className="text-white/60 shrink-0" />
+                      <span>{event.teamSize}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin size={13} className="text-white/60 shrink-0" />
+                      <span>{event.venue}</span>
+                    </div>
                   </div>
-                </Link>
-              )
-            )}
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                  <DoomButton
+                    to={`/events/${event.id}`}
+                    size="sm"
+                    variant="doom"
+                  >
+                    BRIEFING
+                  </DoomButton>
+
+                  <Link
+                    to={`/events/${event.id}`}
+                    className="group/link text-xs font-mono text-text-muted hover:text-doom-glow transition-colors flex items-center gap-1"
+                  >
+                    <span>DETAILS</span>
+                    <ChevronRight size={14} className="group-hover/link:translate-x-1 transition-transform duration-200" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* View All Events CTA */}
+          <div className="mt-12 text-center">
+            <DoomButton
+              to="/events"
+              size="lg"
+              variant="titanium"
+            >
+              VIEW ALL 24 PROTOCOLS
+            </DoomButton>
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 06 — CTA
+          SECTION 05: ACCESS PRIVILEGES & PASS TIERS
+          Digital Pass Hologram & Seamless Grounded Outro
           ═══════════════════════════════════════════════════════ */}
       <section
-        ref={ctaRef}
-        className="relative py-28 sm:py-36 md:py-44 px-4 sm:px-6 overflow-hidden"
+        ref={passesRef}
+        id="passes"
+        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/[0.08] bg-gradient-to-b from-transparent via-[rgba(8,10,12,0.85)] to-doom-bg/95 backdrop-blur-[2px]"
       >
-        {/* Atmospheric gradient */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(30,255,160,0.04) 0%, transparent 70%)',
-          }}
-        />
-
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <div className="cta-reveal mb-5 inline-flex items-center gap-2 px-3.5 py-1.5 bg-doom-glow/[0.07] border border-doom-glow/20 text-doom-glow font-mono text-[10px] tracking-[0.25em] uppercase font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-doom-glow animate-pulse" />
-            Initiate Protocol
+        <div className="max-w-5xl mx-auto w-full">
+          <div className="pass-reveal text-center mb-12">
+            <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 bg-doom-glow/[0.06] border border-doom-glow/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-doom-glow" />
+              <span className="font-mono text-xs tracking-[0.3em] uppercase text-doom-glow font-bold">
+                SECTOR CLEARANCE // SECTION 05
+              </span>
+            </div>
+            <h2 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.04em] uppercase text-text-primary">
+              ACCESS PRIVILEGES
+            </h2>
+            <p className="font-mono text-xs sm:text-sm tracking-widest text-text-muted uppercase mt-3 max-w-xl mx-auto">
+              Every participant requires a cryptographically validated entry pass for admission past campus perimeters.
+            </p>
           </div>
 
-          <h2 className="cta-reveal font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold uppercase tracking-wider leading-[1.05] text-text-primary">
-            Ready to Enter
-            <br />
-            <span className="text-doom-glow drop-shadow-[0_0_40px_rgba(30,255,160,0.2)]">
-              The Vector?
+          {/* Digital Holographic Pass Preview Card */}
+          <div className="pass-reveal relative p-8 sm:p-12 bg-[rgba(16,20,24,0.9)] border border-doom-glow/40 shadow-[0_0_50px_rgba(30,255,160,0.12)] backdrop-blur-xl max-w-2xl mx-auto">
+            {/* Top Pass Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-6">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/vector26-logo.svg"
+                  alt="VECTORS 26"
+                  className="h-8 w-auto mix-blend-screen"
+                />
+                <span className="font-mono text-xs tracking-widest uppercase text-doom-glow font-bold">
+                  DIGITAL CREDENTIAL
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-doom-glow/10 border border-doom-glow/30">
+                <CheckCircle2 size={13} className="text-doom-glow" />
+                <span className="font-mono text-[10px] tracking-wider text-doom-glow font-bold uppercase">
+                  TAMPER-PROOF
+                </span>
+              </div>
+            </div>
+
+            {/* Pass Body Content */}
+            <div className="my-8 space-y-4 font-mono text-xs">
+              <div className="flex justify-between border-b border-white/5 pb-2">
+                <span className="text-text-muted">OPERATIVE DESIGNATION:</span>
+                <span className="text-white font-bold">{user ? (user.displayName || user.email) : 'GUEST OPERATIVE'}</span>
+              </div>
+              <div className="flex justify-between border-b border-white/5 pb-2">
+                <span className="text-text-muted">ACCESS LEVEL:</span>
+                <span className="text-doom-glow font-bold">{hasPass ? 'SOVEREIGN // CLEARED' : 'PENDING REGISTRATION'}</span>
+              </div>
+              <div className="flex justify-between border-b border-white/5 pb-2">
+                <span className="text-text-muted">ADMISSION DATE:</span>
+                <span className="text-white">FEB 27–28, 2026</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-muted">CAMPUS SECTORS:</span>
+                <span className="text-white">ARENAS 1–4 // MAIN AUDITORIUM</span>
+              </div>
+            </div>
+
+            {/* Pass Action CTA */}
+            <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-left font-mono text-[11px] text-text-muted/70">
+                <span>VERIFICATION TIME: &lt; 250MS AT GATE</span>
+              </div>
+              <DoomButton
+                size="md"
+                variant="doom"
+                onClick={handleEntryPass}
+                className="w-full sm:w-auto"
+              >
+                {hasPass ? 'OPEN MY PASS' : 'GENERATE ENTRY PASS'}
+              </DoomButton>
+            </div>
+          </div>
+
+          {/* Clean minimal integrated outro line */}
+          <div className="mt-16 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono text-text-muted/50 gap-3">
+            <span>&copy; 2026 VECTORS TECHNICAL SYMPOSIUM. ALL RIGHTS RESERVED.</span>
+            <span className="text-doom-glow/60 font-semibold tracking-widest uppercase">
+              DOCTOR DOOM PROTOCOL // SECURE SESSION
             </span>
-          </h2>
-
-          <p className="cta-reveal mt-5 font-body text-sm sm:text-base text-text-muted/70 max-w-md mx-auto leading-relaxed">
-            Secure your position. Claim your entry pass. The convergence begins
-            March 15, 2026.
-          </p>
-
-          <div className="cta-reveal mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-            <SpecularButton
-              size="xl"
-              radius={16}
-              lineColor="#1EFFA0"
-              baseColor="#0B0F13"
-              textColor="#1EFFA0"
-              intensity={1.3}
-              shineSize={14}
-              shineFade={50}
-              thickness={1.5}
-              speed={0.35}
-              followMouse
-              proximity={300}
-              onClick={handleEntryPass}
-              aria-label={hasPass ? 'View My Entry Pass' : 'Claim Your Entry Pass'}
-            >
-              {hasPass ? 'View My Pass' : 'Claim Your Entry Pass'}
-            </SpecularButton>
-
-            <SpecularButton
-              size="xl"
-              radius={16}
-              variant="titanium"
-              lineColor="#ffffff"
-              baseColor="#12171C"
-              textColor="#EDEFF1"
-              intensity={0.8}
-              thickness={1}
-              speed={0.35}
-              followMouse
-              proximity={250}
-              onClick={handleExploreEvents}
-              aria-label="Explore Event Vaults"
-            >
-              <span className="flex items-center gap-2">
-                <span>Explore Event Vaults</span>
-                <ArrowRight size={14} className="text-doom-glow transition-transform duration-300 group-hover:translate-x-1" />
-              </span>
-            </SpecularButton>
           </div>
         </div>
       </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 07 — FOOTER
-          ═══════════════════════════════════════════════════════ */}
-      <footer className="relative py-12 sm:py-16 px-4 sm:px-6 md:px-8 border-t border-white/[0.06] bg-doom-bg2/40">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16">
-            {/* Branding */}
-            <div className="space-y-3">
-              <span className="font-display text-lg font-bold tracking-[0.1em] uppercase text-text-primary block">
-                VECTORS
-              </span>
-              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-text-muted/50 block">
-                Technical Festival 2026
-              </span>
-              <p className="font-body text-xs text-text-muted/40 leading-relaxed max-w-xs">
-                March 15–16, 2026 • Campus Main Complex
-              </p>
-            </div>
-
-            {/* Navigation */}
-            <div>
-              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-text-muted/40 block mb-4">
-                Navigate
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: 'Festival', to: '/festival' },
-                  { label: 'Events', to: '/events' },
-                  { label: 'Schedule', to: '/schedule' },
-                  { label: 'Announcements', to: '/announcements' },
-                  { label: 'FAQ', to: '/faq' },
-                  { label: 'Dashboard', to: '/dashboard' },
-                ].map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className="font-mono text-[11px] tracking-wider text-text-muted/50 hover:text-doom-glow transition-colors duration-300 uppercase py-1"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div>
-              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-text-muted/40 block mb-4">
-                Quick Actions
-              </span>
-              <div className="space-y-2">
-                <button
-                  onClick={handleEntryPass}
-                  className="w-full text-left font-mono text-[11px] tracking-wider text-doom-glow/70 hover:text-doom-glow transition-colors uppercase py-1 flex items-center gap-2"
-                >
-                  <Zap size={10} />
-                  <span>{hasPass ? 'View Entry Pass' : 'Claim Entry Pass'}</span>
-                </button>
-                <Link
-                  to="/events"
-                  className="font-mono text-[11px] tracking-wider text-text-muted/50 hover:text-doom-glow transition-colors uppercase py-1 flex items-center gap-2"
-                >
-                  <ChevronRight size={10} />
-                  <span>Browse All Events</span>
-                </Link>
-                <Link
-                  to="/login"
-                  className="font-mono text-[11px] tracking-wider text-text-muted/50 hover:text-doom-glow transition-colors uppercase py-1 flex items-center gap-2"
-                >
-                  <ChevronRight size={10} />
-                  <span>Enter The Portal</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom bar */}
-          <div className="mt-10 pt-6 border-t border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-            <span className="font-mono text-[10px] text-text-muted/30 tracking-wider">
-              © 2026 VECTORS Committee. All rights reserved.
-            </span>
-            <span className="font-mono text-[9px] text-text-muted/20 tracking-wider uppercase">
-              Avengers: Doomsday Edition
-            </span>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

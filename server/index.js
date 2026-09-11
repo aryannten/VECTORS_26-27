@@ -28,6 +28,13 @@ if (fs.existsSync(resolvedServicePath)) {
   }
 } else {
   console.warn(`[Firebase] Service account file not found at ${resolvedServicePath}. Running with auth mock/offline mode.`)
+  try {
+    // Initialize with projectId to allow verifyIdToken to work by fetching public keys
+    initializeApp({ projectId: 'vectors-26-27' })
+    console.log('[Firebase] Admin SDK initialized in offline mode for token verification.')
+  } catch (err) {
+    console.warn('[Firebase] Admin SDK offline initialization failed:', err.message)
+  }
 }
 
 // Import routes

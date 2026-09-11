@@ -9,6 +9,7 @@ import {
   updateProfile,
   signOut,
   onAuthStateChanged,
+  onIdTokenChanged,
 } from '../lib/firebase'
 
 const AuthContext = createContext(null)
@@ -124,9 +125,9 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // Listen to Firebase auth state
+  // Listen to Firebase auth state & token refreshes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser)
         await syncWithBackend(firebaseUser)
@@ -142,7 +143,23 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    return () => unsubscribe()
+    const unsubscribeToken = onIdTokenChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const freshToken = await firebaseUser.getIdToken()
+          setIdToken(freshToken)
+        } catch (err) {
+          console.error('[Auth] onIdTokenChanged error:', err)
+        }
+      } else {
+        setIdToken(null)
+      }
+    })
+
+    return () => {
+      unsubscribeAuth()
+      unsubscribeToken()
+    }
   }, [])
 
   /**
@@ -235,12 +252,18 @@ export function AuthProvider({ children }) {
 
   /**
    * Get a fresh ID token for API calls.
+   * Supports forceRefresh if an expired or invalid token error was received.
    */
-  const getToken = async () => {
-    if (user) {
-      const token = await user.getIdToken()
-      setIdToken(token)
-      return token
+  const getToken = async (forceRefresh = false) => {
+    const activeUser = auth.currentUser || user
+    if (activeUser) {
+      try {
+        const token = await activeUser.getIdToken(forceRefresh)
+        setIdToken(token)
+        return token
+      } catch (err) {
+        console.error('[Auth] Failed to retrieve fresh token:', err)
+      }
     }
     return null
   }

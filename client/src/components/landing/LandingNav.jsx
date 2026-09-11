@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { Menu, X, LogOut, LayoutDashboard, Shield, User } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import SpecularButton from '../ui/SpecularButton'
+import DoomButton from '../ui/DoomButton'
 
 const NAV_LINKS = [
-  { label: 'Prologue', href: '#prologue' },
-  { label: 'Overview', href: '#overview' },
-  { label: 'About', href: '#about' },
-  { label: 'Events', href: '#events' },
+  { label: 'Arrival', href: '#hero' },
+  { label: 'Destiny', href: '#destiny' },
+  { label: 'Supremacy', href: '#supremacy' },
+  { label: 'Protocols', href: '#events' },
+  { label: 'Passes', href: '#passes' },
 ]
 
 /**
@@ -34,16 +35,10 @@ export default function LandingNav() {
     navigate('/')
   }
 
-  // Scroll detection — navbar stays transparent during the 50-frame prologue sequence
+  // Scroll detection — navbar transitions to dark glass once scrolled past hero top
   useEffect(() => {
     const handleScroll = () => {
-      const overviewEl = document.getElementById('overview')
-      if (overviewEl) {
-        const rect = overviewEl.getBoundingClientRect()
-        setScrolled(rect.top <= 80)
-      } else {
-        setScrolled(window.scrollY > 2400)
-      }
+      setScrolled(window.scrollY > 80)
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
@@ -155,19 +150,19 @@ export default function LandingNav() {
                   key={link.href}
                   onClick={() => scrollToSection(link.href)}
                   className={cn(
-                    'relative px-3 py-2 font-mono text-[11px] tracking-[0.15em] uppercase transition-colors duration-300 cursor-pointer',
+                    'relative px-3 py-2 font-mono text-[11px] tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer group/navitem hover:-translate-y-0.5',
                     activeSection === link.href.replace('#', '')
-                      ? 'text-doom-glow'
-                      : 'text-text-muted hover:text-text-primary'
+                      ? 'text-doom-glow font-bold'
+                      : 'text-text-muted hover:text-white'
                   )}
                 >
                   {link.label}
                   <span
                     className={cn(
-                      'absolute bottom-0.5 left-1/2 -translate-x-1/2 h-[1.5px] bg-doom-glow shadow-[0_0_8px_rgba(30,255,160,0.6)] transition-all duration-300',
+                      'absolute bottom-0.5 left-1/2 -translate-x-1/2 h-[1.5px] bg-doom-glow shadow-[0_0_8px_rgba(30,255,160,0.8)] transition-all duration-300',
                       activeSection === link.href.replace('#', '')
-                        ? 'w-[60%]'
-                        : 'w-0'
+                        ? 'w-[65%]'
+                        : 'w-0 group-hover/navitem:w-[45%]'
                     )}
                   />
                 </button>
@@ -206,19 +201,14 @@ export default function LandingNav() {
                       )}
 
                       {/* Quick Pass CTA */}
-                      <SpecularButton
+                      <DoomButton
                         to={hasPass ? '/my-pass' : '/entry-registration'}
                         size="sm"
-                        radius={10}
-                        lineColor="#1EFFA0"
-                        baseColor="#0E1216"
-                        textColor="#1EFFA0"
-                        followMouse
-                        proximity={200}
-                        className="hidden sm:inline-flex !py-1 !px-3.5 !text-[10px]"
+                        variant="doom"
+                        className="hidden sm:inline-flex"
                       >
                         {hasPass ? 'My Pass' : 'Get Pass'}
-                      </SpecularButton>
+                      </DoomButton>
 
                       {/* User Avatar Circle -> Dashboard */}
                       <Link
@@ -245,19 +235,14 @@ export default function LandingNav() {
                   ) : (
                     /* ── Logged Out State ── */
                     <div className="flex items-center gap-2">
-                      <SpecularButton
+                      <DoomButton
                         to="/login"
                         size="sm"
-                        radius={12}
-                        lineColor="#1EFFA0"
-                        baseColor="#0D1115"
-                        textColor="#1EFFA0"
-                        followMouse
-                        proximity={250}
-                        className="hidden sm:inline-flex !py-1.5 !px-4 !text-[11px] font-mono tracking-wider font-semibold uppercase"
+                        variant="doom"
+                        className="hidden sm:inline-flex"
                       >
                         ENTER THE PORTAL
-                      </SpecularButton>
+                      </DoomButton>
                     </div>
                   )}
                 </>
@@ -311,18 +296,15 @@ export default function LandingNav() {
               >
                 Dashboard
               </Link>
-              <SpecularButton
+              <DoomButton
                 to={hasPass ? '/my-pass' : '/entry-registration'}
                 size="md"
-                radius={12}
-                lineColor="#1EFFA0"
-                baseColor="#0E1216"
-                textColor="#1EFFA0"
-                className="w-full text-center font-mono tracking-wider font-semibold uppercase !text-xs"
+                variant="doom"
+                className="w-full text-center"
                 onClick={() => setMobileOpen(false)}
               >
                 {hasPass ? 'My Pass' : 'Claim Pass'}
-              </SpecularButton>
+              </DoomButton>
               <button
                 onClick={handleLogout}
                 className="font-mono text-xs tracking-wider uppercase text-doom-crimson-bright hover:underline mt-2"
@@ -332,18 +314,15 @@ export default function LandingNav() {
             </div>
           ) : (
             <div className="w-52">
-              <SpecularButton
+              <DoomButton
                 to="/login"
                 size="md"
-                radius={12}
-                lineColor="#1EFFA0"
-                baseColor="#0D1115"
-                textColor="#1EFFA0"
-                className="w-full text-center font-mono tracking-wider font-semibold uppercase !text-xs"
+                variant="doom"
+                className="w-full text-center"
                 onClick={() => setMobileOpen(false)}
               >
                 ENTER THE PORTAL
-              </SpecularButton>
+              </DoomButton>
             </div>
           )}
         </div>

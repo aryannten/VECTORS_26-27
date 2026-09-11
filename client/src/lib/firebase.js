@@ -9,6 +9,7 @@ import {
   updateProfile,
   signOut,
   onAuthStateChanged,
+  onIdTokenChanged,
 } from 'firebase/auth'
 
 const firebaseConfig = {
@@ -34,4 +35,5 @@ export {
   updateProfile,
   signOut,
   onAuthStateChanged,
+  onIdTokenChanged,
 }
