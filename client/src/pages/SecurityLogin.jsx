@@ -105,7 +105,7 @@ export default function SecurityLogin() {
             {showReset ? 'Account Recovery' : 'Security Terminal'}
           </h1>
           <p className="font-mono text-[10px] tracking-[0.2em] text-steel/50 uppercase mt-2">
-            {showReset ? 'Password Reset' : 'VECTORS 2026 Gate Access'}
+            {showReset ? 'Password Reset' : 'VECTORS 2026-27 Gate Access'}
           </p>
         </div>
 

@@ -99,7 +99,7 @@ export default function Navbar() {
             </button>
           )}
 
-          <Link to="/" className="flex items-center group select-none" aria-label="VECTORS 26 Home">
+          <Link to="/" className="flex items-center group select-none" aria-label="VECTORS 2026-27 Home">
             <img
               src="/vector26-logo.png"
               alt="VECTORS 26-27"

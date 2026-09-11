@@ -75,7 +75,7 @@ export default function MyPass() {
               NO ENTRY PASS DETECTED
             </h2>
             <p className="font-mono text-xs text-text-muted leading-relaxed">
-              You haven't completed your VECTORS 2026 entry pass registration yet. You must complete the registration protocol to unlock the Event Vaults.
+              You haven't completed your VECTORS 2026-27 entry pass registration yet. You must complete the registration protocol to unlock the Event Vaults.
             </p>
           </div>
 
@@ -142,7 +142,7 @@ export default function MyPass() {
                 <span>{pass.isAdminPass ? 'ADMIN CLEARANCE PASS' : 'OFFICIAL DIGITAL PASS'}</span>
               </div>
               <h2 className="font-display text-xl sm:text-2xl tracking-wider text-text-primary uppercase font-bold">
-                VECTORS 2026
+                VECTORS 2026-27
               </h2>
             </div>
 

@@ -9,8 +9,8 @@ const FAQ_DATA = [
     icon: Ticket,
     questions: [
       {
-        q: 'What is the VECTORS 26 Entry Pass, and is it mandatory?',
-        a: 'Yes. The VECTORS Entry Pass is your unified festival credential (`VEC-XXXXXXXX`). It provides physical campus access, verified credentials for checkpoint security, and unlocks eligibility to register for individual technical challenges and arena tournaments.',
+        q: 'What is the VECTORS 2026-27 Entry Pass, and is it mandatory?',
+        a: 'Yes. The VECTORS 2026-27 Entry Pass is your unified festival credential (`VEC-XXXXXXXX`). It provides physical campus access, verified credentials for checkpoint security, and unlocks eligibility to register for individual technical challenges and arena tournaments.',
       },
       {
         q: 'How do I claim my Entry Pass?',
@@ -53,8 +53,8 @@ const FAQ_DATA = [
     icon: MapPin,
     questions: [
       {
-        q: 'When and where is VECTORS 26 being hosted?',
-        a: 'VECTORS 26 takes place on March 15 and March 16, 2026 across the campus engineering complex, computing labs, hardware centers, and open-air amphitheatres.',
+        q: 'When and where is VECTORS 2026-27 being hosted?',
+        a: 'VECTORS 2026-27 takes place across the campus engineering complex, computing labs, hardware centers, and open-air amphitheatres.',
       },
       {
         q: 'Will accommodation or food be arranged for outstation participants?',

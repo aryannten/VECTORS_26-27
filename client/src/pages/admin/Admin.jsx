@@ -55,7 +55,7 @@ export default function Admin() {
       {/* Page Header */}
       <div>
         <h1 className="font-display text-2xl tracking-widest text-bone uppercase">Dashboard</h1>
-        <p className="font-mono text-xs text-steel mt-1">VECTORS 2026 Command Center</p>
+        <p className="font-mono text-xs text-steel mt-1">VECTORS 2026-27 Command Center</p>
       </div>
 
       {error && (

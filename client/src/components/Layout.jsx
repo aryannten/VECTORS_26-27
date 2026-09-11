@@ -21,7 +21,7 @@ export default function Layout() {
         </ErrorBoundary>
       </main>
       <footer className="relative z-10 border-t border-brass-dim/10 py-6 px-4 sm:px-6 text-center text-slate text-xs font-mono bg-charcoal">
-        <p>&copy; 2026 VECTORS. All rights reserved.</p>
+        <p>&copy; VECTORS 2026-27. All rights reserved.</p>
       </footer>
     </div>
   )
