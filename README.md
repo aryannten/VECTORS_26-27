@@ -1,17 +1,23 @@
 # VECTORS 26-27
 
-The official web platform and digital entry system for VECTORS 26-27, the annual college technical festival. Features an immersive brutalist visual identity, interactive WebGL shaders, role-based access control, digital entry passes with QR check-in, and an admin command center.
+The official web platform and digital entry system for **VECTORS 26-27**, the annual college technical festival. Features an immersive brutalist/cyberpunk visual identity, interactive WebGL shaders, role-based access control, digital college entry passes with QR gate check-in, brochure-synchronized event vaults, and an admin command center.
 
 ---
 
-## Overview
+## Architecture Overview
 
-VECTORS 26-27 is a full-stack web application designed to handle both festival experience and logistics:
+VECTORS 26-27 is a full-stack platform built to handle both the participant experience and gate logistics:
 
-1. **Cinematic Fest Experience**: Immersive dark-mode visual interface with brutalist architectural elements, custom SVG typography, interactive liquid metal (OGL ferrofluid simulation), and Framer Motion micro-interactions.
-2. **Access-Gated Event Discovery**: Event vaults (Technical and Non-Technical) are locked behind an mandatory verified digital Entry Pass. Visitors must register their details to unlock event schedules, problem statements, and registration links.
-3. **QR Pass & Gate Scanner System**: Participants receive a unique digital pass (`VEC-XXXXXXXX`) with an on-screen QR code. Security personnel at the college gate scan passes with a mobile-optimized camera scanner to approve entry and prevent duplicate check-ins.
-4. **Admin Command Center**: Organizers get real-time metrics on total registrations, live gate check-in counts, active events, and user account management (role promotion, password resets, and user creation).
+1. **Cinematic Fest Experience**: Immersive dark-mode visual interface with brutalist architectural geometry, custom SVG brand wordmarks, interactive liquid metal (OGL ferrofluid simulation), and Framer Motion micro-interactions.
+2. **Mandatory College Entry Pass System**:
+   - Visitors register their identity, contact, and college affiliation through a 4-step intake flow (`/entry-registration`).
+   - Generates a verified digital Entry Pass (`VEC-XXXXXXXX`) with an on-screen QR code viewable anytime at `/my-pass` and accessible from `/dashboard`.
+3. **QR Gate Scanner System**: Security personnel at the college gate log in at `/security/login` and use a camera scanner (`/security`) powered by `@yudiel/react-qr-scanner` to verify pass validity in real-time and prevent duplicate campus check-ins.
+4. **Official Event Vaults (29 Events)**:
+   - **Gated Discovery**: Browsing events (`/events`) and viewing protocol specifications (`/events/:eventId`) is protected by `EntryPassGate`, ensuring only users with an active college entry pass can view festival protocols.
+   - **Brochure-Synchronized Data**: Features all 29 official events (18 Technical, 11 Non-Technical) with exact fees, prize pools (1st/2nd prize), team sizes, rules of engagement, and sector coordinator phone contacts.
+   - **Unified Event Registration**: Per-event registration redirects directly to the official Google Form portal (`https://docs.google.com/forms/d/1TMafhheUgchGQZHPmEdVHght-KB_Nn_SN1pKOSkLXXI/viewform`).
+5. **Admin Command Center**: Real-time metrics on total entry registrations, live gate check-in counts, user account directory (role elevation, password resets), event management, and system announcements.
 
 ---
 
@@ -19,15 +25,15 @@ VECTORS 26-27 is a full-stack web application designed to handle both festival e
 
 ### Frontend (`/client`)
 - **Core**: React 19, Vite 8, React Router v7
-- **Styling**: Tailwind CSS v4 (using the `@theme` engine in `index.css` with CSS custom properties)
+- **Styling**: Tailwind CSS v4 (using the `@theme` engine in `index.css` with custom tokens)
 - **Visuals & 3D**:
   - `OGL`: WebGL shader engine powering the interactive `<Ferrofluid />` liquid metal hero background
-  - `Three.js` / `@react-three/fiber` / `@react-three/drei`: 3D rendering pipeline for the astrolabe mechanical elements
-  - `Framer Motion` & `GSAP`: Page transitions, orchestrated typography reveals, and UI physics
-  - `Lucide React`: Iconography
+  - `Three.js` / `@react-three/fiber` / `@react-three/drei`: 3D rendering pipeline for mechanical astrolabe accents
+  - `Framer Motion`: Page transitions, orchestrated reveals, and UI physics
+  - `Lucide React`: UI iconography
 - **Auth & Scanning**:
   - `firebase`: Client SDK for email/password and Google Popup authentication
-  - `qrcode.react`: SVG QR code generator for student passes
+  - `qrcode.react`: SVG QR code generator for student entry passes
   - `@yudiel/react-qr-scanner`: High-speed camera scanner with multi-device switching and torch support
 - **Tooling**: Oxlint (`oxlint`), Vite dev proxy (`/api -> http://localhost:5000`)
 
@@ -49,163 +55,251 @@ VECTORS 26-27 is a full-stack web application designed to handle both festival e
 
 ```
 .
-├── .gitignore
-├── VECTORS_2026_Antigravity_Master_Specification.md
-├── client
-│   ├── .env
-│   ├── .env.example
-│   ├── .gitignore
-│   ├── .oxlintrc.json
-│   ├── README.md
-│   ├── index.html
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── public
-│   │   ├── favicon.svg
-│   │   ├── icons.svg
-│   │   └── vectors-logo.png
-│   ├── src
-│   │   ├── App.jsx
-│   │   ├── assets
-│   │   │   ├── hero.png
-│   │   │   ├── react.svg
-│   │   │   ├── vectors-logo.png
-│   │   │   └── vite.svg
-│   │   ├── components
-│   │   │   ├── AdminLayout.jsx
-│   │   │   ├── Astrolabe3D.jsx
-│   │   │   ├── DoomsdayWordmark.jsx
-│   │   │   ├── EntryPassGate.jsx
-│   │   │   ├── FaultyTerminal.jsx
-│   │   │   ├── Layout.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── Particles.jsx
-│   │   │   ├── ProtectedRoute.jsx
-│   │   │   └── ui
-│   │   │       ├── FaultyTerminal.jsx
-│   │   │       ├── Ferrofluid.jsx
-│   │   │       ├── Particles.jsx
-│   │   │       ├── beams-background.jsx
-│   │   │       ├── blur-text.jsx
-│   │   │       └── glow-button.jsx
-│   │   ├── contexts
-│   │   │   └── AuthContext.jsx
-│   │   ├── data
-│   │   │   └── events.js
-│   │   ├── index.css
-│   │   ├── lib
-│   │   │   ├── firebase.js
-│   │   │   └── utils.js
-│   │   ├── main.jsx
-│   │   ├── pages
-│   │   │   ├── EntryRegistration.jsx
-│   │   │   ├── EventDetail.jsx
-│   │   │   ├── Events.jsx
-│   │   │   ├── Home.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── MyPass.jsx
-│   │   │   ├── NotFound.jsx
-│   │   │   ├── Security.jsx
-│   │   │   ├── SecurityLogin.jsx
-│   │   │   ├── Signup.jsx
-│   │   │   └── admin
-│   │   │       ├── Admin.jsx
-│   │   │       ├── AdminEvents.jsx
-│   │   │       ├── AdminRegistrations.jsx
-│   │   │       └── AdminUsers.jsx
-│   │   └── vite-env.d.ts
-│   ├── tsconfig.json
-│   └── vite.config.js
-├── docs
-│   ├── ART_DIRECTION.md
-│   ├── ASSET_MANIFEST.md
-│   ├── CONCEPTS.md
-│   ├── PERFORMANCE_REPORT.md
-│   ├── PROJECT_STATE.md
-│   ├── QA_REPORT.md
-│   ├── RESEARCH.md
-│   └── UX_FLOW.md
-├── package-lock.json
+├── README.md
 ├── package.json
+├── package-lock.json
+├── Vectors-Brochure-OCR.pdf          # Official brochure reference document
+├── client
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
+│   └── src
+│       ├── App.jsx                   # Central routing & lazy-loaded view definitions
+│       ├── components
+│       │   ├── AdminLayout.jsx       # Admin portal frame & sidebar navigation
+│       │   ├── Astrolabe3D.jsx       # 3D mechanical astrolabe element
+│       │   ├── DoomsdayWordmark.jsx  # Brushed chrome & emerald SVG fest wordmark
+│       │   ├── EntryPassGate.jsx     # Route gate requiring active college Entry Pass
+│       │   ├── ErrorBoundary.jsx     # React error boundary fallback
+│       │   ├── Layout.jsx            # Main user layout (Navbar + Footer)
+│       │   ├── Navbar.jsx            # Sticky blurred navigation header
+│       │   ├── ProtectedRoute.jsx    # Role-based route guard
+│       │   ├── ScrollToTop.jsx       # Route transition scroll reset
+│       │   └── ui
+│       │       ├── Ferrofluid.jsx    # Interactive WebGL liquid metal hero canvas
+│       │       ├── PageLoading.jsx   # Cyberpunk route loader
+│       │       └── Particles.jsx     # Ambient canvas particle background
+│       ├── contexts
+│       │   └── AuthContext.jsx       # Firebase auth, pass status, and token provider
+│       ├── data
+│       │   └── events.js             # Master client dataset for 29 official events
+│       ├── lib
+│       │   ├── firebase.js           # Firebase client initialization
+│       │   └── utils.js              # Class merger utility (clsx + tailwind-merge)
+│       ├── pages
+│       │   ├── Dashboard.jsx         # User hub with entry pass status & quick links
+│       │   ├── EntryRegistration.jsx # 4-step college entry pass intake form
+│       │   ├── EventDetail.jsx       # Event rules, prizes, coordinators & registration gate
+│       │   ├── Events.jsx            # Master event vaults with search & branch filters
+│       │   ├── FAQ.jsx               # Interactive accordion FAQ
+│       │   ├── Home.jsx              # Fest portal with Ferrofluid hero & story
+│       │   ├── Login.jsx             # User authentication (Email/Password + Google)
+│       │   ├── MyPass.jsx            # Digital QR Entry Pass viewer
+│       │   ├── NotFound.jsx          # Styled 404 screen
+│       │   ├── Security.jsx          # Gate camera QR scanner interface
+│       │   ├── SecurityLogin.jsx     # Dedicated security personnel login
+│       │   ├── Signup.jsx            # User account registration
+│       │   └── admin
+│       │       ├── Admin.jsx                  # Analytics & live check-in counters
+│       │       ├── AdminAnnouncements.jsx     # System announcement dispatcher
+│       │       ├── AdminEventRegistrations.jsx# Event attendance monitoring
+│       │       ├── AdminEvents.jsx            # Event catalog manager
+│       │       ├── AdminRegistrations.jsx     # Searchable entry pass registry
+│       │       └── AdminUsers.jsx             # User directory & role editor
+│       └── index.css                 # Tailwind v4 theme variables & custom utilities
 └── server
-    ├── .env
-    ├── .env.example
+    ├── index.js                      # Express application entry & auto-seeding
     ├── config
-    │   └── db.js
-    ├── index.js
+    │   └── db.js                     # MongoDB connection
+    ├── data
+    │   └── officialEvents.js         # Master server dataset of 29 brochure events
     ├── middleware
-    │   └── auth.js
+    │   └── auth.js                   # Firebase Admin token & role verification
     ├── models
-    │   ├── EntryRegistration.js
-    │   ├── Event.js
-    │   ├── SiteConfig.js
-    │   └── User.js
-    ├── package-lock.json
-    ├── package.json
+    │   ├── EntryRegistration.js      # College entry pass schema
+    │   ├── Event.js                  # Event catalog schema (with 1st/2nd prize fields)
+    │   ├── SiteConfig.js             # Global feature flags & system config
+    │   └── User.js                   # Synced user profile schema
     ├── routes
-    │   ├── admin.js
-    │   ├── auth.js
-    │   ├── events.js
-    │   └── registration.js
-    └── serviceAccountKey.json
+    │   ├── admin.js                  # Admin API endpoints
+    │   ├── auth.js                   # Auth profile & role sync
+    │   ├── events.js                 # Event listings & detail queries
+    │   └── registration.js           # Entry pass creation & QR verification
+    ├── scripts
+    │   └── sync_events.js            # MongoDB Atlas brochure events upsert utility
+    └── test
+        ├── api_endpoints.test.js     # Backend integration test suite
+        └── audit_verification.js     # System integrity & pass verification audit
 ```
 
 ---
 
-## Pages & Routes
+## Pages & Routing Architecture
 
-All routes are defined in `client/src/App.jsx`.
+All application routes are defined in `client/src/App.jsx`.
 
-### Public Routes
-- `/` (`Home.jsx`): Hero portal featuring interactive `<Ferrofluid />` WebGL background, custom SVG brand wordmark, event narrative, and entry CTAs.
-- `/login` (`Login.jsx`): User sign-in supporting email/password and Google authentication. Redirects back to intended route after authentication.
+### 1. Public Routes
+- `/` (`Home.jsx`): Hero portal featuring interactive `<Ferrofluid />` WebGL canvas, custom SVG brand wordmark, fest storyline, and entry CTAs.
+- `/login` (`Login.jsx`): User sign-in supporting email/password and Google authentication. Redirects back to intended destination after authentication.
 - `/signup` (`Signup.jsx`): New account creation with display name, email, and password.
+- `/faq` (`FAQ.jsx`): Accordion-style help center addressing pass registration, campus entry, event policies, and security procedures.
 
-### User Protected Routes (Requires standard user login)
-- `/entry-registration` (`EntryRegistration.jsx`): 4-step multi-stage form (Identity &rarr; Contact &rarr; Affiliation/College &rarr; QR Pass Generation). Generates a permanent `VEC-XXXXXXXX` entry pass.
-- `/my-pass` (`MyPass.jsx`): Renders the user's digital entry pass with a dynamic QR code (`qrcode.react`), pass ID, user details, and checked-in badge.
-- `/events` (`Events.jsx`): Master Event Vaults. **Gated by EntryPassGate** — users without an active entry pass are shown a lock gate prompting pass registration. Features two major category vaults (**Technical** and **Non-Technical**) and departmental branch filters.
-- `/events/:eventId` (`EventDetail.jsx`): Detailed view for an event containing rules, schedule, venue, team size, prize pool, coordinator contact info, and Google Form registration button.
+### 2. User Protected Routes (Requires Firebase Authentication)
+- `/dashboard` (`Dashboard.jsx`): Personal portal displaying Entry Pass status, quick actions, event categories, and quick links.
+- `/entry-registration` (`EntryRegistration.jsx`): 4-step multi-stage intake form (Identity &rarr; Contact &rarr; College Affiliation &rarr; Pass Confirmation) generating a permanent `VEC-XXXXXXXX` entry pass.
+- `/my-pass` (`MyPass.jsx`): Displays the verified digital entry pass with a dynamic QR code (`qrcode.react`), unique pass code, attendee metadata, and real-time gate check-in status.
+- `/events` (`Events.jsx`): Master Event Discovery. **Gated by EntryPassGate** — users without an active college entry pass cannot view event specifications until their pass is secured. Features:
+  - Technical vs. Non-Technical category vaults
+  - Real-time search query (event name, rules, description)
+  - Departmental branch filter buttons (`CSE`, `ECE`, `MECH`, `CIVIL`, etc.)
+  - Participation mode filter (`Solo` vs `Team`)
+- `/events/:eventId` (`EventDetail.jsx`): Detailed protocol specifications:
+  - Registration fee & team size matrix
+  - Prize pool highlights (1st Prize & 2nd Prize breakdown)
+  - Numbered Rules of Engagement
+  - Sector coordinator cards with direct `tel:` call actions
+  - Event FAQ accordion
+  - **In-Flow Registration Gates**: Immediate registration button in the hero and a full-width Official Registration Gate section at the bottom directing participants to the official Google Form.
 
-### Admin Console (Requires `admin` role)
+### 3. Security Check-in Routes
+- `/security/login` (`SecurityLogin.jsx`): Dedicated portal for security volunteers.
+- `/security` (`Security.jsx`): Camera-driven QR scanner interface (accessible only to `security` and `admin` roles) to verify attendee passes at the college entrance, prevent duplicate admissions, and record check-in timestamps.
+
+### 4. Admin Command Center (Requires `admin` role)
 Wrapped in `AdminLayout.jsx` with persistent sidebar navigation:
-- `/admin` (`Admin.jsx`): Dashboard showing metrics (total passes registered, check-in count, active events, registered users, and active gate staff).
-- `/admin/registrations` (`AdminRegistrations.jsx`): Searchable, paginated registry of all student registrations with check-in timestamps.
-- `/admin/events` (`AdminEvents.jsx`): Active events overview.
-- `/admin/users` (`AdminUsers.jsx`): User directory. Allows creating accounts, changing roles (`user`, `security`, `admin`), generating password reset links, and deleting accounts.
-
-### Fallback
-- `*` (`NotFound.jsx`): Styled 404 screen with a return home shortcut.
+- `/admin` (`Admin.jsx`): Command overview showing total passes registered, gate check-in rates, active event counts, and staff metrics.
+- `/admin/registrations` (`AdminRegistrations.jsx`): Searchable, paginated registry of all student entry passes with check-in timestamps.
+- `/admin/events` (`AdminEvents.jsx`): Management view of all 29 official events.
+- `/admin/announcements` (`AdminAnnouncements.jsx`): System-wide broadcast dispatcher.
+- `/admin/users` (`AdminUsers.jsx`): User directory. Allows creating accounts, elevating roles (`user`, `security`, `admin`), issuing password resets, and account deletion.
 
 ---
 
-## Key Components Explained
+## Official Events Roster (Brochure Synchronized)
 
-- **`Navbar.jsx` (`/client/src/components/Navbar.jsx`)**: Sticky header with backdrop blur (`rgba(10,12,14,0.75)` + 14px blur) and a 1px accent glow seam along the bottom border. Shows a back button on nested routes, conditional nav links (`Home`, `Events`, `My Pass`), user avatar ring, and a slide-down mobile menu.
-- **`DoomsdayWordmark.jsx` (`/client/src/components/DoomsdayWordmark.jsx`)**: High-detail SVG wordmark for the festival title. Uses brushed chrome linear gradients, crimson core fracture lines, and an emerald energy glow filter (`#1EFFA0`) set behind an architectural arch framework.
-- **`EntryPassGate.jsx` (`/client/src/components/EntryPassGate.jsx`)**: Intercepts access on the `/events` page. If a logged-in user does not possess an active entry pass in MongoDB, it locks the view and prompts them to complete pass registration.
-- **`Ferrofluid.jsx` (`/client/src/components/ui/Ferrofluid.jsx`)**: An OGL WebGL fragment shader simulating viscous magnetic liquid metal that ripples and shifts in real-time based on mouse coordinates and scroll velocity.
-- **`Particles.jsx` (`/client/src/components/ui/Particles.jsx`)**: Lightweight canvas particle system in emerald and chrome tones rendered on non-landing subpages for atmospheric depth.
-- **`ProtectedRoute.jsx` (`/client/src/components/ProtectedRoute.jsx`)**: Wraps protected routes in React Router. Verifies user authentication and checks `allowedRoles` (`['security', 'admin']` or `['admin']`), redirecting unauthenticated users to `/login`.
-- **`Security.jsx` (`/client/src/pages/Security.jsx`)**: Dedicated interface for volunteers operating scanners at gates. Uses `navigator.mediaDevices` through `@yudiel/react-qr-scanner` to read pass codes, call `GET /api/verify/:registrationId`, and provide large high-contrast visual indicators (`VALID` green, `ALREADY CHECKED IN` amber, `INVALID` red).
-- **`AdminLayout.jsx` (`/client/src/components/AdminLayout.jsx`)**: Persistent dark layout shell for the admin portal with breadcrumb status, quick stats, navigation tabs, and session sign-out.
+The platform includes **29 official events** categorized under Technical and Non-Technical sectors, mapped from `Vectors-Brochure-OCR.pdf`:
+
+### Technical Events (18 Events)
+1. **Prompt Mania** (AI/ML)
+2. **CAD Crush** (Civil / Mech)
+3. **Web Weave** (CSE / IT)
+4. **Model Craft** (Civil)
+5. **Chem-O-Car** (Chemical)
+6. **PCB Design** (ECE / EEE)
+7. **Line Follower** (Robotics)
+8. **Blind Coding** (CSE / IT)
+9. **Bridge Craft** (Civil)
+10. **Code Storm** (CSE / IT)
+11. **Paper Presentation** (All Technical Branches)
+12. **Robo Soccer** (Robotics)
+13. **Drone Challenge** (Aerospace / Robotics)
+14. **LAN Gaming - Valorant** (Gaming)
+15. **LAN Gaming - BGMI** (Gaming)
+16. **Circuit Debugging** (ECE / EEE)
+17. **Technical Quiz** (General Engineering)
+18. **Poster Presentation** (All Technical Branches)
+
+### Non-Technical Events (11 Events)
+1. **Takeshi's Castle**
+2. **Treasure Hunt**
+3. **Photography / Reel Making**
+4. **Face Painting**
+5. **Tug of War**
+6. **Open Mic (Standup & Poetry)**
+7. **Talent Hunt**
+8. **Chess Championship**
+9. **Arm Wrestling**
+10. **Escape Room**
+11. **Street Play (Nukkad Natak)**
+
+> **Per-Event Registration**: Every event detail page points to the centralized Google Form portal:
+> `https://docs.google.com/forms/d/1TMafhheUgchGQZHPmEdVHght-KB_Nn_SN1pKOSkLXXI/viewform`
 
 ---
 
-## Customization Notes
+## Getting Started
 
-VECTORS is re-themed and reused annually across different departments. Here is how to customize the site for future iterations:
+### Prerequisites
+- **Node.js**: v18+ (v20+ recommended)
+- **MongoDB Atlas** or a local MongoDB instance
+- **Firebase Project**: Authentication enabled (Email/Password & Google)
 
-### Theme, Palette & Fonts
-All design tokens are centralized in `client/src/index.css` inside the `@theme` block:
+### 1. Environment Setup
+
+#### Client (`client/.env`)
+```env
+VITE_FIREBASE_API_KEY="your-api-key"
+VITE_FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
+VITE_FIREBASE_PROJECT_ID="your-project-id"
+VITE_FIREBASE_STORAGE_BUCKET="your-project.appspot.com"
+VITE_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
+VITE_FIREBASE_APP_ID="your-app-id"
+```
+
+#### Server (`server/.env`)
+```env
+PORT=5000
+MONGODB_URI="mongodb+srv://<user>:<password>@cluster.mongodb.net/vectors_db"
+ALLOWED_ORIGINS="http://localhost:5173"
+FIREBASE_SERVICE_ACCOUNT_PATH="./serviceAccountKey.json"
+```
+
+### 2. Installation & Running
+
+From the root directory:
+
+```bash
+# Install root dependencies
+npm install
+
+# Install client and server dependencies
+cd client && npm install && cd ..
+cd server && npm install && cd ..
+
+# Run both frontend and backend concurrently
+npm run dev
+```
+
+The frontend will start on `http://localhost:5173` and the backend on `http://localhost:5000`.
+
+### 3. Synchronizing Events with MongoDB
+
+To manually sync or update all 29 official events in MongoDB Atlas:
+
+```bash
+node server/scripts/sync_events.js
+```
+
+*(The backend also automatically verifies and seeds any missing events upon startup in `server/index.js`).*
+
+### 4. Running Verification Tests
+
+```bash
+npm test
+```
+Executes backend API endpoint validation and pass verification integrity audits.
+
+### 5. Production Build
+
+```bash
+npm run build
+```
+Creates an optimized production bundle inside `client/dist`.
+
+---
+
+## Design System & Styling
+
+Design tokens are configured in `client/src/index.css` under the Tailwind CSS v4 `@theme` engine:
+
 ```css
 @theme {
-  --color-doom-bg: #0A0C0E;
-  --color-doom-bg2: #171A1E;
-  --color-doom-glow: #1EFFA0;           /* Primary accent glow */
+  --color-doom-bg: #0A0C0E;             /* Deep void background */
+  --color-doom-bg2: #171A1E;            /* Card & section background */
+  --color-doom-glow: #1EFFA0;           /* Primary radioactive emerald glow */
   --color-doom-glow-muted: #0B7A4E;
-  --color-doom-crimson: #8B0000;
-  --color-chrome-light: #C7CCD1;
+  --color-doom-crimson: #8B0000;         /* Warning & error accent */
+  --color-chrome-light: #C7CCD1;        /* Brushed metallic headers */
   --color-text-primary: #EDEFF1;
   --color-text-muted: #8A909B;
 
@@ -215,11 +309,11 @@ All design tokens are centralized in `client/src/index.css` inside the `@theme` 
   --font-mono: 'Space Mono', monospace;
 }
 ```
-To change the aesthetic (e.g. cybernetic blue, synthwave neon, or minimal monochrome), edit these CSS variables and update the Google Fonts import in `client/index.html`.
 
 ---
 
-## Credits & Team
+## Credits & License
 
-- **Festival**: VECTORS 26-27
-- **Engineering & Art Direction**: VECTORS Technical Team
+- **Event**: VECTORS 26-27 Annual Technical Festival
+- **Engineering**: VECTORS Technical Team
+- **License**: Private & Proprietary (All rights reserved)
