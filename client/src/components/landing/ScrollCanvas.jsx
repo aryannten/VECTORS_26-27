@@ -24,11 +24,18 @@ const TOTAL_FRAMES = 50
 export default function ScrollCanvas({
   startFrame = 1,
   endFrame = TOTAL_FRAMES,
-  scrubDuration = 0.5,
+  scrubDuration = 0.4,
   className = '',
   style = {},
   overlay,
   triggerRef,
+  pin = false,
+  pinSpacing = true,
+  start = 'top top',
+  end = '+=2500',
+  onProgress,
+  onFrameChange,
+  onLoaded,
 }) {
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
@@ -95,6 +102,7 @@ export default function ScrollCanvas({
       setLoadProgress(Math.round((loadedCount / TOTAL_FRAMES) * 100))
       if (loadedCount >= TOTAL_FRAMES) {
         setIsLoaded(true)
+        if (onLoaded) onLoaded(true)
       }
       // Draw first available frame immediately
       if (loadedCount === 1) {
@@ -158,31 +166,36 @@ export default function ScrollCanvas({
       return
     }
 
-    const trigger = triggerRef?.current || containerRef.current
-    if (!trigger) return
+    const targetTrigger = triggerRef?.current || containerRef.current
+    if (!targetTrigger) return
 
     const frameCount = endFrame - startFrame
 
     const st = ScrollTrigger.create({
-      trigger,
-      start: 'top top',
-      end: 'bottom bottom',
+      trigger: targetTrigger,
+      start: start,
+      end: end,
+      pin: pin ? targetTrigger : false,
+      pinSpacing: pinSpacing,
       scrub: scrubDuration,
       onUpdate: (self) => {
         const newFrame = Math.round(
           (startFrame - 1) + self.progress * frameCount
         )
-        if (newFrame !== currentFrameRef.current) {
-          currentFrameRef.current = newFrame
-          drawFrame(newFrame)
+        const clampedFrame = Math.max(startFrame - 1, Math.min(endFrame - 1, newFrame))
+        if (clampedFrame !== currentFrameRef.current) {
+          currentFrameRef.current = clampedFrame
+          drawFrame(clampedFrame)
         }
+        if (onProgress) onProgress(self.progress)
+        if (onFrameChange) onFrameChange(clampedFrame + 1)
       },
     })
 
     return () => {
       st.kill()
     }
-  }, [isLoaded, startFrame, endFrame, scrubDuration, drawFrame, triggerRef])
+  }, [isLoaded, startFrame, endFrame, scrubDuration, drawFrame, triggerRef, pin, pinSpacing, start, end, onProgress, onFrameChange])
 
   // Handle resize
   useEffect(() => {

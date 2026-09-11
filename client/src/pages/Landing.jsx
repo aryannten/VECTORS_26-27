@@ -1,13 +1,10 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
   ArrowRight,
   ArrowDown,
-  Cpu,
-  Flame,
-  Gamepad2,
   Sparkles,
   Calendar,
   MapPin,
@@ -24,37 +21,10 @@ import { eventsData } from '../data/events'
 gsap.registerPlugin(ScrollTrigger)
 
 /* ─── constants ────────────────────────────────────────────── */
-const PILLARS = [
-  {
-    title: 'Full-Stack & AI Innovation',
-    desc: '24-hour sprint designing, building, and deploying real-world solutions under high pressure.',
-    icon: Cpu,
-    tag: 'CSE / IT / AIML',
-  },
-  {
-    title: 'Combat Robotics & Hardware',
-    desc: 'Kinetic armor deathmatches in a fortified steel arena, plus rapid PCB fault analysis.',
-    icon: Flame,
-    tag: 'MECH / EXTC / ELEC',
-  },
-  {
-    title: 'Competitive Esports',
-    desc: 'Double-elimination showdowns in Valorant, BGMI, and FIFA on dedicated tournament hardware.',
-    icon: Gamepad2,
-    tag: 'ALL DISCIPLINES',
-  },
-  {
-    title: 'Stage & Performance Arts',
-    desc: 'Battle of the Bands, acoustic showcases, and high-energy theatrical performances.',
-    icon: Sparkles,
-    tag: 'CREATIVE SECTOR',
-  },
-]
-
 const STATS = [
   { label: 'Festival Dates', value: 'March 15–16' },
   { label: 'Prize Pool', value: '₹1,50,000+' },
-  { label: 'Active Arenas', value: '7 Sectors' },
+  { label: 'Events Arsenal', value: '20+ Battles' },
   { label: 'Participants', value: '1,500+ Expected' },
 ]
 
@@ -63,12 +33,12 @@ export default function Landing() {
   const navigate = useNavigate()
   const { user, hasPass } = useAuth()
 
-  const heroRef = useRef(null)
-  const heroContentRef = useRef(null)
+  const [seqProgress, setSeqProgress] = useState(0)
+  const [currentFrame, setCurrentFrame] = useState(1)
+
+  const prologueRef = useRef(null)
+  const overviewRef = useRef(null)
   const aboutRef = useRef(null)
-  const experienceRef = useRef(null)
-  const experienceTriggerRef = useRef(null)
-  const highlightsRef = useRef(null)
   const eventsRef = useRef(null)
   const ctaRef = useRef(null)
 
@@ -90,19 +60,25 @@ export default function Landing() {
     if (prefersReducedMotion) return
 
     const ctx = gsap.context(() => {
-      // Hero content parallax & fade
-      if (heroContentRef.current) {
-        gsap.to(heroContentRef.current, {
-          y: -80,
-          opacity: 0,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: heroRef.current,
-            start: 'top top',
-            end: '40% top',
-            scrub: true,
-          },
-        })
+      // Overview section entrance reveals
+      if (overviewRef.current) {
+        const revealElements = overviewRef.current.querySelectorAll('.overview-reveal')
+        gsap.fromTo(
+          revealElements,
+          { y: 50, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            stagger: 0.08,
+            duration: 0.8,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: overviewRef.current,
+              start: 'top 80%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        )
       }
 
       // About section reveals
@@ -110,37 +86,16 @@ export default function Landing() {
         const aboutElements = aboutRef.current.querySelectorAll('.reveal-up')
         gsap.fromTo(
           aboutElements,
-          { y: 60, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            stagger: 0.15,
-            duration: 1,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: aboutRef.current,
-              start: 'top 75%',
-              toggleActions: 'play none none reverse',
-            },
-          }
-        )
-      }
-
-      // Highlights stagger
-      if (highlightsRef.current) {
-        const cards = highlightsRef.current.querySelectorAll('.highlight-card')
-        gsap.fromTo(
-          cards,
-          { y: 80, opacity: 0 },
+          { y: 50, opacity: 0 },
           {
             y: 0,
             opacity: 1,
             stagger: 0.12,
-            duration: 0.9,
+            duration: 0.85,
             ease: 'power3.out',
             scrollTrigger: {
-              trigger: highlightsRef.current,
-              start: 'top 70%',
+              trigger: aboutRef.current,
+              start: 'top 75%',
               toggleActions: 'play none none reverse',
             },
           }
@@ -176,8 +131,8 @@ export default function Landing() {
           {
             y: 0,
             opacity: 1,
-            stagger: 0.15,
-            duration: 1,
+            stagger: 0.12,
+            duration: 0.9,
             ease: 'power3.out',
             scrollTrigger: {
               trigger: ctaRef.current,
@@ -187,6 +142,9 @@ export default function Landing() {
           }
         )
       }
+
+      // Refresh ScrollTrigger to ensure all trigger positions are accurate
+      ScrollTrigger.refresh()
     })
 
     return () => ctx.revert()
@@ -205,116 +163,186 @@ export default function Landing() {
       <LandingNav />
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 01 — HERO  (scroll-driven image sequence)
+          SECTION 00 — CINEMATIC PROLOGUE (PINNED 50 FRAMES)
+          The viewport is pinned while all 50 frames play on scroll.
+          Zero visual overlap. Crisp, unobstructed Doom turnaround.
           ═══════════════════════════════════════════════════════ */}
-      <section ref={heroRef} className="relative h-[250vh]" id="hero">
-        <div className="sticky top-0 h-screen overflow-hidden">
-          {/* Canvas background */}
-          <ScrollCanvas
-            startFrame={1}
-            endFrame={30}
-            scrubDuration={0.3}
-            triggerRef={heroRef}
-            className="absolute inset-0"
-          />
+      <section
+        ref={prologueRef}
+        id="prologue"
+        className="relative w-full h-screen overflow-hidden bg-doom-bg select-none"
+      >
+        <ScrollCanvas
+          startFrame={1}
+          endFrame={50}
+          scrubDuration={0.3}
+          triggerRef={prologueRef}
+          pin={true}
+          pinSpacing={true}
+          start="top top"
+          end="+=2500"
+          onProgress={setSeqProgress}
+          onFrameChange={setCurrentFrame}
+          className="absolute inset-0"
+        />
 
-          {/* Dark overlay for text legibility */}
-          <div
-            className="absolute inset-0 z-[1]"
-            style={{
-              background:
-                'linear-gradient(to bottom, rgba(5,6,6,0.25) 0%, rgba(5,6,6,0.45) 40%, rgba(5,6,6,0.7) 75%, #050606 100%)',
-            }}
-          />
+        {/* Cinematic Vignette */}
+        <div
+          className="absolute inset-0 z-[2] pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse 85% 75% at 50% 50%, transparent 40%, rgba(5,6,6,0.65) 100%)',
+          }}
+        />
 
-          {/* Cinematic vignette */}
-          <div
-            className="absolute inset-0 z-[2] pointer-events-none"
-            style={{
-              background:
-                'radial-gradient(ellipse 80% 70% at 50% 45%, transparent 30%, rgba(5,6,6,0.6) 100%)',
-            }}
-          />
+        {/* Ambient top & bottom fades */}
+        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-doom-bg/85 to-transparent pointer-events-none z-[2]" />
+        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-doom-bg/90 via-doom-bg/40 to-transparent pointer-events-none z-[2]" />
 
-          {/* Hero content */}
-          <div
-            ref={heroContentRef}
-            className="relative z-10 h-full flex flex-col items-center justify-center px-4 sm:px-6"
-          >
-            {/* Overline */}
-            <div className="mb-5 overflow-hidden">
-              <span className="block font-mono text-[10px] sm:text-xs tracking-[0.35em] uppercase text-doom-glow/80">
-                Technical Festival 2026 — Avengers: Doomsday
-              </span>
+        {/* Scroll Prompt — visible at scroll 0, gracefully fades out on initial scroll */}
+        <div
+          className="absolute inset-0 z-10 pointer-events-none flex flex-col items-center justify-end pb-14 transition-opacity duration-300"
+          style={{
+            opacity: Math.max(0, 1 - seqProgress * 18),
+            transform: `translateY(${seqProgress * 25}px)`,
+          }}
+        >
+          <div className="flex flex-col items-center gap-2.5">
+            <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.35em] uppercase text-doom-glow/90 px-3 py-1 bg-doom-glow/[0.08] border border-doom-glow/20 backdrop-blur-md">
+              AVENGERS: DOOMSDAY // TECHNICAL SYMPOSIUM
+            </span>
+            <div className="flex items-center gap-2 text-text-muted/70 font-mono text-[10px] tracking-[0.25em] uppercase mt-1">
+              <span className="w-5 h-[1px] bg-doom-glow/40" />
+              <span>Scroll to Play Sequence</span>
+              <span className="w-5 h-[1px] bg-doom-glow/40" />
             </div>
+            <ArrowDown size={14} className="text-doom-glow/80 animate-bounce mt-0.5" />
+          </div>
+        </div>
 
-            {/* Main Title */}
-            <h1 className="font-display text-[clamp(3rem,10vw,8rem)] font-bold leading-[0.9] tracking-[0.05em] uppercase text-center">
-              <span className="block text-text-primary drop-shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
-                VECTORS
-              </span>
-            </h1>
+        {/* Top-Right HUD telemetry */}
+        <div className="absolute top-20 right-4 sm:right-8 z-10 pointer-events-none hidden sm:flex flex-col items-end gap-1">
+          <span className="font-mono text-[9px] tracking-[0.25em] uppercase text-text-muted/40">
+            CINEMATIC STREAM
+          </span>
+          <div className="flex items-center gap-2 px-2.5 py-1 bg-black/50 border border-white/[0.08] backdrop-blur-sm">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-doom-glow animate-pulse" />
+            <span className="font-mono text-[10px] tracking-[0.2em] text-doom-glow font-bold">
+              FRAME {String(currentFrame).padStart(2, '0')} / 50
+            </span>
+          </div>
+        </div>
 
-            {/* Decorative line */}
-            <div className="mt-4 mb-5 w-24 sm:w-32 h-[1px] bg-gradient-to-r from-transparent via-doom-glow/60 to-transparent" />
+        {/* Completion Cue — appears when Doom finishes turning around (frame 48-50) */}
+        <div
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 pointer-events-none transition-all duration-300 flex flex-col items-center gap-2"
+          style={{
+            opacity: seqProgress >= 0.95 ? 1 : 0,
+            transform: `translate(-50%, ${seqProgress >= 0.95 ? '0px' : '15px'})`,
+          }}
+        >
+          <div className="flex items-center gap-2 px-4 py-1.5 bg-black/80 border border-doom-glow/50 shadow-[0_0_25px_rgba(30,255,160,0.3)] backdrop-blur-md">
+            <Sparkles size={12} className="text-doom-glow animate-spin" />
+            <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-doom-glow font-bold">
+              Sequence Complete • Scroll for Website
+            </span>
+          </div>
+          <ArrowDown size={14} className="text-doom-glow animate-pulse" />
+        </div>
 
-            {/* Tagline */}
-            <p className="font-accent text-sm sm:text-base md:text-lg tracking-[0.2em] uppercase text-chrome-light/90 text-center max-w-lg">
+        {/* Bottom edge progress bar */}
+        <div className="absolute bottom-0 left-0 right-0 z-20 h-[3px] bg-white/[0.06]">
+          <div
+            className="h-full bg-gradient-to-r from-doom-glow/50 via-doom-glow to-doom-glow shadow-[0_0_12px_rgba(30,255,160,0.9)] origin-left transition-all duration-75"
+            style={{ width: `${Math.min(100, Math.round(seqProgress * 100))}%` }}
+          />
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 01 — FESTIVAL OVERVIEW & COMMAND CENTER
+          The website content begins here AFTER the 50 frames finish!
+          ═══════════════════════════════════════════════════════ */}
+      <section
+        ref={overviewRef}
+        id="overview"
+        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center border-t border-white/[0.06] bg-gradient-to-b from-doom-bg via-doom-bg2/40 to-doom-bg overflow-hidden"
+      >
+        {/* Background glow effects */}
+        <div
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[350px] pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, rgba(30,255,160,0.06) 0%, transparent 70%)',
+          }}
+        />
+
+        <div className="relative z-10 max-w-5xl mx-auto w-full text-center">
+          {/* Overline */}
+          <div className="overview-reveal mb-5 inline-flex items-center gap-2 px-3.5 py-1.5 bg-doom-glow/[0.06] border border-doom-glow/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-doom-glow animate-ping" />
+            <span className="font-mono text-[10px] sm:text-xs tracking-[0.3em] uppercase text-doom-glow font-bold">
+              Technical Festival 2026 — Avengers: Doomsday
+            </span>
+          </div>
+
+          {/* Main Display Title */}
+          <h1 className="overview-reveal font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold leading-[0.88] tracking-[0.06em] uppercase text-text-primary drop-shadow-[0_4px_35px_rgba(0,0,0,0.9)]">
+            VECTORS
+          </h1>
+
+          {/* Tagline separator */}
+          <div className="overview-reveal mt-4 mb-4 flex items-center justify-center gap-3">
+            <div className="w-12 sm:w-20 h-[1px] bg-gradient-to-r from-transparent to-doom-glow/60" />
+            <p className="font-accent text-sm sm:text-base md:text-lg tracking-[0.25em] uppercase text-chrome-light/95 font-semibold">
               Where Technology Meets Destiny
             </p>
+            <div className="w-12 sm:w-20 h-[1px] bg-gradient-to-l from-transparent to-doom-glow/60" />
+          </div>
 
-            {/* Sub-copy */}
-            <p className="mt-4 font-body text-xs sm:text-sm text-text-muted/80 text-center max-w-md leading-relaxed">
-              Two days. Seven battlegrounds. One stage where minds collide,
-              machines awaken, and ideas become reality.
-            </p>
+          {/* Narrative description */}
+          <p className="overview-reveal mt-3 font-body text-xs sm:text-sm md:text-base text-text-muted/80 max-w-xl mx-auto leading-relaxed">
+            Two days. Seven battlegrounds. One stage where minds collide,
+            machines awaken, and ideas become reality.
+          </p>
 
-            {/* CTAs */}
-            <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-              <button
-                onClick={handleEntryPass}
-                className="doom-btn-primary"
-                aria-label={hasPass ? 'View My Entry Pass' : 'Claim Entry Pass'}
-              >
-                <span className="doom-btn-primary-inner">
-                  {hasPass ? 'View My Pass' : 'Claim Entry Pass'}
-                </span>
-              </button>
-
-              <button
-                onClick={handleExploreEvents}
-                className="doom-btn-ghost"
-                aria-label="Explore Events"
-              >
-                <span>Explore Events</span>
-                <ArrowRight size={14} className="ghost-arrow text-doom-glow" />
-              </button>
-            </div>
-
-            {/* Stats bar */}
-            <div className="mt-12 sm:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-2xl">
-              {STATS.map((stat, i) => (
-                <div
-                  key={i}
-                  className="px-3 py-2.5 bg-white/[0.04] border border-white/[0.08] text-center backdrop-blur-sm"
-                >
-                  <span className="block font-mono text-[9px] tracking-[0.2em] uppercase text-text-muted/60">
-                    {stat.label}
-                  </span>
-                  <span className="block font-display text-sm sm:text-base font-bold text-text-primary mt-0.5">
-                    {stat.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Scroll indicator */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-pulse">
-              <span className="font-mono text-[9px] tracking-[0.3em] uppercase text-text-muted/40">
-                Scroll
+          {/* Action CTAs */}
+          <div className="overview-reveal mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <button
+              onClick={handleEntryPass}
+              className="doom-btn-primary"
+              aria-label={hasPass ? 'View My Entry Pass' : 'Claim Entry Pass'}
+            >
+              <span className="doom-btn-primary-inner !px-7">
+                {hasPass ? 'View My Pass' : 'Claim Entry Pass'}
               </span>
-              <ArrowDown size={14} className="text-text-muted/30" />
-            </div>
+            </button>
+
+            <button
+              onClick={handleExploreEvents}
+              className="doom-btn-ghost"
+              aria-label="Explore Events"
+            >
+              <span>Explore Events</span>
+              <ArrowRight size={14} className="ghost-arrow text-doom-glow" />
+            </button>
+          </div>
+
+          {/* Key Metric Stats Cards */}
+          <div className="overview-reveal mt-12 sm:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
+            {STATS.map((stat, i) => (
+              <div
+                key={i}
+                className="p-4 bg-white/[0.03] border border-white/[0.08] hover:border-doom-glow/30 transition-all duration-300 text-center backdrop-blur-sm group"
+              >
+                <span className="block font-mono text-[9px] tracking-[0.2em] uppercase text-text-muted/60 group-hover:text-doom-glow/70 transition-colors">
+                  {stat.label}
+                </span>
+                <span className="block font-display text-base sm:text-lg md:text-xl font-bold text-text-primary mt-1 tracking-wide">
+                  {stat.value}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -362,26 +390,10 @@ export default function Landing() {
             {/* Right — Key facts */}
             <div className="reveal-up space-y-5 lg:pt-8">
               {[
-                {
-                  icon: Calendar,
-                  label: 'When',
-                  value: 'March 15–16, 2026',
-                },
-                {
-                  icon: MapPin,
-                  label: 'Where',
-                  value: 'Campus Main Complex',
-                },
-                {
-                  icon: Users,
-                  label: 'Scale',
-                  value: '1,500+ participants across 7 sectors',
-                },
-                {
-                  icon: Trophy,
-                  label: 'Stakes',
-                  value: '₹1,50,000+ in prizes and trophies',
-                },
+                { icon: Calendar, label: 'When', value: 'March 15–16, 2026' },
+                { icon: MapPin, label: 'Where', value: 'Campus Main Complex' },
+                { icon: Users, label: 'Scale', value: '1,500+ participants nationwide' },
+                { icon: Trophy, label: 'Stakes', value: '₹1,50,000+ in prizes and trophies' },
               ].map((fact, i) => {
                 const Icon = fact.icon
                 return (
@@ -409,127 +421,7 @@ export default function Landing() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-          SECTION 03 — VISUAL / EXPERIENCE (sticky scroll sequence)
-          ═══════════════════════════════════════════════════════ */}
-      <section ref={experienceTriggerRef} id="experience" className="relative h-[350vh]">
-        <div ref={experienceRef} className="sticky top-0 h-screen overflow-hidden">
-          {/* Canvas with frames 20–50 */}
-          <ScrollCanvas
-            startFrame={15}
-            endFrame={50}
-            scrubDuration={0.4}
-            triggerRef={experienceTriggerRef}
-            className="absolute inset-0"
-          />
-
-          {/* Dark gradient overlay */}
-          <div
-            className="absolute inset-0 z-[1]"
-            style={{
-              background:
-                'linear-gradient(135deg, rgba(5,6,6,0.75) 0%, rgba(5,6,6,0.4) 50%, rgba(5,6,6,0.75) 100%)',
-            }}
-          />
-
-          {/* Section label and atmospheric text */}
-          <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 sm:px-6 text-center">
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-doom-glow/60 mb-4">
-              [ 02 // The Experience ]
-            </span>
-
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold uppercase tracking-wider leading-[1.05]">
-              <span className="block text-text-primary/90 drop-shadow-[0_2px_20px_rgba(0,0,0,0.8)]">
-                The Arena
-              </span>
-              <span className="block text-doom-glow/80 mt-1 drop-shadow-[0_0_30px_rgba(30,255,160,0.2)]">
-                Awaits
-              </span>
-            </h2>
-
-            <div className="mt-5 w-16 h-[1px] bg-gradient-to-r from-transparent via-doom-glow/50 to-transparent" />
-
-            <p className="mt-5 font-accent text-xs sm:text-sm tracking-[0.2em] uppercase text-chrome-light/60 max-w-md">
-              Scroll to witness the convergence of technology, competition, and destiny
-            </p>
-
-            {/* Scroll progress indicator */}
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-              <div className="w-[1px] h-12 bg-gradient-to-b from-doom-glow/40 to-transparent" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 04 — HIGHLIGHTS / FEATURES
-          ═══════════════════════════════════════════════════════ */}
-      <section
-        ref={highlightsRef}
-        id="highlights"
-        className="relative py-24 sm:py-32 px-4 sm:px-6 md:px-8"
-      >
-        <div className="max-w-6xl mx-auto">
-          {/* Section header */}
-          <div className="mb-14 text-center">
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-doom-glow block mb-3">
-              [ 03 // Core Sectors ]
-            </span>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-wider text-text-primary">
-              Four Pillars of Battle
-            </h2>
-            <p className="mt-3 font-body text-sm text-text-muted/70 max-w-lg mx-auto">
-              Every sector tests a different dimension of engineering excellence.
-            </p>
-          </div>
-
-          {/* Cards grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            {PILLARS.map((pillar, i) => {
-              const Icon = pillar.icon
-              return (
-                <div
-                  key={i}
-                  className="highlight-card group relative p-6 bg-doom-bg2/80 border border-white/[0.06] hover:border-doom-glow/30 transition-all duration-500 flex flex-col justify-between"
-                >
-                  {/* Top accent line */}
-                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-doom-glow/0 group-hover:via-doom-glow/40 to-transparent transition-all duration-700" />
-
-                  <div className="space-y-4">
-                    <div className="w-11 h-11 flex items-center justify-center bg-white/[0.03] border border-white/[0.1] text-doom-glow/60 group-hover:text-doom-glow group-hover:bg-doom-glow/[0.06] group-hover:border-doom-glow/30 transition-all duration-500">
-                      <Icon size={20} />
-                    </div>
-
-                    <span className="block font-mono text-[9px] tracking-[0.15em] uppercase text-text-muted/50">
-                      {pillar.tag}
-                    </span>
-
-                    <h3 className="font-display text-base sm:text-lg font-bold text-text-primary tracking-wide group-hover:text-doom-glow transition-colors duration-500">
-                      {pillar.title}
-                    </h3>
-
-                    <p className="font-body text-xs text-text-muted/70 leading-relaxed">
-                      {pillar.desc}
-                    </p>
-                  </div>
-
-                  <div className="pt-5 mt-5 border-t border-white/[0.05] flex items-center justify-between">
-                    <span className="font-mono text-[10px] text-text-muted/40 tracking-wider">
-                      SECTOR 0{i + 1}
-                    </span>
-                    <ChevronRight
-                      size={12}
-                      className="text-doom-glow/30 group-hover:text-doom-glow group-hover:translate-x-1 transition-all duration-300"
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 05 — EVENTS & SCHEDULE
+          SECTION 03 — EVENTS & SCHEDULE
           ═══════════════════════════════════════════════════════ */}
       <section
         ref={eventsRef}
@@ -541,10 +433,10 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
             <div>
               <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-doom-glow block mb-2">
-                [ 04 // Event Arsenal ]
+                [ 02 // Event Arsenal ]
               </span>
               <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-wider text-text-primary">
-                Two Days. Seven Battlegrounds.
+                Two Days. The Ultimate Arena.
               </h2>
             </div>
             <Link
