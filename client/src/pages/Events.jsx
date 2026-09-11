@@ -11,7 +11,7 @@ import {
   Filter, 
   X, 
   RotateCcw, 
-  CheckCircle2 
+  CheckCircle2
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { eventsData } from '../data/events'
@@ -35,7 +35,6 @@ export default function Events() {
 
   const [allEvents, setAllEvents] = useState(eventsData)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedBranch, setSelectedBranch] = useState('ALL')
   const [selectedMode, setSelectedMode] = useState('ALL')
   const [selectedStatus, setSelectedStatus] = useState('ALL')
 
@@ -63,18 +62,6 @@ export default function Events() {
   const techEvents = useMemo(() => allEvents.filter(e => e.category?.toLowerCase() === 'technical'), [allEvents])
   const nonTechEvents = useMemo(() => allEvents.filter(e => e.category?.toLowerCase() === 'non-technical'), [allEvents])
 
-  // Available branches
-  const availableBranches = useMemo(() => {
-    const list = activeCategory ? (activeCategory === 'technical' ? techEvents : nonTechEvents) : allEvents
-    const branches = new Set(['ALL'])
-    list.forEach(e => {
-      if (e.branch) {
-        e.branch.split('/').forEach(b => branches.add(b.trim()))
-      }
-    })
-    return Array.from(branches)
-  }, [activeCategory, techEvents, nonTechEvents, allEvents])
-
   // Comprehensive reactive filtering
   const currentEvents = useMemo(() => {
     let list = activeCategory
@@ -87,24 +74,18 @@ export default function Events() {
       list = list.filter(e => 
         e.name.toLowerCase().includes(q) ||
         (e.description && e.description.toLowerCase().includes(q)) ||
-        (e.branch && e.branch.toLowerCase().includes(q)) ||
         (e.rules && e.rules.some(r => r.toLowerCase().includes(q)))
       )
     }
 
-    // 2. Branch Filter
-    if (selectedBranch !== 'ALL') {
-      list = list.filter(e => e.branch && e.branch.toLowerCase().includes(selectedBranch.toLowerCase()))
-    }
-
-    // 3. Participation Mode
+    // 2. Participation Mode
     if (selectedMode === 'Solo') {
       list = list.filter(e => e.teamSize?.toLowerCase().includes('solo') || e.maxTeamSize === 1)
     } else if (selectedMode === 'Team') {
       list = list.filter(e => !e.teamSize?.toLowerCase().includes('solo') || (e.maxTeamSize && e.maxTeamSize > 1))
     }
 
-    // 4. Status
+    // 3. Status
     if (selectedStatus === 'Open') {
       list = list.filter(e => e.status === 'open' || e.status === 'almost_full' || e.registrationOpen !== false)
     } else if (selectedStatus === 'Full') {
@@ -112,26 +93,23 @@ export default function Events() {
     }
 
     return list
-  }, [activeCategory, techEvents, nonTechEvents, allEvents, searchQuery, selectedBranch, selectedMode, selectedStatus])
+  }, [activeCategory, techEvents, nonTechEvents, allEvents, searchQuery, selectedMode, selectedStatus])
 
   const handleSelectCategory = (cat) => {
-    setSelectedBranch('ALL')
     setSearchParams({ category: cat }, { replace: false })
   }
 
   const handleClearCategory = () => {
-    setSelectedBranch('ALL')
     setSearchParams({}, { replace: false })
   }
 
   const resetAllFilters = () => {
     setSearchQuery('')
-    setSelectedBranch('ALL')
     setSelectedMode('ALL')
     setSelectedStatus('ALL')
   }
 
-  const hasActiveFilters = searchQuery.trim() !== '' || selectedBranch !== 'ALL' || selectedMode !== 'ALL' || selectedStatus !== 'ALL'
+  const hasActiveFilters = searchQuery.trim() !== '' || selectedMode !== 'ALL' || selectedStatus !== 'ALL'
 
   // Gate: If pass status is loading, render clearance scanner
   if (passLoading) {
@@ -433,28 +411,8 @@ export default function Events() {
 
                   {/* Filter Controls Row */}
                   <div className="flex items-center justify-between flex-wrap gap-3 pt-1">
-                    {/* Branch Pills */}
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted mr-1">Branch:</span>
-                      {availableBranches.map((branch) => (
-                        <button
-                          key={branch}
-                          onClick={() => setSelectedBranch(branch)}
-                          className={cn(
-                            'px-2.5 py-1 font-mono text-[10px] tracking-wider uppercase transition-all duration-200 cursor-pointer',
-                            selectedBranch === branch
-                              ? 'bg-doom-glow text-doom-bg font-bold border border-doom-glow'
-                              : 'bg-white/[0.04] text-text-muted border border-white/[0.08] hover:border-white/20'
-                          )}
-                        >
-                          {branch}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Mode & Reset */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {/* Solo / Team Filter */}
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">Mode:</span>
                       <select
                         value={selectedMode}
                         onChange={(e) => setSelectedMode(e.target.value)}
@@ -464,17 +422,17 @@ export default function Events() {
                         <option value="Solo">Solo</option>
                         <option value="Team">Team</option>
                       </select>
-
-                      {hasActiveFilters && (
-                        <button
-                          onClick={resetAllFilters}
-                          className="inline-flex items-center gap-1.5 font-mono text-xs text-doom-crimson-bright hover:underline px-2 py-1 cursor-pointer"
-                        >
-                          <RotateCcw size={12} />
-                          <span>Clear Filters</span>
-                        </button>
-                      )}
                     </div>
+
+                    {hasActiveFilters && (
+                      <button
+                        onClick={resetAllFilters}
+                        className="inline-flex items-center gap-1.5 font-mono text-xs text-doom-crimson-bright hover:underline px-2 py-1 cursor-pointer"
+                      >
+                        <RotateCcw size={12} />
+                        <span>Clear Filters</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -510,7 +468,7 @@ export default function Events() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-mono text-[10px] text-doom-glow uppercase tracking-widest px-2 py-0.5 bg-doom-glow/10 border border-doom-glow/30 font-bold">
-                            {evt.branch || 'Open to All'}
+                            {evt.category || 'EVENT'}
                           </span>
                           <span className="font-mono text-[10px] text-text-muted uppercase">
                             {evt.teamSize || 'Individual'}
@@ -526,7 +484,18 @@ export default function Events() {
                         </p>
                       </div>
 
-                      <div className="pt-3 border-t border-white/[0.06]">
+                      <div className="space-y-3 pt-3 border-t border-white/[0.06]">
+                        <div className="grid grid-cols-2 gap-2 font-mono text-[11px] text-text-muted">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <Users size={12} className="text-doom-glow shrink-0" />
+                            <span className="truncate">{evt.teamSize}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className="text-doom-glow font-bold">STATUS:</span>
+                            <span className="truncate">OPEN</span>
+                          </div>
+                        </div>
+
                         <div className="flex items-center justify-between pt-1 gap-2">
                           <div>
                             <span className="font-mono text-xs text-text-primary font-bold block">

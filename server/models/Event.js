@@ -43,19 +43,19 @@ const eventSchema = new mongoose.Schema(
     },
     date: {
       type: String,
-      default: 'March 15, 2026',
+      default: 'To Be Announced',
     },
     startTime: {
       type: String,
-      default: '09:00 IST',
+      default: 'TBA',
     },
     endTime: {
       type: String,
-      default: '17:00 IST',
+      default: 'TBA',
     },
     venue: {
       type: String,
-      default: 'TBD',
+      default: 'To Be Announced',
     },
     venueDetails: {
       building: { type: String, default: 'Main Tech Block' },

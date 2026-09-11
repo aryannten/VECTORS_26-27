@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Scanner, useDevices } from '@yudiel/react-qr-scanner'
 import { useAuth } from '../contexts/AuthContext'
-import { LogOut, Shield, Camera, RefreshCw, AlertTriangle, Flashlight } from 'lucide-react'
+import { LogOut, Shield, Camera, RefreshCw, AlertTriangle, Flashlight, ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 /**
@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
  * torch toggle, and manual pass verification.
  */
 export default function Security() {
-  const { getToken, logout, user } = useAuth()
+  const { getToken, logout, user, userRole } = useAuth()
   const navigate = useNavigate()
   const devices = useDevices()
 
@@ -58,6 +58,14 @@ export default function Security() {
   const resetScanner = () => {
     setScanResult(null)
     setManualId('')
+  }
+
+  const handleExit = () => {
+    if (userRole === 'admin') {
+      navigate('/admin')
+    } else {
+      navigate('/')
+    }
   }
 
   const handleLogout = async () => {
@@ -114,13 +122,24 @@ export default function Security() {
               <p className="font-mono text-steel text-[10px] mt-0.5 truncate">{user?.email}</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-steel hover:text-crimson transition-colors uppercase px-2.5 py-1.5 border border-white/[0.06] bg-iron/20 shrink-0 ml-2"
-          >
-            <LogOut size={12} />
-            Exit
-          </button>
+          <div className="flex items-center gap-2 shrink-0 ml-2">
+            <button
+              onClick={handleExit}
+              className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-steel hover:text-emerald transition-colors uppercase px-2.5 py-1.5 border border-white/[0.06] bg-iron/20 cursor-pointer"
+              title={userRole === 'admin' ? 'Back to Admin Portal' : 'Back to Website'}
+            >
+              <ArrowLeft size={12} />
+              <span>{userRole === 'admin' ? 'Back to Admin' : 'Exit to Site'}</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-steel hover:text-crimson transition-colors uppercase px-2.5 py-1.5 border border-white/[0.06] bg-iron/20 cursor-pointer"
+              title="Sign Out"
+            >
+              <LogOut size={12} />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
         </div>
 
         {/* Camera Selector (if multiple cameras detected) */}

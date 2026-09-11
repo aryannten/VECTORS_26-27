@@ -23,13 +23,7 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
       status: { $ne: 'cancelled' },
     }).sort({ createdAt: -1 })
 
-    // Enrich registrations with current event schedule/venue details
-    const slugs = eventRegistrations.map((r) => r.eventSlug)
-    const events = await Event.find({ slug: { $in: slugs } })
-    const eventMap = new Map(events.map((e) => [e.slug, e]))
-
     const enrichedRegistrations = eventRegistrations.map((reg) => {
-      const liveEvent = eventMap.get(reg.eventSlug)
       return {
         registrationId: reg.registrationId,
         eventSlug: reg.eventSlug,
@@ -39,10 +33,6 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
         teamMembers: reg.teamMembers,
         status: reg.status,
         checkedIn: reg.checkedIn,
-        date: liveEvent?.date || 'March 15-16, 2026',
-        startTime: liveEvent?.startTime || '09:00 IST',
-        venue: liveEvent?.venue || 'Campus Main Block',
-        venueDetails: liveEvent?.venueDetails,
         createdAt: reg.createdAt,
       }
     })
@@ -100,38 +90,12 @@ router.get('/registrations', verifyFirebaseToken, async (req, res) => {
 
 /**
  * DELETE /api/user/registrations/:registrationId
- * Cancel an event registration and atomically release event capacity.
+ * Disallowed: Event registrations are permanent once confirmed.
  */
 router.delete('/registrations/:registrationId', verifyFirebaseToken, async (req, res) => {
-  try {
-    const userEmail = req.user.email.toLowerCase()
-    const regId = req.params.registrationId.trim().toUpperCase()
-
-    const registration = await EventRegistration.findOne({
-      registrationId: regId,
-      userEmail,
-      status: 'confirmed',
-    })
-
-    if (!registration) {
-      return res.status(404).json({ message: 'Active registration not found or already cancelled.' })
-    }
-
-    registration.status = 'cancelled'
-    await registration.save()
-
-    // Atomically release 1 slot on the event
-    await Event.findOneAndUpdate(
-      { slug: registration.eventSlug, registrationCount: { $gt: 0 } },
-      { $inc: { registrationCount: -1 } }
-    )
-
-    console.log(`[Registration Cancelled] ${regId} by ${userEmail}`)
-    res.status(200).json({ message: 'Registration cancelled successfully.' })
-  } catch (error) {
-    console.error('[User Registration Cancel] Error:', error.message)
-    res.status(500).json({ message: 'Failed to cancel registration.' })
-  }
+  return res.status(403).json({
+    message: 'Event registrations are permanent and cannot be deleted or cancelled once confirmed.'
+  })
 })
 
 module.exports = router

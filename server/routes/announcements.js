@@ -4,6 +4,41 @@ const Announcement = require('../models/Announcement')
 const AuditLog = require('../models/AuditLog')
 const { verifyFirebaseToken, requireRole } = require('../middleware/auth')
 
+const DEFAULT_ANNOUNCEMENTS = [
+  {
+    _id: 'default-announcement-1',
+    title: 'VECTORS 26–27 Digital Passes Now Live',
+    content: 'All participants must claim their digital Entry Pass before accessing event vaults and team registrations. Gate QR scanning will be enforced at main entrance points.',
+    category: 'urgent',
+    isPinned: true,
+    isPublished: true,
+    publishedAt: new Date('2026-03-01'),
+    author: 'Chief Coordinator',
+  },
+  {
+    _id: 'default-announcement-2',
+    title: 'Doomsday Hackathon Problem Statements',
+    content: 'Problem statements for the 24-Hour Hackathon will be officially unveiled during the opening ceremony in Computing Hub Lab 401. Ensure your team of 2–4 is fully registered in advance.',
+    category: 'registration',
+    relatedEventSlug: 'hackathon',
+    isPinned: false,
+    isPublished: true,
+    publishedAt: new Date('2026-03-02'),
+    author: 'Tech Department',
+  },
+  {
+    _id: 'default-announcement-3',
+    title: 'Robo Wars Arena Safety Weigh-In',
+    content: 'Combat bot weigh-ins and failsafe testing start at 09:30 IST on March 16. Late entries will not be permitted into the tournament bracket.',
+    category: 'schedule',
+    relatedEventSlug: 'robo-wars',
+    isPinned: false,
+    isPublished: true,
+    publishedAt: new Date('2026-03-03'),
+    author: 'Robotics Guild',
+  },
+]
+
 /**
  * GET /api/announcements
  * Public list of published announcements.
@@ -19,10 +54,19 @@ router.get('/', async (req, res) => {
     const announcements = await Announcement.find(filter)
       .sort({ isPinned: -1, publishedAt: -1 })
       .limit(50)
-    res.status(200).json(announcements)
+
+    if (announcements && announcements.length > 0) {
+      return res.status(200).json(announcements)
+    }
+
+    // Fallback if collection is newly created or empty
+    const filteredFallback = category && category !== 'all'
+      ? DEFAULT_ANNOUNCEMENTS.filter((a) => a.category === category)
+      : DEFAULT_ANNOUNCEMENTS
+    res.status(200).json(filteredFallback)
   } catch (error) {
     console.error('[Announcements] Fetch error:', error.message)
-    res.status(500).json({ message: 'Failed to fetch announcements.' })
+    res.status(200).json(DEFAULT_ANNOUNCEMENTS)
   }
 })
 

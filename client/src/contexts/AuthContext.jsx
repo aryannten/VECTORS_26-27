@@ -9,6 +9,7 @@ import {
   updateProfile,
   signOut,
   onAuthStateChanged,
+  onIdTokenChanged,
 } from '../lib/firebase'
 
 const AuthContext = createContext(null)
@@ -124,9 +125,9 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // Listen to Firebase auth state
+  // Listen to Firebase auth state & token refreshes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser)
         await syncWithBackend(firebaseUser)
@@ -142,7 +143,23 @@ export function AuthProvider({ children }) {
       setLoading(false)
     })
 
-    return () => unsubscribe()
+    const unsubscribeToken = onIdTokenChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const freshToken = await firebaseUser.getIdToken()
+          setIdToken(freshToken)
+        } catch (err) {
+          console.error('[Auth] onIdTokenChanged error:', err)
+        }
+      } else {
+        setIdToken(null)
+      }
+    })
+
+    return () => {
+      unsubscribeAuth()
+      unsubscribeToken()
+    }
   }, [])
 
   /**
@@ -176,47 +193,6 @@ export function AuthProvider({ children }) {
   }
 
   /**
-   * Security team login or registration — signs in or registers using user's chosen credentials,
-   * automatically grants security role via backend, and grants immediate scanner access.
-   */
-  const securityLogin = async (email, password, isNewAccount = false, displayName = '') => {
-    let firebaseUser
-
-    if (isNewAccount) {
-      const result = await createUserWithEmailAndPassword(auth, email, password)
-      firebaseUser = result.user
-      if (displayName) {
-        await updateProfile(firebaseUser, { displayName })
-      }
-    } else {
-      const result = await signInWithEmailAndPassword(auth, email, password)
-      firebaseUser = result.user
-    }
-
-    const token = await firebaseUser.getIdToken()
-    setIdToken(token)
-
-    const res = await fetch('/api/auth/security-login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (!res.ok) {
-      const errorData = await res.json()
-      await signOut(auth)
-      throw new Error(errorData.message || 'Security login failed.')
-    }
-
-    const data = await res.json()
-    setUser(firebaseUser)
-    setUserRole(data.user.role)
-    return data.user
-  }
-
-  /**
    * Send password reset email to user.
    */
   const resetPassword = async (email) => {
@@ -235,12 +211,18 @@ export function AuthProvider({ children }) {
 
   /**
    * Get a fresh ID token for API calls.
+   * Supports forceRefresh if an expired or invalid token error was received.
    */
-  const getToken = async () => {
-    if (user) {
-      const token = await user.getIdToken()
-      setIdToken(token)
-      return token
+  const getToken = async (forceRefresh = false) => {
+    const activeUser = auth.currentUser || user
+    if (activeUser) {
+      try {
+        const token = await activeUser.getIdToken(forceRefresh)
+        setIdToken(token)
+        return token
+      } catch (err) {
+        console.error('[Auth] Failed to retrieve fresh token:', err)
+      }
     }
     return null
   }
@@ -258,7 +240,6 @@ export function AuthProvider({ children }) {
     login,
     loginWithGoogle,
     signup,
-    securityLogin,
     resetPassword,
     logout,
     getToken,

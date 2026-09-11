@@ -107,6 +107,11 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
+// 404 handler for unmatched API routes (returns JSON instead of Express default HTML)
+app.use('/api', (req, res) => {
+  res.status(404).json({ message: `API endpoint ${req.method} ${req.originalUrl} not found.` })
+})
+
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error('[Server Error]', err.message)
@@ -134,11 +139,8 @@ const seedMasterEvents = async () => {
         { upsert: true, returnDocument: 'after' }
       )
     }
-    // Deactivate legacy events not in brochure
-    await Event.updateMany(
-      { slug: { $nin: activeSlugs } },
-      { $set: { isActive: false, status: 'closed', registrationOpen: false } }
-    )
+    // Remove legacy events not in brochure
+    await Event.deleteMany({ slug: { $nin: activeSlugs } })
     console.log(`[Seed] Synchronized ${officialEvents.length} official brochure event definitions in MongoDB.`)
   } catch (err) {
     console.warn('[Seed] Event seeding notice:', err.message)
@@ -216,6 +218,29 @@ const seedDefaults = async () => {
       }
     } catch (err) {
       console.warn(`[Seed] Error verifying admin ${email}:`, err.message)
+    }
+  }
+
+  const securityEmailsRaw = process.env.SECURITY_EMAILS || process.env.SECURITY_EMAIL || ''
+  const securityEmails = securityEmailsRaw
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean)
+
+  for (const email of securityEmails) {
+    try {
+      const existingSec = await User.findOne({ email })
+      if (existingSec && existingSec.role !== 'security' && existingSec.role !== 'admin') {
+        existingSec.role = 'security'
+        await existingSec.save()
+        console.log(`[Seed] Promoted ${email} to security personnel.`)
+      } else if (existingSec && existingSec.role === 'security') {
+        console.log(`[Seed] Confirmed security account: ${email}`)
+      } else {
+        console.log(`[Seed] Security user ${email} not registered yet — will be auto-promoted to security on login.`)
+      }
+    } catch (err) {
+      console.warn(`[Seed] Error verifying security staff ${email}:`, err.message)
     }
   }
 }

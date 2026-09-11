@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Avengeance Heroic Avenger';
+  src: url('/fonts/avengeance.woff') format('woff'),
+       url('https://fonts.cdnfonts.com/s/14865/AVENGEANCE%20HEROIC%20AVENGER.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Avengeance Heroic Avenger';
+  src: url('/fonts/avengeance-bd.woff') format('woff'),
+       url('https://fonts.cdnfonts.com/s/14865/AVENGEANCE%20HEROIC%20AVENGER%20BD.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ================================================
    VECTORS 2026 — The Monolithic Engine
    Final UI Design System (Concept A + C)
@@ -36,10 +54,29 @@
   --color-amber: #FFB800;
 
   /* Typography Hierarchy */
+  --font-avengers: 'Avengeance Heroic Avenger', 'Rajdhani', sans-serif;
   --font-display: 'Rajdhani', sans-serif;
   --font-accent: 'Cinzel', serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'Space Mono', monospace;
+
+  /* Tactical Command Center Tokens */
+  --color-cmd-bg: #050606;
+  --color-cmd-panel: #101313;
+  --color-cmd-panel-subtle: #090B0B;
+  --color-cmd-border: #1B2123;
+  --color-cmd-border-strong: #2A3337;
+  --color-cmd-border-highlight: #3A464C;
+  --color-cmd-green: #7CFF00;
+  --color-cmd-green-dim: #3F7E00;
+  --color-cmd-green-glow: rgba(124, 255, 0, 0.25);
+  --color-cmd-gold: #C9A227;
+  --color-cmd-gold-dim: #7A6114;
+  --color-cmd-gold-glow: rgba(201, 162, 39, 0.25);
+  --color-cmd-silver: #A8ADB2;
+  --color-cmd-silver-dim: #555C63;
+  --color-cmd-danger: #8B0000;
+  --color-cmd-danger-bright: #D32F2F;
 }
 
 /* ================================================
@@ -257,24 +294,30 @@
     width: 80%;
   }
 
-  /* Clipped Armor Primary Button */
+  /* Avengers: Doomsday Specular Armor Primary Button */
   .doom-btn-primary {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5px;
-    background: linear-gradient(135deg, rgba(30, 255, 160, 0.85), rgba(11, 122, 78, 0.35), rgba(30, 255, 160, 0.85));
-    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-    box-shadow: 0 0 20px rgba(30, 255, 160, 0.28);
-    transition: all 0.3s ease;
+    padding: 1.25px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(30, 255, 160, 0.85) 25%, rgba(11, 122, 78, 0.2) 60%, rgba(30, 255, 160, 0.8) 100%);
+    box-shadow: 0 0 24px rgba(30, 255, 160, 0.22), 0 4px 16px rgba(0, 0, 0, 0.6);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
     text-decoration: none;
+    overflow: hidden;
   }
 
   .doom-btn-primary:hover {
-    background: linear-gradient(135deg, #1EFFA0, #0B7A4E, #1EFFA0);
-    box-shadow: 0 0 32px rgba(30, 255, 160, 0.55), 0 0 50px rgba(30, 255, 160, 0.2);
+    background: linear-gradient(135deg, #ffffff 0%, #1EFFA0 30%, #0B7A4E 60%, #1EFFA0 100%);
+    box-shadow: 0 0 35px rgba(30, 255, 160, 0.55), 0 0 55px rgba(30, 255, 160, 0.25), 0 6px 20px rgba(0, 0, 0, 0.8);
+    transform: translateY(-1px);
+  }
+
+  .doom-btn-primary:active {
+    transform: translateY(0.5px) scale(0.99);
   }
 
   .doom-btn-primary-inner {
@@ -284,22 +327,24 @@
     justify-content: center;
     width: 100%;
     height: 100%;
-    background: var(--color-doom-bg2);
+    border-radius: 13px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(0, 0, 0, 0.65) 100%), #0c1115;
     color: var(--color-doom-glow);
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     font-weight: 700;
-    padding: 0.9rem 2rem;
-    clip-path: polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px);
-    transition: background 0.3s ease, color 0.3s ease;
+    padding: 0.85rem 1.85rem;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), inset 0 -1px 2px rgba(0, 0, 0, 0.8);
+    transition: all 0.3s ease;
     overflow: hidden;
   }
 
   .doom-btn-primary:hover .doom-btn-primary-inner {
-    background: #1e242b;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(30, 255, 160, 0.08) 50%, rgba(0, 0, 0, 0.75) 100%), #141b22;
     color: #ffffff;
+    text-shadow: 0 0 12px rgba(30, 255, 160, 0.8);
   }
 
   /* Light surge sweep across primary button */
@@ -310,7 +355,7 @@
     left: -150%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent 0%, rgba(30, 255, 160, 0.45) 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 45%, rgba(30, 255, 160, 0.5) 50%, transparent 100%);
     transform: skewX(-25deg);
     transition: none;
     pointer-events: none;
@@ -394,6 +439,138 @@
     }
     .doom-btn-primary-inner::after {
       display: none !important;
+    }
+  }
+}
+
+/* ================================================
+   Tactical Doomsday Survival Command Center System
+   ================================================ */
+@layer utilities {
+  /* Technical Grid Background */
+  .tactical-grid {
+    background-size: 40px 40px, 40px 40px, 200px 200px;
+    background-image: 
+      linear-gradient(to right, rgba(124, 255, 0, 0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(124, 255, 0, 0.025) 1px, transparent 1px),
+      linear-gradient(to right, rgba(168, 173, 178, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(168, 173, 178, 0.05) 1px, transparent 1px);
+  }
+
+  /* Scanlines Overlay */
+  .tactical-scanlines {
+    background: linear-gradient(
+      to bottom,
+      rgba(255,255,255,0),
+      rgba(255,255,255,0) 50%,
+      rgba(0, 0, 0, 0.25) 50%,
+      rgba(0, 0, 0, 0.25)
+    );
+    background-size: 100% 4px;
+  }
+
+  /* Chamfered Tactical Cuts */
+  .chamfer-tr {
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  }
+  .chamfer-bl {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  .chamfer-both {
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+
+  /* Machined Border & Panel Glow */
+  .panel-machined {
+    background: #101313;
+    border: 1px solid #1B2123;
+    box-shadow: 
+      inset 0 1px 0 rgba(168, 173, 178, 0.08),
+      inset 0 0 16px rgba(0, 0, 0, 0.7),
+      0 4px 20px rgba(0, 0, 0, 0.6);
+  }
+
+  .panel-machined-active {
+    border-color: rgba(124, 255, 0, 0.3);
+    box-shadow: 
+      inset 0 1px 0 rgba(124, 255, 0, 0.2),
+      inset 0 0 20px rgba(124, 255, 0, 0.03),
+      0 4px 24px rgba(0, 0, 0, 0.8),
+      0 0 15px rgba(124, 255, 0, 0.08);
+  }
+
+  .panel-machined-gold {
+    border-color: rgba(201, 162, 39, 0.35);
+    box-shadow: 
+      inset 0 1px 0 rgba(201, 162, 39, 0.25),
+      inset 0 0 20px rgba(201, 162, 39, 0.03),
+      0 4px 24px rgba(0, 0, 0, 0.8),
+      0 0 15px rgba(201, 162, 39, 0.08);
+  }
+
+  /* LED Status Beacons */
+  @keyframes led-blink-green {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px #7CFF00); }
+    50% { opacity: 0.3; filter: none; }
+  }
+  @keyframes led-blink-gold {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px #C9A227); }
+    50% { opacity: 0.4; filter: none; }
+  }
+  @keyframes led-blink-red {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px #D32F2F); }
+    50% { opacity: 0.2; filter: none; }
+  }
+
+  .led-pulse-green {
+    animation: led-blink-green 2.4s ease-in-out infinite;
+  }
+  .led-pulse-gold {
+    animation: led-blink-gold 1.8s ease-in-out infinite;
+  }
+  .led-pulse-red {
+    animation: led-blink-red 1.2s ease-in-out infinite;
+  }
+
+  /* Radar Sweep Keyframe */
+  @keyframes radar-sweep {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .radar-sweep-beam {
+    transform-origin: 50% 50%;
+    animation: radar-sweep 4s linear infinite;
+  }
+
+  /* Audio Visualizer Waves */
+  @keyframes waveform-flux {
+    0%, 100% { height: 15%; }
+    25% { height: 75%; }
+    50% { height: 40%; }
+    75% { height: 95%; }
+  }
+
+  .waveform-bar-active {
+    animation: waveform-flux 1.1s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .radar-sweep-beam {
+      animation: none !important;
+      transform: rotate(45deg);
+    }
+    .led-pulse-green, .led-pulse-gold, .led-pulse-red {
+      animation: none !important;
+      opacity: 1;
+    }
+    .waveform-bar-active {
+      animation: none !important;
+      height: 50% !important;
     }
   }
 }

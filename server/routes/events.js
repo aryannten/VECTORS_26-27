@@ -97,23 +97,23 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
   const userEmail = req.user.email.toLowerCase()
 
   try {
-    const { name, phone, college, teamName, teamMembers } = req.body
+    const { name, phone, college, teamName, teamMembers, confirmedViaGoogleForm } = req.body
 
-    // 1. Validate required fields
-    if (!name || !phone || !college) {
-      return res.status(400).json({ message: 'Name, phone number, and college are required.' })
-    }
+    // Fallback to verified Entry Pass info
+    const effectiveName = name || req.userPass?.name || req.user?.displayName || 'Participant'
+    const effectivePhone = phone || req.userPass?.phone || '9999999999'
+    const effectiveCollege = college || req.userPass?.college || 'Affiliated Institution'
 
-    const cleanName = String(name).trim().slice(0, 100)
-    const cleanPhone = String(phone).trim().slice(0, 20)
-    const cleanCollege = String(college).trim().slice(0, 150)
+    const cleanName = String(effectiveName).trim().slice(0, 100)
+    const cleanPhone = String(effectivePhone).trim().slice(0, 20)
+    const cleanCollege = String(effectiveCollege).trim().slice(0, 150)
     const cleanTeamName = teamName ? String(teamName).trim().slice(0, 100) : null
 
     if (!cleanName || !cleanPhone || !cleanCollege) {
-      return res.status(400).json({ message: 'Fields cannot be empty.' })
+      return res.status(400).json({ message: 'Participant identity details are required.' })
     }
 
-    if (!PHONE_REGEX.test(cleanPhone)) {
+    if (!confirmedViaGoogleForm && !PHONE_REGEX.test(cleanPhone)) {
       return res.status(400).json({ message: 'Please provide a valid contact phone number.' })
     }
 
@@ -131,19 +131,19 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
       })
     }
 
-    // 3. Find event definition to check team rules
+    // 3. Find event definition to check capacity and status
     const eventDef = await Event.findOne({ slug: eventSlug, isActive: true })
     if (!eventDef) {
       return res.status(404).json({ message: 'Event not found or inactive.' })
     }
 
-    if (!eventDef.registrationOpen || ['closed', 'completed', 'full'].includes(eventDef.status)) {
+    if (!eventDef.registrationOpen || ['closed', 'completed'].includes(eventDef.status)) {
       return res.status(400).json({ message: 'Registrations for this event are currently closed.' })
     }
 
-    // 4. Validate team size if team event
+    // 4. Validate team size if team event (bypassed if registered via official Google Form)
     const validatedTeamMembers = []
-    if (eventDef.maxTeamSize > 1) {
+    if (eventDef.maxTeamSize > 1 && !confirmedViaGoogleForm) {
       // Primary participant counts as member 1
       if (Array.isArray(teamMembers) && teamMembers.length > 0) {
         for (const m of teamMembers) {
@@ -172,34 +172,20 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
       }
     }
 
-    // 5. Atomic Capacity Check & Reservation (Concurrency Safe)
+    // 5. Atomic Registration Counter Increment
     const updatedEvent = await Event.findOneAndUpdate(
       {
         slug: eventSlug,
         isActive: true,
         registrationOpen: true,
-        $expr: {
-          $or: [
-            { $eq: ['$capacity', 0] }, // 0 = unlimited capacity
-            { $lt: ['$registrationCount', '$capacity'] },
-          ],
-        },
+        status: { $nin: ['closed', 'completed'] },
       },
       { $inc: { registrationCount: 1 } },
       { returnDocument: 'after' }
     )
 
     if (!updatedEvent) {
-      return res.status(409).json({ message: 'Event has reached full capacity. Registration is closed.' })
-    }
-
-    // Update status if capacity reached
-    if (updatedEvent.capacity > 0 && updatedEvent.registrationCount >= updatedEvent.capacity) {
-      updatedEvent.status = 'full'
-      await updatedEvent.save()
-    } else if (updatedEvent.capacity > 0 && updatedEvent.registrationCount >= updatedEvent.capacity * 0.85) {
-      updatedEvent.status = 'almost_full'
-      await updatedEvent.save()
+      return res.status(400).json({ message: 'Registrations for this event are currently closed.' })
     }
 
     // 6. Create Event Registration record
@@ -213,7 +199,7 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
         userName: cleanName,
         userPhone: cleanPhone,
         userCollege: cleanCollege,
-        teamName: cleanTeamName,
+        teamName: cleanTeamName || (confirmedViaGoogleForm ? 'Google Form Registration' : null),
         teamMembers: validatedTeamMembers,
         status: 'confirmed',
       })
@@ -236,9 +222,6 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
         teamName: registration.teamName,
         teamMembers: registration.teamMembers,
         status: registration.status,
-        date: updatedEvent.date,
-        venue: updatedEvent.venue,
-        venueDetails: updatedEvent.venueDetails,
         createdAt: registration.createdAt,
       },
     })

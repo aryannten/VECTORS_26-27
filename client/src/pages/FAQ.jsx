@@ -32,37 +32,37 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Are branch restrictions enforced on events?',
-        a: 'Most events are Open to All eligible students regardless of engineering branch or academic department. Branch suggestions in event listings indicate alignment, but do not disqualify participants.',
+        a: 'No, there are no branch restrictions. All events in VECTORS 2026-27 are Open to All eligible students across all departments and academic branches.',
       },
       {
         q: 'How does team formation work for events like Hackathon or Robo Wars?',
-        a: 'During the event registration modal, select "Team Registration", provide a team name, and specify your teammates\' names, emails, and phone numbers. Each member must also hold a valid VECTORS account and pass.',
+        a: 'Submit your team members and team details directly in the official event Google Form provided on the event page.',
       },
       {
-        q: 'Can I cancel or change an event registration?',
-        a: 'Yes. You can manage and cancel your event registrations directly from your User Dashboard (`/dashboard`). Cancelling an event frees up the reserved slot for other participants on the waitlist.',
+        q: 'Can I cancel or delete an event registration?',
+        a: 'No. Once confirmed and verified, all event registrations are permanent and cannot be cancelled or deleted.',
       },
       {
-        q: 'What does "Capacity Reached" or "Registration Closed" mean?',
-        a: 'To guarantee quality and safety, each venue and event has an atomic capacity limit. Once maximum capacity is reached, the system closes registration. Check the event vault if additional slots are released.',
+        q: 'What does "Registration Closed" mean?',
+        a: 'When an event registration is locked by event coordinators, new submissions will no longer be accepted. Check the event vault for updates.',
       },
     ],
   },
   {
-    category: 'Venue, Logistics & Schedule',
+    category: 'Logistics & Festival Info',
     icon: MapPin,
     questions: [
       {
         q: 'When and where is VECTORS 2026-27 being hosted?',
-        a: 'VECTORS 2026-27 takes place across the campus engineering complex, computing labs, hardware centers, and open-air amphitheatres.',
+        a: 'The official festival schedule and campus location will be announced soon on the official portal.',
       },
       {
         q: 'Will accommodation or food be arranged for outstation participants?',
         a: 'Outstation participants registered for multi-day events or the 24-hour Doomsday Hackathon will receive dormitory access pass credentials upon physical verification at the help desk.',
       },
       {
-        q: 'Where do I find the latest venue and timing updates?',
-        a: 'Visit the Event Vaults (`/events`) for real-time venue assignments, briefings, and updates.',
+        q: 'Where do I find the latest event updates?',
+        a: 'Visit the Event Vaults (`/events`) for protocol briefings, rules, and coordinator contacts.',
       },
     ],
   },
@@ -170,7 +170,7 @@ export default function FAQ() {
             <HelpCircle size={36} className="mx-auto text-steel/40 mb-3" />
             <h3 className="font-display text-lg text-bone uppercase tracking-wider">No Answers Found</h3>
             <p className="font-mono text-xs text-steel mt-1 max-w-sm mx-auto">
-              We couldn't find questions matching &quot;{searchQuery}&quot;. Reach out to support or check announcements.
+              We couldn't find questions matching &quot;{searchQuery}&quot;. Reach out to support or event coordinators for assistance.
             </p>
             <button
               onClick={() => {

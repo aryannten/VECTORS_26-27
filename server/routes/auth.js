@@ -28,6 +28,13 @@ router.post('/sync', async (req, res) => {
       .filter(Boolean)
     const isAdmin = adminEmails.includes(userEmail)
 
+    const securityEmailsRaw = process.env.SECURITY_EMAILS || process.env.SECURITY_EMAIL || ''
+    const securityEmails = securityEmailsRaw
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+    const isSecurity = securityEmails.includes(userEmail)
+
     const updateSet = {
       email: decodedToken.email,
       lastLoginAt: new Date(),
@@ -41,6 +48,8 @@ router.post('/sync', async (req, res) => {
 
     if (isAdmin) {
       updateSet.role = 'admin'
+    } else if (isSecurity) {
+      updateSet.role = 'security'
     } else {
       updateOps.$setOnInsert = { role: 'user' }
     }
@@ -66,58 +75,6 @@ router.post('/sync', async (req, res) => {
   }
 })
 
-/**
- * POST /api/auth/security-login
- * Security verification & access endpoint.
- * Automatically grants 'security' role to personnel logging in or registering
- * through the security terminal (unless they are already admin).
- */
-router.post('/security-login', async (req, res) => {
-  const authHeader = req.headers.authorization
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'No token provided.' })
-  }
-
-  const idToken = authHeader.split('Bearer ')[1]
-
-  try {
-    const decodedToken = await getAuth().verifyIdToken(idToken)
-    let user = await User.findOne({ firebaseUid: decodedToken.uid })
-
-    if (user) {
-      // Existing user logging in via security portal — grant security role (unless admin)
-      if (user.role !== 'admin') {
-        user.role = 'security'
-      }
-      user.lastLoginAt = new Date()
-      await user.save()
-    } else {
-      // New user registering via security portal — grant security role directly
-      user = await User.create({
-        firebaseUid: decodedToken.uid,
-        email: decodedToken.email,
-        displayName: decodedToken.name || 'Security Personnel',
-        photoURL: decodedToken.picture || null,
-        role: 'security',
-        lastLoginAt: new Date(),
-      })
-      console.log(`[Auth] New security user registered: ${user.email}`)
-    }
-
-    res.status(200).json({
-      user: {
-        id: user._id,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        role: user.role,
-      },
-    })
-  } catch (error) {
-    console.error('[Auth] Security login error:', error.message)
-    res.status(401).json({ message: 'Authentication failed.' })
-  }
-})
 
 /**
  * GET /api/auth/me

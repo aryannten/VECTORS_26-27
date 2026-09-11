@@ -23,7 +23,8 @@ export default function Admin() {
 
       const statsRes = await fetch('/api/admin/stats', { headers })
       if (statsRes.ok) {
-        setStats(await statsRes.json())
+        const data = await statsRes.json()
+        setStats(data.stats || data)
       } else {
         setError('Failed to load dashboard statistics.')
       }
@@ -43,11 +44,11 @@ export default function Admin() {
   }
 
   const statCards = stats ? [
-    { label: 'Total Registrations', value: stats.totalRegistrations, icon: Ticket, color: 'text-emerald' },
-    { label: 'Checked In', value: `${stats.checkedInCount} / ${stats.totalRegistrations}`, icon: Check, color: 'text-brass' },
-    { label: 'Total Events', value: stats.totalEvents, icon: Calendar, color: 'text-bone' },
-    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-steel' },
-    { label: 'Security Personnel', value: stats.securityUsers, icon: Shield, color: 'text-brass-dim' },
+    { label: 'Total Registrations', value: stats.totalRegistrations ?? 0, icon: Ticket, color: 'text-emerald' },
+    { label: 'Checked In', value: `${stats.checkedInCount ?? 0} / ${stats.totalRegistrations ?? 0}`, icon: Check, color: 'text-brass' },
+    { label: 'Total Events', value: stats.totalEvents ?? 0, icon: Calendar, color: 'text-bone' },
+    { label: 'Total Users', value: stats.totalUsers ?? 0, icon: Users, color: 'text-steel' },
+    { label: 'Security Personnel', value: stats.securityUsers ?? 0, icon: Shield, color: 'text-brass-dim' },
   ] : []
 
   return (
@@ -93,8 +94,8 @@ export default function Admin() {
           </Link>
         </div>
         <p className="font-mono text-xs text-steel/70 leading-relaxed mb-4">
-          Gate security officers sign up or log in with their own email and password (no access keys needed).
-          To give someone security clearance, find them in the <Link to="/admin/users" className="text-brass underline">Users list</Link> and switch their role to <span className="text-brass font-bold">Security</span>. They can then sign in at <code className="text-emerald text-[11px] bg-charcoal px-1.5 py-0.5 border border-white/[0.06] break-all">/security/login</code> to operate the QR scanner.
+          Gate security officers log in with their predefined email through the standard login page.
+          To give someone security clearance, specify their email in <code className="text-emerald text-[11px] bg-charcoal px-1.5 py-0.5 border border-white/[0.06]">SECURITY_EMAILS</code> or find them in the <Link to="/admin/users" className="text-brass underline">Users list</Link> and switch their role to <span className="text-brass font-bold">Security</span>. They will be directed automatically to the QR scanner at <code className="text-brass-dim text-[11px]">/security</code> upon login.
         </p>
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-steel/50 font-mono text-[11px]">
           <span>Active security staff: <strong className="text-bone">{stats?.securityUsers ?? 0}</strong></span>

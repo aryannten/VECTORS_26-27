@@ -4,12 +4,8 @@ import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import { 
   Ticket, 
-  Calendar, 
-  MapPin, 
-  Clock, 
   AlertTriangle, 
-  Trash2, 
-  Download, 
+  CheckCircle2, 
   ArrowRight, 
   RefreshCw 
 } from 'lucide-react'
@@ -19,15 +15,13 @@ import { useAuth } from '../contexts/AuthContext'
  * Dashboard — Personal participant command center
  * Displays:
  * 1. Digital Entry Pass Credential with QR
- * 2. Registered Events Matrix with Cancel option
- * 3. Personal Festival Timeline Agenda
+ * 2. Registered Events Matrix with Verified Status
  */
 export default function Dashboard() {
   const { user, getToken } = useAuth()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [cancellingId, setCancellingId] = useState(null)
   const [actionMessage, setActionMessage] = useState(null)
 
   const fetchDashboard = useCallback(async () => {
@@ -57,58 +51,6 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboard()
   }, [fetchDashboard])
-
-  const handleCancelRegistration = async (registrationId) => {
-    if (!window.confirm('Are you sure you want to cancel your registration for this event? Your slot will be released.')) {
-      return
-    }
-
-    setCancellingId(registrationId)
-    setActionMessage(null)
-
-    try {
-      const token = await getToken()
-      const res = await fetch(`/api/user/registrations/${registrationId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-
-      const resData = await res.json()
-      if (!res.ok) throw new Error(resData.message || 'Failed to cancel registration.')
-
-      setActionMessage({ type: 'success', text: 'Registration cancelled and capacity slot released.' })
-      fetchDashboard()
-    } catch (err) {
-      setActionMessage({ type: 'error', text: err.message || 'Failed to cancel registration.' })
-    } finally {
-      setCancellingId(null)
-    }
-  }
-
-  const downloadIcs = (reg) => {
-    const icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//VECTORS 26-27//Festival Event//EN',
-      'BEGIN:VEVENT',
-      `SUMMARY:VECTORS 26-27: ${reg.eventName}`,
-      `DESCRIPTION:Registration ID: ${reg.registrationId}. Venue: ${reg.venue}`,
-      `LOCATION:${reg.venue}`,
-      'DTSTART:20260315T033000Z',
-      'DTEND:20260316T123000Z',
-      'STATUS:CONFIRMED',
-      'END:VEVENT',
-      'END:VCALENDAR',
-    ].join('\r\n')
-
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
-    const link = document.createElement('a')
-    link.href = window.URL.createObjectURL(blob)
-    link.setAttribute('download', `${reg.eventSlug}-registration.ics`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
 
   if (loading) {
     return (
@@ -275,7 +217,7 @@ export default function Dashboard() {
                 </p>
               </div>
               <p className="font-body text-xs text-text-muted leading-relaxed">
-                Review your registered arenas below. Make sure you are present at the designated sector venue 15 minutes prior to start time.
+                Review your registered arenas below.
               </p>
             </div>
 
@@ -311,7 +253,7 @@ export default function Dashboard() {
 
           {registeredEvents.length === 0 ? (
             <div className="py-12 px-6 text-center bg-doom-bg2 border border-white/[0.08] doom-btn-clipped space-y-3">
-              <Calendar size={28} className="mx-auto text-text-muted" />
+              <Ticket size={28} className="mx-auto text-text-muted" />
               <h3 className="font-display text-lg font-bold uppercase text-text-primary">No Event Registrations Found</h3>
               <p className="font-mono text-xs text-text-muted max-w-md mx-auto">
                 You haven't signed up for any competitive events or hackathons yet. Unlock your discipline now.
@@ -344,19 +286,9 @@ export default function Dashboard() {
                       {reg.eventName}
                     </h3>
 
-                    <div className="grid grid-cols-2 gap-2 font-mono text-xs text-text-muted">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar size={12} className="text-doom-glow shrink-0" />
-                        <span className="truncate">{reg.date}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Clock size={12} className="text-doom-glow shrink-0" />
-                        <span className="truncate">{reg.startTime}</span>
-                      </div>
-                      <div className="col-span-2 flex items-center gap-1.5">
-                        <MapPin size={12} className="text-doom-glow shrink-0" />
-                        <span className="truncate">{reg.venue}</span>
-                      </div>
+                    <div className="flex items-center gap-1.5 font-mono text-xs text-text-muted">
+                      <span className="text-doom-glow font-bold">REGISTRATION:</span>
+                      <span className="text-white font-bold">{reg.status || 'CONFIRMED'}</span>
                     </div>
 
                     {reg.teamMembers && reg.teamMembers.length > 0 && (
@@ -372,31 +304,17 @@ export default function Dashboard() {
                   </div>
 
                   <div className="pt-4 border-t border-white/[0.06] flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => downloadIcs(reg)}
-                        className="p-1.5 bg-white/[0.04] border border-white/[0.08] hover:border-doom-glow/40 text-text-muted hover:text-white transition-colors cursor-pointer"
-                        title="Add to Calendar"
-                      >
-                        <Download size={13} />
-                      </button>
-
-                      <Link
-                        to={`/events/${reg.eventSlug}`}
-                        className="font-mono text-xs text-text-muted hover:text-doom-glow uppercase tracking-wider"
-                      >
-                        Event Vault &rarr;
-                      </Link>
-                    </div>
-
-                    <button
-                      disabled={cancellingId === reg.registrationId}
-                      onClick={() => handleCancelRegistration(reg.registrationId)}
-                      className="font-mono text-xs text-doom-crimson-bright hover:underline uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    <Link
+                      to={`/events/${reg.eventSlug}`}
+                      className="font-mono text-xs text-text-muted hover:text-doom-glow uppercase tracking-wider"
                     >
-                      <Trash2 size={12} />
-                      <span>{cancellingId === reg.registrationId ? 'Cancelling...' : 'Cancel'}</span>
-                    </button>
+                      Event Vault &rarr;
+                    </Link>
+
+                    <span className="font-mono text-[10px] text-doom-glow uppercase tracking-widest px-2.5 py-1 bg-doom-glow/10 border border-doom-glow/30 font-bold flex items-center gap-1">
+                      <CheckCircle2 size={12} />
+                      <span>PERMANENT ENTRY</span>
+                    </span>
                   </div>
                 </div>
               ))}

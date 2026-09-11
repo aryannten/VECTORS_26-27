@@ -1,7 +1,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { LayoutDashboard, Users, Ticket, Calendar, LogOut, Shield, ArrowLeft, Menu, X, Bell, ClipboardList } from 'lucide-react'
+import { LayoutDashboard, Users, Ticket, Calendar, LogOut, Shield, ArrowLeft, Menu, X, ClipboardList, ShieldAlert, Camera } from 'lucide-react'
 import { cn } from '../lib/utils'
 import PageLoading from './ui/PageLoading'
 
@@ -29,8 +29,9 @@ export default function AdminLayout() {
     { to: '/admin/registrations', label: 'Entry Passes', icon: Ticket },
     { to: '/admin/event-registrations', label: 'Event Signups', icon: ClipboardList },
     { to: '/admin/events', label: 'Events Control', icon: Calendar },
-    { to: '/admin/announcements', label: 'Announcements', icon: Bell },
     { to: '/admin/users', label: 'User Roles', icon: Users },
+    { to: '/admin/audit-logs', label: 'Audit Logs', icon: ShieldAlert },
+    { to: '/security', label: 'Gate Scanner', icon: Camera },
   ]
 
   const userInitial = user?.displayName?.[0] || user?.email?.[0] || '?'
@@ -49,7 +50,7 @@ export default function AdminLayout() {
           </button>
           <div className="flex items-center gap-2">
             <Shield size={16} className="text-emerald shrink-0" />
-            <span className="font-display text-xs sm:text-sm tracking-[0.15em] text-bone uppercase">VECTORS Admin</span>
+            <span className="font-display text-xs sm:text-sm tracking-[0.15em] text-bone uppercase">VECTORS 2026-27 Admin</span>
           </div>
         </div>
 
@@ -78,7 +79,7 @@ export default function AdminLayout() {
           <div>
             <div className="flex items-center gap-2">
               <Shield size={16} className="text-emerald" />
-              <span className="font-display text-sm tracking-[0.15em] text-bone uppercase">VECTORS</span>
+              <span className="font-display text-sm tracking-[0.15em] text-bone uppercase">VECTORS 2026-27</span>
             </div>
             <p className="font-mono text-[9px] tracking-wider text-brass-dim mt-1 uppercase">Admin Console</p>
           </div>

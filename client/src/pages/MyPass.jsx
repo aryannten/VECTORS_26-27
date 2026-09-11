@@ -37,7 +37,7 @@ export default function MyPass() {
     if (userRole === 'admin' && user) {
       return {
         registrationId: `VEC-ADM-${(user.uid || 'ROOT').slice(0, 6).toUpperCase()}`,
-        name: user.displayName || user.email?.split('@')[0] || 'VECTORS Administrator',
+        name: user.displayName || user.email?.split('@')[0] || 'VECTORS 2026-27 Administrator',
         college: 'Command Headquarters',
         email: user.email,
         status: 'COMMAND COUNCIL // VIP ACCESS',

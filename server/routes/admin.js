@@ -1,4 +1,5 @@
 const express = require('express')
+const mongoose = require('mongoose')
 const router = express.Router()
 const { getAuth } = require('firebase-admin/auth')
 const { verifyFirebaseToken, requireRole } = require('../middleware/auth')
@@ -27,23 +28,28 @@ router.get('/stats', async (req, res) => {
     ] = await Promise.all([
       EntryRegistration.countDocuments(),
       EntryRegistration.countDocuments({ checkedIn: true }),
-      Event.countDocuments(),
+      Event.countDocuments({ isActive: true }),
       User.countDocuments(),
       User.countDocuments({ role: 'security' }),
-      EventRegistration.countDocuments({ status: 'confirmed' }),
+      EventRegistration.countDocuments(),
     ])
 
-    res.status(200).json({
+    const payload = {
       totalRegistrations,
       checkedInCount,
       totalEvents,
       totalUsers,
       securityUsers,
       totalEventRegistrations,
+    }
+
+    res.status(200).json({
+      stats: payload,
+      ...payload,
     })
   } catch (error) {
     console.error('[Admin] Stats error:', error.message)
-    res.status(500).json({ message: 'Internal server error.' })
+    res.status(500).json({ message: 'Failed to fetch admin stats.' })
   }
 })
 
@@ -90,6 +96,123 @@ router.get('/registrations', async (req, res) => {
   } catch (error) {
     console.error('[Admin] Registrations error:', error.message)
     res.status(500).json({ message: 'Internal server error.' })
+  }
+})
+
+/**
+ * PUT /api/admin/registrations/:id
+ * Admin updates an entry pass registration.
+ * Accepts either Mongo _id or registrationId string.
+ */
+router.put('/registrations/:id', async (req, res) => {
+  try {
+    const { name, email, phone, college, checkedIn } = req.body
+
+    const isObjectId = mongoose.Types.ObjectId.isValid(req.params.id)
+    const registration = await EntryRegistration.findOne(
+      isObjectId
+        ? { $or: [{ _id: req.params.id }, { registrationId: req.params.id }] }
+        : { registrationId: req.params.id }
+    )
+    if (!registration) {
+      return res.status(404).json({ message: 'Registration not found.' })
+    }
+
+    const previousState = {
+      name: registration.name,
+      email: registration.email,
+      phone: registration.phone,
+      college: registration.college,
+      checkedIn: registration.checkedIn,
+    }
+
+    if (email && email.toLowerCase() !== registration.email.toLowerCase()) {
+      const duplicate = await EntryRegistration.findOne({ email: email.toLowerCase() })
+      if (duplicate && duplicate._id.toString() !== registration._id.toString()) {
+        return res.status(409).json({ message: 'Another registration with this email already exists.' })
+      }
+      registration.email = email.toLowerCase().trim()
+    }
+
+    if (name !== undefined) registration.name = name.trim()
+    if (phone !== undefined) registration.phone = phone.trim()
+    if (college !== undefined) registration.college = college.trim()
+
+    if (checkedIn !== undefined) {
+      const boolCheckedIn = Boolean(checkedIn)
+      if (boolCheckedIn && !registration.checkedIn) {
+        registration.checkedIn = true
+        registration.checkInTimestamp = new Date()
+      } else if (!boolCheckedIn && registration.checkedIn) {
+        registration.checkedIn = false
+        registration.checkInTimestamp = null
+      }
+    }
+
+    await registration.save()
+
+    // Audit log
+    await AuditLog.create({
+      action: 'ENTRY_PASS_UPDATED',
+      performedBy: req.user.email,
+      targetType: 'EntryRegistration',
+      targetId: registration._id.toString(),
+      details: {
+        registrationId: registration.registrationId,
+        previousState,
+        newState: {
+          name: registration.name,
+          email: registration.email,
+          phone: registration.phone,
+          college: registration.college,
+          checkedIn: registration.checkedIn,
+        },
+      },
+    }).catch((err) => console.error('[AuditLog] Error:', err.message))
+
+    res.status(200).json({ registration })
+  } catch (error) {
+    console.error('[Admin] Update registration error:', error.message)
+    res.status(500).json({ message: error.message || 'Failed to update registration.' })
+  }
+})
+
+/**
+ * DELETE /api/admin/registrations/:id
+ * Admin deletes an entry pass registration.
+ * Accepts either Mongo _id or registrationId string.
+ */
+router.delete('/registrations/:id', async (req, res) => {
+  try {
+    const isObjectId = mongoose.Types.ObjectId.isValid(req.params.id)
+    const registration = await EntryRegistration.findOne(
+      isObjectId
+        ? { $or: [{ _id: req.params.id }, { registrationId: req.params.id }] }
+        : { registrationId: req.params.id }
+    )
+    if (!registration) {
+      return res.status(404).json({ message: 'Registration not found.' })
+    }
+
+    await EntryRegistration.findByIdAndDelete(registration._id)
+
+    // Audit log
+    await AuditLog.create({
+      action: 'ENTRY_PASS_DELETED',
+      performedBy: req.user.email,
+      targetType: 'EntryRegistration',
+      targetId: registration._id.toString(),
+      details: {
+        registrationId: registration.registrationId,
+        name: registration.name,
+        email: registration.email,
+      },
+    }).catch((err) => console.error('[AuditLog] Error:', err.message))
+
+    res.status(200).json({ message: `Pass ${registration.registrationId} deleted successfully.` })
+  } catch (error) {
+    console.error('[Admin] Delete registration error:', error.message)
+    res.status(500).json({ message: 'Failed to delete registration.' })
   }
 })
 
@@ -279,7 +402,12 @@ router.put('/events/:id', async (req, res) => {
       prizePool,
     } = req.body
 
-    const event = await Event.findById(req.params.id)
+    const isObjectId = mongoose.Types.ObjectId.isValid(req.params.id)
+    const event = await Event.findOne(
+      isObjectId
+        ? { $or: [{ _id: req.params.id }, { slug: req.params.id }] }
+        : { slug: req.params.id }
+    )
     if (!event) {
       return res.status(404).json({ message: 'Event not found.' })
     }

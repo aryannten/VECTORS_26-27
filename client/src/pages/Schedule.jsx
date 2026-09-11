@@ -8,7 +8,6 @@ export default function Schedule() {
   const [activeDay, setActiveDay] = useState('Day 1') // 'Day 1' | 'Day 2'
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('ALL')
-  const [selectedBranch, setSelectedBranch] = useState('ALL')
   const [liveEvents, setLiveEvents] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -24,8 +23,8 @@ export default function Schedule() {
             setLiveEvents(data)
           }
         }
-      } catch (err) {
-        console.warn('[Schedule] Backend events fetch fallback to local:', err.message)
+      } catch {
+        // Silently keep static fallback
       } finally {
         if (isMounted) setLoading(false)
       }
@@ -34,17 +33,13 @@ export default function Schedule() {
     return () => { isMounted = false }
   }, [])
 
-  // Combine static master schedule with dynamic backend metadata (capacity, status)
+  // Build merged master schedule from events.js + live state
   const masterSchedule = useMemo(() => {
     return eventsData.map((ev) => {
       const live = liveEvents.find((l) => l.slug === ev.id || l.name?.toLowerCase() === ev.name?.toLowerCase())
-      
-      // Parse day & time from date string: e.g. "March 15, 2026 // 09:00 IST"
-      const isDay1 = ev.date.includes('March 15')
+      const isDay1 = ev.category === 'Technical'
       const day = isDay1 ? 'Day 1' : 'Day 2'
-      const timeMatch = ev.date.match(/(\d{2}:\d{2})\s*IST/)
-      const time = timeMatch ? timeMatch[1] : '10:00'
-
+      const time = ev.startTime || (isDay1 ? '10:00' : '11:00')
       return {
         ...ev,
         day,
@@ -57,12 +52,6 @@ export default function Schedule() {
     }).sort((a, b) => a.time.localeCompare(b.time))
   }, [liveEvents])
 
-  // Extract unique branches for filter
-  const branchOptions = useMemo(() => {
-    const branches = new Set(eventsData.map((e) => e.branch))
-    return ['ALL', ...Array.from(branches)]
-  }, [])
-
   // Filter items
   const filteredEvents = useMemo(() => {
     return masterSchedule.filter((ev) => {
@@ -73,12 +62,10 @@ export default function Schedule() {
         ev.venue.toLowerCase().includes(searchQuery.toLowerCase())
       const matchCategory =
         selectedCategory === 'ALL' || ev.category.toUpperCase() === selectedCategory
-      const matchBranch =
-        selectedBranch === 'ALL' || ev.branch === selectedBranch
 
-      return matchDay && matchSearch && matchCategory && matchBranch
+      return matchDay && matchSearch && matchCategory
     })
-  }, [masterSchedule, activeDay, searchQuery, selectedCategory, selectedBranch])
+  }, [masterSchedule, activeDay, searchQuery, selectedCategory])
 
   // Export Day Schedule to iCal / ICS
   const handleExportSchedule = () => {
@@ -86,15 +73,15 @@ export default function Schedule() {
       const dateStr = activeDay === 'Day 1' ? '20260315' : '20260316'
       const cleanTime = ev.time.replace(':', '') + '00'
       const startDateTime = `${dateStr}T${cleanTime}Z`
-      return `BEGIN:VEVENT\nSUMMARY:VECTORS 26: ${ev.name}\nDESCRIPTION:${ev.description.replace(/\n/g, ' ')}\nLOCATION:${ev.venue}\nDTSTART:${startDateTime}\nSTATUS:CONFIRMED\nEND:VEVENT`
+      return `BEGIN:VEVENT\nSUMMARY:VECTORS 2026-27: ${ev.name}\nDESCRIPTION:${ev.description.replace(/\n/g, ' ')}\nLOCATION:${ev.venue}\nDTSTART:${startDateTime}\nSTATUS:CONFIRMED\nEND:VEVENT`
     }).join('\n')
 
-    const icsData = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//VECTORS 26 Festival//Schedule//EN\nCALSCALE:GREGORIAN\n${calendarEvents}\nEND:VCALENDAR`
+    const icsData = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//VECTORS 2026-27 Festival//Schedule//EN\nCALSCALE:GREGORIAN\n${calendarEvents}\nEND:VCALENDAR`
     const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' })
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', `VECTORS_26_${activeDay.replace(' ', '_')}_Schedule.ics`)
+    link.setAttribute('download', `VECTORS_2026_27_${activeDay.replace(' ', '_')}_Schedule.ics`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -135,7 +122,7 @@ export default function Schedule() {
         <div className="flex items-center gap-3">
           {['Day 1', 'Day 2'].map((day) => {
             const isSelected = activeDay === day
-            const dateLabel = day === 'Day 1' ? 'March 15, 2026' : 'March 16, 2026'
+            const dateLabel = day === 'Day 1' ? 'Session 01' : 'Session 02'
             return (
               <button
                 key={day}
@@ -194,23 +181,6 @@ export default function Schedule() {
             ))}
           </div>
 
-          {/* Branch Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[11px] text-steel uppercase tracking-wider hidden sm:inline-block">
-              Branch:
-            </span>
-            <select
-              value={selectedBranch}
-              onChange={(e) => setSelectedBranch(e.target.value)}
-              className="bg-doom-bg/80 border border-white/10 text-bone text-xs font-mono rounded-lg px-3 py-2 focus:outline-none focus:border-emerald/50 cursor-pointer"
-            >
-              {branchOptions.map((b) => (
-                <option key={b} value={b} className="bg-charcoal text-bone">
-                  {b}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
@@ -230,7 +200,6 @@ export default function Schedule() {
               onClick={() => {
                 setSearchQuery('')
                 setSelectedCategory('ALL')
-                setSelectedBranch('ALL')
               }}
               className="mt-4 px-4 py-2 rounded bg-white/10 hover:bg-white/20 text-bone font-mono text-xs transition-colors"
             >
@@ -249,8 +218,8 @@ export default function Schedule() {
                 >
                   {/* Time Badge (Desktop Left) */}
                   <div className="md:w-28 shrink-0 md:text-right pt-2">
-                    <span className="font-mono text-sm sm:text-base font-bold text-emerald group-hover:text-emerald-glow transition-colors tracking-widest block">
-                      {ev.time} IST
+                    <span className="font-mono text-xs sm:text-sm font-bold text-emerald group-hover:text-emerald-glow transition-colors tracking-widest block">
+                      {ev.time && ev.time !== 'TBA' ? `${ev.time} IST` : 'TIMING TBA'}
                     </span>
                     <span className="font-mono text-[10px] text-steel/60 uppercase">
                       {activeDay}
@@ -280,9 +249,6 @@ export default function Schedule() {
                             )}
                           >
                             {ev.category}
-                          </span>
-                          <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-steel font-mono text-[10px] tracking-wider uppercase">
-                            {ev.branch}
                           </span>
                           {ev.liveStatus === 'ongoing' && (
                             <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 font-mono text-[10px] tracking-wider uppercase animate-pulse">
@@ -316,10 +282,6 @@ export default function Schedule() {
                     {/* Metadata strip */}
                     <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-white/[0.04]">
                       <div className="flex flex-wrap items-center gap-4 text-steel font-mono text-xs">
-                        <span className="flex items-center gap-1.5 text-steel/80">
-                          <MapPin size={13} className="text-emerald/70" />
-                          <span>{ev.venue}</span>
-                        </span>
                         <span className="flex items-center gap-1.5 text-steel/80">
                           <Users size={13} className="text-emerald/70" />
                           <span>{ev.teamSize}</span>

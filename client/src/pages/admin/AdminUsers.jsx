@@ -74,7 +74,7 @@ export default function AdminUsers() {
       })
       if (res.ok) {
         const data = await res.json()
-        setUsers(data.users)
+        setUsers(data.users || [])
       }
     } catch (err) {
       console.error('Failed to fetch users:', err)

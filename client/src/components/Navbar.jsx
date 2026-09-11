@@ -2,19 +2,13 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, LogOut, Shield, LayoutDashboard, User } from 'lucide-react'
-import { cn } from '../lib/utils'
 import { useAuth } from '../contexts/AuthContext'
+import DoomButton from './ui/DoomButton'
+import { cn } from '../lib/utils'
 
 /**
  * Navbar — VECTORS 26–27 Navigation Bar
- * Features:
- * - Sticky dark glass panel: rgba(10,12,14,0.75) + 14px blur
- * - 1px accent glow seam along the bottom
- * - Minimal cracked "V" monogram + VECTORS badge
- * - Desktop nav links with center-expanding emerald underline on hover
- * - Full route coverage: Home, Events, My Pass, Dashboard, FAQ
- * - Outlined ring avatar with active glow for logged-in user
- * - Mobile slide-down dark panel with touch-friendly navigation
+ * Responsive, auth-aware header with tactical doomsday styling.
  */
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -23,16 +17,22 @@ export default function Navbar() {
   const { user, userRole, logout, loading, hasPass } = useAuth()
 
   // Top-level pages don't show a back button
-  const topLevelPaths = ['/', '/events', '/login', '/signup', '/faq', '/dashboard']
+  const topLevelPaths = ['/', '/festival', '/events', '/login', '/signup', '/faq', '/dashboard']
   const isTopLevel = topLevelPaths.includes(location.pathname)
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
   }, [isOpen])
 
-  // Close menu on route change
+  // Close mobile menu on route change
   useEffect(() => {
     setIsOpen(false)
   }, [location.pathname])
@@ -41,12 +41,12 @@ export default function Navbar() {
     closed: {
       opacity: 0,
       y: -20,
-      transition: { duration: 0.3, ease: [0.76, 0, 0.24, 1] }
+      transition: { duration: 0.25, ease: [0.32, 0.72, 0, 1] }
     },
     open: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4, ease: [0.76, 0, 0.24, 1] }
+      transition: { duration: 0.35, ease: [0.32, 0.72, 0, 1] }
     }
   }
 
@@ -85,7 +85,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-4 sm:px-6 md:px-8 doom-navbar">
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-4 sm:px-6 md:px-10 lg:px-12 doom-navbar">
 
         {/* Left: Monogram & Brand */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -99,11 +99,11 @@ export default function Navbar() {
             </button>
           )}
 
-          <Link to="/" className="flex items-center group select-none" aria-label="VECTORS 2026-27 Home">
+          <Link to="/" className="flex items-center group select-none py-1" aria-label="VECTORS 2026-27 Home">
             <img
               src="/vector26-logo.png"
-              alt="VECTORS 26-27"
-              className="h-10 sm:h-11 w-auto max-w-[170px] sm:max-w-[200px] object-contain transition-transform duration-300 group-hover:scale-105 mix-blend-screen"
+              alt="VECTORS 2026-27"
+              className="h-11 sm:h-13 md:h-14 w-auto max-w-[190px] sm:max-w-[240px] md:max-w-[280px] object-contain transition-transform duration-300 group-hover:scale-105 mix-blend-screen drop-shadow-[0_0_15px_rgba(30,255,160,0.3)]"
             />
           </Link>
         </div>
@@ -158,14 +158,13 @@ export default function Navbar() {
                   )}
 
                   {/* Quick pass CTA */}
-                  <Link
+                  <DoomButton
                     to={hasPass ? "/my-pass" : "/entry-registration"}
-                    className="doom-btn-primary !p-[1px] hidden sm:inline-flex"
+                    size="sm"
+                    className="hidden sm:inline-flex !py-1 !px-3 !text-[10px]"
                   >
-                    <span className="doom-btn-primary-inner !py-1.5 !px-3 !text-[10px] !tracking-wider">
-                      {hasPass ? 'My Pass' : 'Get Pass'}
-                    </span>
-                  </Link>
+                    {hasPass ? 'My Pass' : 'Get Pass'}
+                  </DoomButton>
 
                   {/* Avatar ring shortcut to Dashboard */}
                   <Link
@@ -191,14 +190,13 @@ export default function Navbar() {
               ) : (
                 /* Logged Out State */
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <Link
+                  <DoomButton
                     to="/login"
-                    className="doom-btn-primary !p-[1px]"
+                    size="sm"
+                    className="!py-1.5 !px-3.5 !text-[11px] font-mono tracking-wider font-semibold uppercase"
                   >
-                    <span className="doom-btn-primary-inner !py-1.5 !px-3.5 !text-[11px] !tracking-wider">
-                      Join Portal
-                    </span>
-                  </Link>
+                    ENTER THE PORTAL
+                  </DoomButton>
                 </div>
               )}
             </>
@@ -218,30 +216,23 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Slide-Down Drawer */}
+      {/* Mobile Slide-Down Drawer Panel */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            key="mobile-nav"
             initial="closed"
             animate="open"
             exit="closed"
             variants={menuVariants}
-            className="fixed inset-0 z-40 bg-doom-bg/98 backdrop-blur-xl flex flex-col justify-between pt-20 pb-8 px-6 sm:px-10 border-b border-doom-glow/30 shadow-[0_10px_35px_rgba(0,0,0,0.9)] lg:hidden overflow-y-auto"
+            className="fixed inset-x-0 top-16 bottom-0 z-40 bg-doom-bg/95 backdrop-blur-xl border-b border-doom-glow/20 px-6 py-8 flex flex-col justify-between overflow-y-auto lg:hidden"
           >
             <div className="space-y-6">
-              {/* Drawer Header */}
               <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">VECTORS Command Menu</span>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="font-mono text-xs text-doom-glow hover:underline uppercase tracking-wider"
-                >
-                  ✕ Close
-                </button>
+                <span className="font-mono text-xs uppercase tracking-widest text-text-muted">Navigation Protocols</span>
+                <span className="font-mono text-xs text-doom-glow">ONLINE</span>
               </div>
 
-              {/* Navigation Links */}
+              {/* Mobile Nav Links */}
               <nav className="flex flex-col gap-1">
                 {navItems.map((item, i) => {
                   const isActive = item.to === '/'
@@ -312,15 +303,14 @@ export default function Navbar() {
                 </>
               ) : (
                 <div className="flex flex-col gap-2.5">
-                  <Link
+                  <DoomButton
                     to="/login"
                     onClick={() => setIsOpen(false)}
-                    className="doom-btn-primary w-full text-center"
+                    size="md"
+                    className="w-full text-center font-mono tracking-wider font-semibold uppercase !text-xs"
                   >
-                    <span className="doom-btn-primary-inner w-full py-2.5 text-xs">
-                      Join Portal
-                    </span>
-                  </Link>
+                    ENTER THE PORTAL
+                  </DoomButton>
                 </div>
               )}
             </div>

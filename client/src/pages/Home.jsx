@@ -91,7 +91,7 @@ export default function Home() {
 
   const faqs = [
     {
-      q: 'Who is eligible to participate in VECTORS 26–27?',
+      q: 'Who is eligible to participate in VECTORS 2026-27?',
       a: 'All currently enrolled undergraduate and diploma students from any recognized college or university are eligible. A valid college ID card is required during entry verification.',
     },
     {
@@ -166,7 +166,7 @@ export default function Home() {
             </p>
 
             <p className="font-body text-sm sm:text-base text-text-primary/95 leading-relaxed">
-              <strong className="font-display font-bold text-base sm:text-lg tracking-wider text-chrome-light">VECTORS</strong> is where minds collide, machines awaken, and ideas become reality.
+              <strong className="font-display font-bold text-base sm:text-lg tracking-wider text-chrome-light">VECTORS 2026-27</strong> is where minds collide, machines awaken, and ideas become reality.
             </p>
 
             <p className="font-body text-sm sm:text-base text-text-muted leading-relaxed">
@@ -208,7 +208,7 @@ export default function Home() {
           {/* Quick Metrics Ticker */}
           <div className="mt-12 sm:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 w-full max-w-3xl text-center">
             {[
-              { label: 'Festival Dates', val: 'March 15–16' },
+              { label: 'Protocol Status', val: 'Registration Open' },
               { label: 'Prize Pool', val: '₹1,50,000+' },
               { label: 'Active Arenas', val: '7 Sectors' },
               { label: 'Participants', val: '1,500+ Expected' },
@@ -234,7 +234,7 @@ export default function Home() {
             ENGINEERED FOR SUPREMACY
           </h2>
           <p className="font-body text-sm sm:text-base text-text-muted max-w-2xl mx-auto leading-relaxed">
-            VECTORS 26–27 is our flagship annual inter-college symposium. Two intensive days of algorithmic battles, metal combat, hardware trials, and creative showdowns designed to push student engineering to its limits.
+            VECTORS 2026-27 is our flagship annual inter-college symposium. Two intensive days of algorithmic battles, metal combat, hardware trials, and creative showdowns designed to push student engineering to its limits.
           </p>
         </div>
 
@@ -286,7 +286,7 @@ export default function Home() {
               MANDATORY DIGITAL ENTRY PASS
             </h2>
             <p className="font-body text-xs sm:text-sm text-text-muted leading-relaxed">
-              To maintain campus security and crowd safety, every participant must hold a valid VECTORS digital pass with a verified QR credential. Events and registrations remain locked until your pass is generated.
+              To maintain campus security and crowd safety, every participant must hold a valid VECTORS 2026-27 digital pass with a verified QR credential. Events and registrations remain locked until your pass is generated.
             </p>
           </div>
 
@@ -378,10 +378,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div className="space-y-1">
             <span className="font-display font-bold text-sm tracking-wider text-text-primary uppercase">
-              VECTORS 26–27 // TECHNICAL FESTIVAL
+              VECTORS 2026-27 // TECHNICAL FESTIVAL
             </span>
             <p className="text-[11px] text-text-muted">
-              March 15–16, 2026 • Campus Main Complex
+              Annual Technical Symposium • All Arenas & Sectors
             </p>
           </div>
 
@@ -392,7 +392,7 @@ export default function Home() {
           </div>
 
           <div className="text-[10px] text-text-muted/60">
-            © 2026 VECTORS Committee. All rights reserved.
+            © VECTORS 2026-27 Committee. All rights reserved.
           </div>
         </div>
       </footer>

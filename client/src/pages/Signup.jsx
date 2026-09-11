@@ -141,7 +141,7 @@ export default function Signup() {
                   required
                   autoComplete="name"
                   className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
-                  placeholder="Aryan Yadav"
+                  placeholder="Enter your full name"
                 />
               </div>
 

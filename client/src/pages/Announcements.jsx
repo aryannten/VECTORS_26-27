@@ -80,7 +80,7 @@ export default function Announcements() {
             Official <span className="text-emerald">Announcements</span>
           </h1>
           <p className="mt-2 text-steel text-sm sm:text-base max-w-xl">
-            Critical festival updates, schedule adjustments, rule clarifications, and room assignments issued by the VECTORS Command Council.
+            Critical festival updates, schedule adjustments, rule clarifications, and room assignments issued by the VECTORS 2026-27 Command Council.
           </p>
         </div>
 
