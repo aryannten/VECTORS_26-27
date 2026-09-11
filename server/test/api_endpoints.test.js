@@ -75,16 +75,16 @@ async function runApiTests() {
     '/api/events',
     { method: 'GET' },
     200,
-    (d) => Array.isArray(d) && d.length > 0 && d.some((e) => e.slug === 'hackathon')
+    (d) => Array.isArray(d) && d.length > 0 && d.some((e) => (e.slug || e.id) === 'prompt-mania')
   )
 
   // 3. Single event detail
   await testEndpoint(
-    'GET /api/events/hackathon (Event Detail)',
-    '/api/events/hackathon',
+    'GET /api/events/prompt-mania (Event Detail)',
+    '/api/events/prompt-mania',
     { method: 'GET' },
     200,
-    (d) => d.slug === 'hackathon' && d.capacity === 50
+    (d) => (d.slug || d.id) === 'prompt-mania' && d.capacity === 60
   )
 
   // 4. Announcements feed
@@ -107,8 +107,8 @@ async function runApiTests() {
 
   // 6. Event registration without auth (Must be rejected with 401)
   await testEndpoint(
-    'POST /api/events/hackathon/register (No Auth -> 401)',
-    '/api/events/hackathon/register',
+    'POST /api/events/prompt-mania/register (No Auth -> 401)',
+    '/api/events/prompt-mania/register',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -6,8 +6,6 @@ import {
   Cpu, 
   Gamepad2, 
   ShieldCheck, 
-  Calendar, 
-  Bell, 
   HelpCircle, 
   ChevronDown, 
   Sparkles, 
@@ -22,21 +20,13 @@ import Ferrofluid from '../components/ui/Ferrofluid'
 
 /**
  * Home — VECTORS 26–27 Official Portal
- * Complete experience: Hero + About + Pillars + Events Showcase + Schedule Preview +
- * Entry Pass Callout + Announcements + FAQ + Footer.
+ * Complete experience: Hero + About + Pillars + Events Showcase +
+ * Entry Pass Callout + FAQ + Footer.
  */
 export default function Home() {
   const navigate = useNavigate()
   const { user, hasPass } = useAuth()
   const [openFaqIndex, setOpenFaqIndex] = useState(null)
-  const [announcements, setAnnouncements] = useState([])
-
-  useEffect(() => {
-    fetch('/api/announcements')
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setAnnouncements(data.slice(0, 3)))
-      .catch(() => setAnnouncements([]))
-  }, [])
 
   const toggleFaq = (index) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index)
@@ -318,124 +308,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* =========================================================================
-          SECTION 4: FESTIVAL SCHEDULE PREVIEW
-          ========================================================================= */}
-      <section className="relative z-10 py-16 px-4 sm:px-6 md:px-8 max-w-6xl mx-auto border-t border-white/[0.08]">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
-          <div>
-            <span className="font-mono text-xs text-doom-glow uppercase tracking-widest">TIMELINE TELEMETRY</span>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold uppercase tracking-wider text-text-primary">
-              TWO DAYS. SEVEN BATTLEGROUNDS.
-            </h2>
-          </div>
-          <Link
-            to="/schedule"
-            className="inline-flex items-center gap-2 font-mono text-xs text-doom-glow hover:underline uppercase tracking-widest font-bold py-2 px-3 bg-doom-glow/10 border border-doom-glow/30"
-          >
-            <Calendar size={13} />
-            <span>Full Schedule & Timings</span>
-            <ArrowRight size={12} />
-          </Link>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Day 1 Card */}
-          <div className="p-6 bg-doom-bg2 border border-white/[0.08] doom-btn-clipped space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <span className="font-display text-lg font-bold text-text-primary uppercase">DAY 01 // MARCH 15, 2026</span>
-              <span className="font-mono text-[10px] text-doom-glow px-2 py-0.5 bg-doom-glow/10 border border-doom-glow/30">09:00 — 18:00 IST</span>
-            </div>
-            <ul className="space-y-3 font-mono text-xs text-text-muted">
-              <li className="flex items-start gap-2">
-                <span className="text-doom-glow font-bold">09:00</span>
-                <span>Opening Ceremony & Doomsday Hackathon Sprint Kickoff (24h)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-doom-glow font-bold">12:00</span>
-                <span>Cyber Arena: Esports Championship Qualifiers (LAN Dome)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-doom-glow font-bold">14:00</span>
-                <span>Silicon Siege: Hardware Circuit Debugging & Trials</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-doom-glow font-bold">15:30</span>
-                <span>Latverian Inquisition: Pop-Culture & Sci-Fi Trivia Gauntlet</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Day 2 Card */}
-          <div className="p-6 bg-doom-bg2 border border-white/[0.08] doom-btn-clipped space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <span className="font-display text-lg font-bold text-text-primary uppercase">DAY 02 // MARCH 16, 2026</span>
-              <span className="font-mono text-[10px] text-doom-glow px-2 py-0.5 bg-doom-glow/10 border border-doom-glow/30">09:00 — 22:00 IST</span>
-            </div>
-            <ul className="space-y-3 font-mono text-xs text-text-muted">
-              <li className="flex items-start gap-2">
-                <span className="text-doom-glow font-bold">09:00</span>
-                <span>Hackathon 24h Pitching & Final Product Evaluations</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-doom-glow font-bold">10:00</span>
-                <span>Algorithmic Arena: Competitive Speed Coding Battle</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-doom-glow font-bold">11:00</span>
-                <span>Robo Wars: Metal Carnage Combat Deathmatches (Steel Arena)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-doom-glow font-bold">18:00</span>
-                <span>Battle of the Bands & Stage Arts Grand Finale (Amphitheatre)</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 5: ANNOUNCEMENTS PREVIEW
-          ========================================================================= */}
-      {announcements.length > 0 && (
-        <section className="relative z-10 py-12 px-4 sm:px-6 md:px-8 max-w-6xl mx-auto border-t border-white/[0.08]">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2">
-              <Bell size={18} className="text-doom-glow" />
-              <h2 className="font-display text-xl sm:text-2xl font-bold uppercase tracking-wider text-text-primary">
-                OFFICIAL ANNOUNCEMENTS
-              </h2>
-            </div>
-            <Link
-              to="/announcements"
-              className="font-mono text-xs text-text-muted hover:text-doom-glow uppercase tracking-wider transition-colors"
-            >
-              All Alerts &rarr;
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {announcements.map((item) => (
-              <div key={item._id} className="p-4 bg-doom-bg2 border border-white/[0.06] doom-btn-clipped space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 bg-doom-glow/10 border border-doom-glow/30 text-doom-glow font-bold">
-                    {item.category}
-                  </span>
-                  <span className="font-mono text-[10px] text-text-muted">
-                    {new Date(item.publishedAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <h3 className="font-display text-sm font-bold text-text-primary truncate">
-                  {item.title}
-                </h3>
-                <p className="font-body text-xs text-text-muted line-clamp-2 leading-relaxed">
-                  {item.content}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* =========================================================================
           SECTION 6: FAQ ACCORDION PREVIEW
@@ -515,8 +388,6 @@ export default function Home() {
           <div className="flex items-center gap-6 flex-wrap justify-center text-[11px] uppercase tracking-wider">
             <Link to="/" className="hover:text-doom-glow transition-colors">Home</Link>
             <Link to="/events" className="hover:text-doom-glow transition-colors">Events</Link>
-            <Link to="/schedule" className="hover:text-doom-glow transition-colors">Schedule</Link>
-            <Link to="/announcements" className="hover:text-doom-glow transition-colors">Alerts</Link>
             <Link to="/faq" className="hover:text-doom-glow transition-colors">FAQ</Link>
           </div>
 

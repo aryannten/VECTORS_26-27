@@ -44,7 +44,7 @@ const FAQ_DATA = [
       },
       {
         q: 'What does "Capacity Reached" or "Registration Closed" mean?',
-        a: 'To guarantee quality and safety, each venue and event has an atomic capacity limit. Once maximum capacity is reached, the system closes registration. Check announcements if additional slots are released.',
+        a: 'To guarantee quality and safety, each venue and event has an atomic capacity limit. Once maximum capacity is reached, the system closes registration. Check the event vault if additional slots are released.',
       },
     ],
   },
@@ -61,8 +61,8 @@ const FAQ_DATA = [
         a: 'Outstation participants registered for multi-day events or the 24-hour Doomsday Hackathon will receive dormitory access pass credentials upon physical verification at the help desk.',
       },
       {
-        q: 'Where do I find the latest venue and schedule updates?',
-        a: 'Visit the live Festival Schedule (`/schedule`) or check Official Announcements (`/announcements`) for real-time room assignments and alerts.',
+        q: 'Where do I find the latest venue and timing updates?',
+        a: 'Visit the Event Vaults (`/events`) for real-time venue assignments, briefings, and updates.',
       },
     ],
   },
@@ -251,12 +251,6 @@ export default function FAQ() {
           >
             <span>Explore Events</span>
             <ArrowRight size={13} />
-          </Link>
-          <Link
-            to="/announcements"
-            className="px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/15 text-bone font-mono text-xs uppercase tracking-wider transition-colors inline-flex items-center gap-2"
-          >
-            <span>Live Alerts</span>
           </Link>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminLayout from './components/AdminLayout'
@@ -16,8 +16,6 @@ const EntryRegistration = lazy(() => import('./pages/EntryRegistration'))
 const MyPass = lazy(() => import('./pages/MyPass'))
 const Events = lazy(() => import('./pages/Events'))
 const EventDetail = lazy(() => import('./pages/EventDetail'))
-const Schedule = lazy(() => import('./pages/Schedule'))
-const Announcements = lazy(() => import('./pages/Announcements'))
 const FAQ = lazy(() => import('./pages/FAQ'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Security = lazy(() => import('./pages/Security'))
@@ -70,8 +68,8 @@ function App() {
               {/* Public discovery routes */}
               <Route path="events" element={<Events />} />
               <Route path="events/:eventId" element={<EventDetail />} />
-              <Route path="schedule" element={<Schedule />} />
-              <Route path="announcements" element={<Announcements />} />
+              <Route path="schedule" element={<Navigate to="/events" replace />} />
+              <Route path="announcements" element={<Navigate to="/events" replace />} />
               <Route path="faq" element={<FAQ />} />
 
               {/* Protected user routes: requires login */}

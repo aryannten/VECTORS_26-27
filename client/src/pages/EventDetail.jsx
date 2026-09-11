@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, 
-  MapPin, 
-  Calendar, 
   Users, 
   DollarSign, 
   Trophy, 
@@ -11,8 +9,7 @@ import {
   UserCheck, 
   HelpCircle, 
   CheckCircle2, 
-  ChevronDown, 
-  Compass 
+  ChevronDown 
 } from 'lucide-react'
 import { getEventById } from '../data/events'
 import { useAuth } from '../contexts/AuthContext'
@@ -121,8 +118,65 @@ export default function EventDetail() {
   const isFull = eventData.status === 'full'
   const isClosed = eventData.status === 'closed' || eventData.status === 'completed' || !eventData.registrationOpen
 
+  const renderRegisterButton = (customClass = '') => {
+    if (eventData.googleFormUrl && eventData.googleFormUrl.startsWith('http')) {
+      return (
+        <a
+          href={eventData.googleFormUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`doom-btn-primary text-center inline-block ${customClass}`}
+          id="btn-register-google-form"
+        >
+          <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3 px-6 text-xs tracking-widest uppercase">
+            <span>OPEN REGISTRATION FORM ↗</span>
+          </span>
+        </a>
+      )
+    }
+
+    if (isRegistered) {
+      return (
+        <button
+          onClick={() => navigate('/dashboard')}
+          className={`doom-btn-primary text-center ${customClass}`}
+        >
+          <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3 px-6 text-xs tracking-widest uppercase">
+            <CheckCircle2 size={14} />
+            <span>VIEW IN DASHBOARD</span>
+          </span>
+        </button>
+      )
+    }
+
+    return (
+      <button
+        disabled={isClosed || isFull}
+        onClick={() => {
+          if (eventData.googleFormUrl && eventData.googleFormUrl !== '#') {
+            window.open(eventData.googleFormUrl, '_blank', 'noopener,noreferrer')
+          } else {
+            setShowRegisterModal(true)
+          }
+        }}
+        className={`doom-btn-primary text-center disabled:opacity-50 disabled:pointer-events-none ${customClass}`}
+        id="btn-register-participate"
+      >
+        <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3 px-6 text-xs tracking-widest uppercase">
+          <span>
+            {isFull 
+              ? 'EVENT FULL' 
+              : isClosed 
+              ? 'REGISTRATION CLOSED' 
+              : 'REGISTER VIA FORM / PORTAL'}
+          </span>
+        </span>
+      </button>
+    )
+  }
+
   return (
-    <div className="min-h-screen px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-36 relative z-10">
+    <div className="min-h-screen px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-16 relative z-10">
       <div className="max-w-3xl mx-auto space-y-8 sm:space-y-10">
         
         {/* Breadcrumb Navigation & Top Action */}
@@ -207,13 +261,15 @@ export default function EventDetail() {
               </Link>
             </div>
           )}
+
+          <div className="pt-2">
+            {renderRegisterButton('w-full sm:w-auto sm:min-w-[240px]')}
+          </div>
         </div>
 
         {/* Specifications Matrix */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {[
-            { label: 'Date & Time', value: `${eventData.date} // ${eventData.startTime || '09:00 IST'}`, icon: Calendar },
-            { label: 'Venue Location', value: eventData.venue, icon: MapPin },
             { label: 'Registration Fee', value: eventData.fee, icon: DollarSign },
             { label: 'Team Structure', value: eventData.teamSize, icon: Users },
           ].map((item) => {
@@ -235,39 +291,8 @@ export default function EventDetail() {
           })}
         </div>
 
-        {/* Structured Venue Details */}
-        {eventData.venueDetails && (
-          <div className="p-4 sm:p-5 bg-doom-bg2 border border-white/[0.08] doom-btn-clipped space-y-3">
-            <div className="flex items-center gap-2">
-              <Compass size={16} className="text-doom-glow" />
-              <h2 className="font-display text-base font-bold uppercase tracking-wider text-text-primary">
-                VENUE & DIRECTIONS
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs text-text-muted">
-              <div>
-                <span className="text-[10px] text-text-muted/60 uppercase block">Building</span>
-                <span className="text-text-primary font-bold">{eventData.venueDetails.building || 'Campus Tech Block'}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-text-muted/60 uppercase block">Floor & Sector</span>
-                <span className="text-text-primary font-bold">{eventData.venueDetails.floor || 'Ground Level'}</span>
-              </div>
-              <div>
-                <span className="text-[10px] text-text-muted/60 uppercase block">Room / Hall</span>
-                <span className="text-text-primary font-bold">{eventData.venueDetails.room || eventData.venue}</span>
-              </div>
-            </div>
-            {eventData.venueDetails.directions && (
-              <p className="font-mono text-xs text-text-muted border-t border-white/[0.04] pt-2">
-                <strong>Directions:</strong> {eventData.venueDetails.directions}
-              </p>
-            )}
-          </div>
-        )}
-
         {/* Prize Pool Banner (if applicable) */}
-        {eventData.prizePool && (
+        {(eventData.prizePool || eventData.firstPrize) && (
           <div className="p-4 sm:p-5 bg-gradient-to-r from-doom-glow/10 via-doom-bg2 to-doom-bg2 border border-doom-glow/40 doom-btn-clipped flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-sm bg-doom-glow/20 border border-doom-glow/50 flex items-center justify-center text-doom-glow shrink-0">
@@ -282,6 +307,23 @@ export default function EventDetail() {
                 </p>
               </div>
             </div>
+
+            {(eventData.firstPrize || eventData.secondPrize) && (
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                {eventData.firstPrize && (
+                  <div className="px-3.5 py-2 bg-doom-glow/10 border border-doom-glow/40 text-center font-mono">
+                    <span className="text-[10px] text-doom-glow uppercase block font-bold tracking-widest">1ST PRIZE</span>
+                    <span className="text-sm sm:text-base font-bold text-text-primary">{eventData.firstPrize}</span>
+                  </div>
+                )}
+                {eventData.secondPrize && (
+                  <div className="px-3.5 py-2 bg-white/[0.04] border border-white/[0.1] text-center font-mono">
+                    <span className="text-[10px] text-text-muted uppercase block font-bold tracking-widest">2ND PRIZE</span>
+                    <span className="text-sm sm:text-base font-bold text-text-primary">{eventData.secondPrize}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -323,9 +365,26 @@ export default function EventDetail() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {eventData.coordinators.map((c, i) => (
-                <div key={i} className="p-3.5 bg-doom-bg2 border border-white/[0.06] font-mono text-xs">
-                  <span className="text-text-primary font-bold block">{c.name}</span>
-                  <span className="text-doom-glow/90 mt-0.5 block">{c.contact}</span>
+                <div key={i} className="p-3.5 bg-doom-bg2 border border-white/[0.06] font-mono text-xs flex items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-text-primary font-bold">{c.name}</span>
+                      {c.role && (
+                        <span className="text-[10px] text-doom-glow uppercase px-1.5 py-0.5 bg-doom-glow/10 border border-doom-glow/30 font-bold">
+                          {c.role}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-text-muted mt-0.5 block">{c.contact}</span>
+                  </div>
+                  {c.contact && (
+                    <a
+                      href={`tel:${c.contact.replace(/[^0-9+]/g, '')}`}
+                      className="px-3 py-1 bg-white/[0.04] hover:bg-doom-glow/20 border border-white/10 hover:border-doom-glow text-doom-glow text-[11px] font-bold tracking-wider uppercase transition-colors shrink-0"
+                    >
+                      Call
+                    </a>
+                  )}
                 </div>
               ))}
             </div>
@@ -363,70 +422,25 @@ export default function EventDetail() {
           </div>
         )}
 
-      </div>
-
-      {/* Floating / Sticky Registration CTA Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 sm:p-5 bg-doom-bg/95 backdrop-blur-xl border-t border-doom-glow/30 shadow-[0_-10px_35px_rgba(0,0,0,0.8)] z-40">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
-          <div className="min-w-0 hidden sm:block">
-            <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider block truncate">
-              {eventData.category} // {eventData.branch}
+        {/* Arena Registration Protocol Section */}
+        <div className="p-6 sm:p-8 bg-doom-bg2 border border-doom-glow/40 doom-btn-clipped shadow-[0_0_30px_rgba(30,255,160,0.1)] flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="space-y-1.5 text-center sm:text-left">
+            <span className="font-mono text-[10px] text-doom-glow uppercase tracking-widest font-bold block">
+              OFFICIAL REGISTRATION GATE
             </span>
-            <span className="font-display text-sm font-bold text-text-primary truncate block">
+            <h3 className="font-display text-xl sm:text-2xl font-bold uppercase text-text-primary">
               {eventData.name}
-            </span>
+            </h3>
+            <p className="font-mono text-xs text-text-muted">
+              Registration Fee: <strong className="text-text-primary">{eventData.fee}</strong> &bull; Team Format: <strong className="text-text-primary">{eventData.teamSize}</strong>
+            </p>
           </div>
 
-          <div className="w-full sm:w-auto flex items-center gap-3 justify-end">
-            {eventData.googleFormUrl && eventData.googleFormUrl.startsWith('http') ? (
-              <a
-                href={eventData.googleFormUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="doom-btn-primary w-full sm:w-auto sm:min-w-[260px] text-center inline-block"
-                id="btn-register-google-form"
-              >
-                <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3.5 text-xs tracking-widest uppercase">
-                  <span>OPEN REGISTRATION FORM ↗</span>
-                </span>
-              </a>
-            ) : isRegistered ? (
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="doom-btn-primary w-full sm:w-auto sm:min-w-[260px] text-center"
-              >
-                <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3.5 text-xs tracking-widest">
-                  <CheckCircle2 size={14} />
-                  <span>VIEW IN DASHBOARD</span>
-                </span>
-              </button>
-            ) : (
-              <button
-                disabled={isClosed || isFull}
-                onClick={() => {
-                  if (eventData.googleFormUrl && eventData.googleFormUrl !== '#') {
-                    window.open(eventData.googleFormUrl, '_blank', 'noopener,noreferrer')
-                  } else {
-                    // Fallback to in-app registration modal or coming-soon alert
-                    setShowRegisterModal(true)
-                  }
-                }}
-                className="doom-btn-primary w-full sm:w-auto sm:min-w-[260px] text-center disabled:opacity-50 disabled:pointer-events-none"
-                id="btn-register-participate"
-              >
-                <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3.5 text-xs tracking-widest">
-                  <span>
-                    {isFull 
-                      ? 'EVENT FULL' 
-                      : isClosed 
-                      ? 'REGISTRATION CLOSED' 
-                      : 'REGISTER VIA FORM / PORTAL'}
-                  </span>
-                </span>
-              </button>
-            )}
+          <div className="w-full sm:w-auto shrink-0">
+            {renderRegisterButton('w-full sm:w-auto sm:min-w-[260px]')}
           </div>
         </div>
+
       </div>
 
       {/* In-App Registration Modal */}

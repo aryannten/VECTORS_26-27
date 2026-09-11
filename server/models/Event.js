@@ -100,6 +100,14 @@ const eventSchema = new mongoose.Schema(
       type: String,
       default: 'Cash Prizes & Certificates',
     },
+    firstPrize: {
+      type: String,
+      default: '',
+    },
+    secondPrize: {
+      type: String,
+      default: '',
+    },
     eligibility: {
       type: String,
       default: 'Open to all enrolled undergraduate and diploma students with valid college ID.',

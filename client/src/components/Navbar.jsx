@@ -12,7 +12,7 @@ import { useAuth } from '../contexts/AuthContext'
  * - 1px accent glow seam along the bottom
  * - Minimal cracked "V" monogram + VECTORS badge
  * - Desktop nav links with center-expanding emerald underline on hover
- * - Full route coverage: Home, Events, Schedule, My Pass, Dashboard, Alerts, FAQ
+ * - Full route coverage: Home, Events, My Pass, Dashboard, FAQ
  * - Outlined ring avatar with active glow for logged-in user
  * - Mobile slide-down dark panel with touch-friendly navigation
  */
@@ -23,7 +23,7 @@ export default function Navbar() {
   const { user, userRole, logout, loading, hasPass } = useAuth()
 
   // Top-level pages don't show a back button
-  const topLevelPaths = ['/', '/events', '/login', '/signup', '/schedule', '/announcements', '/faq', '/dashboard']
+  const topLevelPaths = ['/', '/events', '/login', '/signup', '/faq', '/dashboard']
   const isTopLevel = topLevelPaths.includes(location.pathname)
 
   // Lock body scroll when mobile menu is open
@@ -64,17 +64,14 @@ export default function Navbar() {
     ? [
         { to: '/', label: 'Home', index: '01' },
         { to: '/events', label: 'Events', index: '02' },
-        { to: '/schedule', label: 'Schedule', index: '03' },
-        { to: hasPass ? '/my-pass' : '/entry-registration', label: hasPass ? 'My Pass' : 'Entry Pass', index: '04' },
-        { to: '/dashboard', label: 'Dashboard', index: '05' },
-        { to: '/announcements', label: 'Alerts', index: '06' },
-        { to: '/faq', label: 'FAQ', index: '07' },
+        { to: hasPass ? '/my-pass' : '/entry-registration', label: hasPass ? 'My Pass' : 'Entry Pass', index: '03' },
+        { to: '/dashboard', label: 'Dashboard', index: '04' },
+        { to: '/faq', label: 'FAQ', index: '05' },
       ]
     : [
         { to: '/', label: 'Home', index: '01' },
-        { to: '/schedule', label: 'Schedule', index: '02' },
-        { to: '/announcements', label: 'Alerts', index: '03' },
-        { to: '/faq', label: 'FAQ', index: '04' },
+        { to: '/events', label: 'Events', index: '02' },
+        { to: '/faq', label: 'FAQ', index: '03' },
       ]
 
   const handleLogout = async () => {

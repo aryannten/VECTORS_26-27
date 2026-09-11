@@ -11,7 +11,6 @@ import {
   Trash2, 
   Download, 
   ArrowRight, 
-  Bell, 
   RefreshCw 
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -22,7 +21,6 @@ import { useAuth } from '../contexts/AuthContext'
  * 1. Digital Entry Pass Credential with QR
  * 2. Registered Events Matrix with Cancel option
  * 3. Personal Festival Timeline Agenda
- * 4. Recent Announcements
  */
 export default function Dashboard() {
   const { user, getToken } = useAuth()
@@ -143,7 +141,7 @@ export default function Dashboard() {
     )
   }
 
-  const { entryPass, registeredEvents, announcements } = data
+  const { entryPass, registeredEvents } = data
 
   return (
     <div className="min-h-screen px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-20 relative z-10">
@@ -187,7 +185,7 @@ export default function Dashboard() {
         )}
 
         {/* Top Grid: Entry Pass Credential + Quick Telemetry */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           {/* 1. Digital Entry Pass Card */}
           <div className="p-6 bg-doom-bg2 border border-doom-glow/40 doom-btn-clipped relative overflow-hidden flex flex-col justify-between space-y-4">
@@ -288,43 +286,6 @@ export default function Dashboard() {
               >
                 <span>Register for more events</span>
                 <ArrowRight size={12} />
-              </Link>
-            </div>
-          </div>
-
-          {/* 3. Live Announcements Feed */}
-          <div className="p-6 bg-doom-bg2 border border-white/[0.08] doom-btn-clipped flex flex-col justify-between space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] text-doom-glow uppercase tracking-widest px-2 py-0.5 bg-doom-glow/10 border border-doom-glow/30 flex items-center gap-1 font-bold">
-                  <Bell size={11} />
-                  <span>OFFICIAL ALERTS</span>
-                </span>
-                <Link to="/announcements" className="font-mono text-[10px] text-text-muted hover:text-white uppercase">
-                  All &rarr;
-                </Link>
-              </div>
-
-              <div className="space-y-2.5">
-                {announcements.length === 0 ? (
-                  <p className="font-mono text-xs text-text-muted py-4">No new alerts at this time.</p>
-                ) : (
-                  announcements.map(item => (
-                    <div key={item._id} className="p-2.5 bg-doom-bg border border-white/[0.04] space-y-1">
-                      <p className="font-display text-xs font-bold text-text-primary truncate">{item.title}</p>
-                      <p className="font-body text-[11px] text-text-muted line-clamp-1">{item.content}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-white/[0.06]">
-              <Link
-                to="/announcements"
-                className="font-mono text-xs text-text-muted hover:text-doom-glow uppercase tracking-wider transition-colors"
-              >
-                View Notice Board &rarr;
               </Link>
             </div>
           </div>

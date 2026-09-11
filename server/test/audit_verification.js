@@ -156,7 +156,7 @@ async function runAudit() {
 
     // Audit Atomic Concurrency logic
     console.log('\n4. Verifying Atomic Reservation Query Structure...')
-    const testSlug = 'hackathon'
+    const testSlug = 'prompt-mania'
     const event = await Event.findOne({ slug: testSlug })
     if (event) {
       console.log(`Testing atomic query filter for ${testSlug} (Capacity: ${event.capacity}, Current: ${event.registrationCount})...`)

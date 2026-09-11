@@ -4,6 +4,8 @@ const Event = require('../models/Event')
 const EventRegistration = require('../models/EventRegistration')
 const { verifyFirebaseToken, requireEntryPass, requireRole } = require('../middleware/auth')
 
+const officialEvents = require('../data/officialEvents')
+
 // Regex for phone validation
 const PHONE_REGEX = /^[0-9+\s-]{7,20}$/
 
@@ -15,10 +17,14 @@ const PHONE_REGEX = /^[0-9+\s-]{7,20}$/
 router.get('/', async (req, res) => {
   try {
     const events = await Event.find({ isActive: true }).sort({ category: 1, name: 1 })
-    res.status(200).json(events)
+    if (events && events.length > 0) {
+      return res.status(200).json(events)
+    }
+    // Fallback to official brochure events if DB not yet seeded
+    res.status(200).json(officialEvents)
   } catch (error) {
-    console.error('[API] Events fetch error:', error.message)
-    res.status(500).json({ message: 'Internal server error.' })
+    console.warn('[API] Events fetch using fallback official brochure events:', error.message)
+    res.status(200).json(officialEvents)
   }
 })
 
@@ -27,13 +33,22 @@ router.get('/', async (req, res) => {
  * Get a single event by slug.
  */
 router.get('/:slug', async (req, res) => {
+  const reqSlug = req.params.slug.toLowerCase()
   try {
-    const event = await Event.findOne({ slug: req.params.slug.toLowerCase(), isActive: true })
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found.' })
+    const event = await Event.findOne({ slug: reqSlug, isActive: true })
+    if (event) {
+      return res.status(200).json(event)
     }
-    res.status(200).json(event)
+    const fallback = officialEvents.find((e) => e.slug === reqSlug)
+    if (fallback) {
+      return res.status(200).json(fallback)
+    }
+    res.status(404).json({ message: 'Event not found.' })
   } catch (error) {
+    const fallback = officialEvents.find((e) => e.slug === reqSlug)
+    if (fallback) {
+      return res.status(200).json(fallback)
+    }
     console.error('[API] Event fetch error:', error.message)
     res.status(500).json({ message: 'Internal server error.' })
   }

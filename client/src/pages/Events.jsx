@@ -6,15 +6,12 @@ import {
   Gamepad2, 
   ArrowLeft, 
   ArrowRight, 
-  Calendar, 
-  MapPin, 
   Users, 
   Search, 
   Filter, 
   X, 
   RotateCcw, 
-  CheckCircle2, 
-  Clock 
+  CheckCircle2 
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { eventsData } from '../data/events'
@@ -529,23 +526,19 @@ export default function Events() {
                         </p>
                       </div>
 
-                      <div className="space-y-3 pt-3 border-t border-white/[0.06]">
-                        <div className="grid grid-cols-2 gap-2 font-mono text-[11px] text-text-muted">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <Calendar size={12} className="text-doom-glow shrink-0" />
-                            <span className="truncate">{evt.date}</span>
+                      <div className="pt-3 border-t border-white/[0.06]">
+                        <div className="flex items-center justify-between pt-1 gap-2">
+                          <div>
+                            <span className="font-mono text-xs text-text-primary font-bold block">
+                              Fee: {evt.fee}
+                            </span>
+                            {evt.prizePool && (
+                              <span className="font-mono text-[10px] text-doom-glow font-semibold block">
+                                🏆 {evt.prizePool}
+                              </span>
+                            )}
                           </div>
-                          <div className="flex items-center gap-1.5 truncate">
-                            <MapPin size={12} className="text-doom-glow shrink-0" />
-                            <span className="truncate">{evt.venue}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-1">
-                          <span className="font-mono text-xs text-text-primary font-bold">
-                            {evt.fee}
-                          </span>
-                          <span className="inline-flex items-center gap-1 font-mono text-xs text-doom-glow group-hover:translate-x-1 transition-transform">
+                          <span className="inline-flex items-center gap-1 font-mono text-xs text-doom-glow group-hover:translate-x-1 transition-transform shrink-0">
                             <span>ACCESS VAULT</span>
                             <ArrowRight size={13} />
                           </span>
