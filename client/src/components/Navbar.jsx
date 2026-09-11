@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, LogOut, Shield, LayoutDashboard, User } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { useAuth } from '../contexts/AuthContext'
+import SpecularButton from './ui/SpecularButton'
 
 /**
  * Navbar — VECTORS 26–27 Navigation Bar
@@ -109,6 +110,26 @@ export default function Navbar() {
               className="h-10 sm:h-11 w-auto max-w-[170px] sm:max-w-[200px] object-contain transition-transform duration-300 group-hover:scale-105 mix-blend-screen"
             />
           </Link>
+
+          {/* Google Gemini AI Partner Badge */}
+          <div className="hidden sm:flex items-center gap-1.5 pl-2.5 sm:pl-3 border-l border-white/10 py-0.5">
+            <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0">
+              <path
+                d="M12 24C12 17.3726 6.62742 12 0 12C6.62742 12 12 6.62742 12 0C12 6.62742 17.3726 12 24 12C17.3726 12 12 17.3726 12 24Z"
+                fill="url(#gemini-nav-grad)"
+              />
+              <defs>
+                <linearGradient id="gemini-nav-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#1EFFA0" />
+                  <stop offset="0.5" stopColor="#38BDF8" />
+                  <stop offset="1" stopColor="#A78BFA" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-text-muted/70 hover:text-doom-glow transition-colors font-semibold">
+              GEMINI
+            </span>
+          </div>
         </div>
 
         {/* Center: Desktop Nav Links */}
@@ -161,14 +182,19 @@ export default function Navbar() {
                   )}
 
                   {/* Quick pass CTA */}
-                  <Link
+                  <SpecularButton
                     to={hasPass ? "/my-pass" : "/entry-registration"}
-                    className="doom-btn-primary !p-[1px] hidden sm:inline-flex"
+                    size="sm"
+                    radius={10}
+                    lineColor="#1EFFA0"
+                    baseColor="#0E1216"
+                    textColor="#1EFFA0"
+                    followMouse
+                    proximity={200}
+                    className="hidden sm:inline-flex !py-1 !px-3 !text-[10px]"
                   >
-                    <span className="doom-btn-primary-inner !py-1.5 !px-3 !text-[10px] !tracking-wider">
-                      {hasPass ? 'My Pass' : 'Get Pass'}
-                    </span>
-                  </Link>
+                    {hasPass ? 'My Pass' : 'Get Pass'}
+                  </SpecularButton>
 
                   {/* Avatar ring shortcut to Dashboard */}
                   <Link
@@ -194,14 +220,19 @@ export default function Navbar() {
               ) : (
                 /* Logged Out State */
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <Link
+                  <SpecularButton
                     to="/login"
-                    className="doom-btn-primary !p-[1px]"
+                    size="sm"
+                    radius={12}
+                    lineColor="#1EFFA0"
+                    baseColor="#0D1115"
+                    textColor="#1EFFA0"
+                    followMouse
+                    proximity={250}
+                    className="!py-1.5 !px-3.5 !text-[11px] font-mono tracking-wider font-semibold uppercase"
                   >
-                    <span className="doom-btn-primary-inner !py-1.5 !px-3.5 !text-[11px] !tracking-wider">
-                      Join Portal
-                    </span>
-                  </Link>
+                    ENTER THE PORTAL
+                  </SpecularButton>
                 </div>
               )}
             </>
@@ -315,15 +346,18 @@ export default function Navbar() {
                 </>
               ) : (
                 <div className="flex flex-col gap-2.5">
-                  <Link
+                  <SpecularButton
                     to="/login"
                     onClick={() => setIsOpen(false)}
-                    className="doom-btn-primary w-full text-center"
+                    size="md"
+                    radius={12}
+                    lineColor="#1EFFA0"
+                    baseColor="#0D1115"
+                    textColor="#1EFFA0"
+                    className="w-full text-center font-mono tracking-wider font-semibold uppercase !text-xs"
                   >
-                    <span className="doom-btn-primary-inner w-full py-2.5 text-xs">
-                      Join Portal
-                    </span>
-                  </Link>
+                    ENTER THE PORTAL
+                  </SpecularButton>
                 </div>
               )}
             </div>

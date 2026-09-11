@@ -11,11 +11,24 @@ const Event = require('./models/Event')
 const Announcement = require('./models/Announcement')
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require(process.env.FIREBASE_SERVICE_ACCOUNT_PATH || './serviceAccountKey.json')
-initializeApp({
-  credential: cert(serviceAccount),
-})
-console.log('[Firebase] Admin SDK initialized.')
+const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || './serviceAccountKey.json'
+const fs = require('fs')
+const path = require('path')
+const resolvedServicePath = path.resolve(__dirname, serviceAccountPath)
+
+if (fs.existsSync(resolvedServicePath)) {
+  try {
+    const serviceAccount = require(resolvedServicePath)
+    initializeApp({
+      credential: cert(serviceAccount),
+    })
+    console.log('[Firebase] Admin SDK initialized.')
+  } catch (err) {
+    console.warn('[Firebase] Admin SDK initialization failed:', err.message)
+  }
+} else {
+  console.warn(`[Firebase] Service account file not found at ${resolvedServicePath}. Running with auth mock/offline mode.`)
+}
 
 // Import routes
 const registrationRoutes = require('./routes/registration')

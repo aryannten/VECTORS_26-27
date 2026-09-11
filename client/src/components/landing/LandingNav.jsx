@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { Menu, X, LogOut, LayoutDashboard, Shield, User } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import SpecularButton from '../ui/SpecularButton'
 
 const NAV_LINKS = [
   { label: 'Prologue', href: '#prologue' },
@@ -33,10 +34,16 @@ export default function LandingNav() {
     navigate('/')
   }
 
-  // Scroll detection
+  // Scroll detection — navbar stays transparent during the 50-frame prologue sequence
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 60)
+      const overviewEl = document.getElementById('overview')
+      if (overviewEl) {
+        const rect = overviewEl.getBoundingClientRect()
+        setScrolled(rect.top <= 80)
+      } else {
+        setScrolled(window.scrollY > 2400)
+      }
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
@@ -102,25 +109,44 @@ export default function LandingNav() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           <div className="flex items-center justify-between h-16 md:h-18">
-            {/* Wordmark */}
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault()
-                window.scrollTo({ top: 0, behavior: 'smooth' })
-              }}
-              className="flex items-center gap-2.5 group"
-            >
-              <div className="relative">
-                <span className="font-display text-lg md:text-xl font-bold tracking-[0.15em] text-text-primary uppercase group-hover:text-doom-glow transition-colors duration-300">
-                  VECTORS
+            {/* Brand with Vector Logo & Gemini Logo */}
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+                className="flex items-center gap-2 group select-none"
+                aria-label="VECTORS 26 Home"
+              >
+                <img
+                  src="/vector26-logo.svg"
+                  alt="VECTORS 26"
+                  className="h-9 sm:h-10 w-auto max-w-[145px] sm:max-w-[175px] object-contain transition-transform duration-300 group-hover:scale-105 mix-blend-screen"
+                />
+              </a>
+
+              {/* Google Gemini AI Partner Badge */}
+              <div className="hidden sm:flex items-center gap-1.5 pl-2.5 sm:pl-3 border-l border-white/10 py-0.5">
+                <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0">
+                  <path
+                    d="M12 24C12 17.3726 6.62742 12 0 12C6.62742 12 12 6.62742 12 0C12 6.62742 17.3726 12 24 12C17.3726 12 12 17.3726 12 24Z"
+                    fill="url(#gemini-nav-grad)"
+                  />
+                  <defs>
+                    <linearGradient id="gemini-nav-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#1EFFA0" />
+                      <stop offset="0.5" stopColor="#38BDF8" />
+                      <stop offset="1" stopColor="#A78BFA" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-text-muted/70 group-hover:text-doom-glow transition-colors font-semibold">
+                  GEMINI
                 </span>
-                <span className="absolute -bottom-0.5 left-0 w-full h-[1.5px] bg-gradient-to-r from-doom-glow via-doom-glow/50 to-transparent scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500" />
               </div>
-              <span className="hidden sm:inline font-mono text-[9px] tracking-[0.25em] text-text-muted/50 uppercase mt-0.5">
-                2026
-              </span>
-            </a>
+            </div>
 
             {/* Desktop Section Links */}
             <div className="hidden md:flex items-center gap-1">
@@ -180,14 +206,19 @@ export default function LandingNav() {
                       )}
 
                       {/* Quick Pass CTA */}
-                      <Link
+                      <SpecularButton
                         to={hasPass ? '/my-pass' : '/entry-registration'}
-                        className="doom-btn-primary text-[11px] hidden sm:inline-flex"
+                        size="sm"
+                        radius={10}
+                        lineColor="#1EFFA0"
+                        baseColor="#0E1216"
+                        textColor="#1EFFA0"
+                        followMouse
+                        proximity={200}
+                        className="hidden sm:inline-flex !py-1 !px-3.5 !text-[10px]"
                       >
-                        <span className="doom-btn-primary-inner !py-1.5 !px-3.5 !text-[10px] !tracking-wider">
-                          {hasPass ? 'My Pass' : 'Get Pass'}
-                        </span>
-                      </Link>
+                        {hasPass ? 'My Pass' : 'Get Pass'}
+                      </SpecularButton>
 
                       {/* User Avatar Circle -> Dashboard */}
                       <Link
@@ -214,14 +245,19 @@ export default function LandingNav() {
                   ) : (
                     /* ── Logged Out State ── */
                     <div className="flex items-center gap-2">
-                      <Link
+                      <SpecularButton
                         to="/login"
-                        className="hidden sm:inline-flex doom-btn-primary text-[11px]"
+                        size="sm"
+                        radius={12}
+                        lineColor="#1EFFA0"
+                        baseColor="#0D1115"
+                        textColor="#1EFFA0"
+                        followMouse
+                        proximity={250}
+                        className="hidden sm:inline-flex !py-1.5 !px-4 !text-[11px] font-mono tracking-wider font-semibold uppercase"
                       >
-                        <span className="doom-btn-primary-inner !py-1.5 !px-4">
-                          Sign In / Register
-                        </span>
-                      </Link>
+                        ENTER THE PORTAL
+                      </SpecularButton>
                     </div>
                   )}
                 </>
@@ -275,15 +311,18 @@ export default function LandingNav() {
               >
                 Dashboard
               </Link>
-              <Link
+              <SpecularButton
                 to={hasPass ? '/my-pass' : '/entry-registration'}
+                size="md"
+                radius={12}
+                lineColor="#1EFFA0"
+                baseColor="#0E1216"
+                textColor="#1EFFA0"
+                className="w-full text-center font-mono tracking-wider font-semibold uppercase !text-xs"
                 onClick={() => setMobileOpen(false)}
-                className="doom-btn-primary w-full text-center"
               >
-                <span className="doom-btn-primary-inner w-full !py-2">
-                  {hasPass ? 'My Pass' : 'Claim Pass'}
-                </span>
-              </Link>
+                {hasPass ? 'My Pass' : 'Claim Pass'}
+              </SpecularButton>
               <button
                 onClick={handleLogout}
                 className="font-mono text-xs tracking-wider uppercase text-doom-crimson-bright hover:underline mt-2"
@@ -292,16 +331,19 @@ export default function LandingNav() {
               </button>
             </div>
           ) : (
-            <div className="w-48">
-              <Link
+            <div className="w-52">
+              <SpecularButton
                 to="/login"
-                className="doom-btn-primary w-full text-center"
+                size="md"
+                radius={12}
+                lineColor="#1EFFA0"
+                baseColor="#0D1115"
+                textColor="#1EFFA0"
+                className="w-full text-center font-mono tracking-wider font-semibold uppercase !text-xs"
                 onClick={() => setMobileOpen(false)}
               >
-                <span className="doom-btn-primary-inner w-full !py-2">
-                  Sign In / Register
-                </span>
-              </Link>
+                ENTER THE PORTAL
+              </SpecularButton>
             </div>
           )}
         </div>

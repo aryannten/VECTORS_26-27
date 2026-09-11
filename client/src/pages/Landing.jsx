@@ -16,17 +16,10 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import LandingNav from '../components/landing/LandingNav'
 import ScrollCanvas from '../components/landing/ScrollCanvas'
+import SpecularButton from '../components/ui/SpecularButton'
 import { eventsData } from '../data/events'
 
 gsap.registerPlugin(ScrollTrigger)
-
-/* ─── constants ────────────────────────────────────────────── */
-const STATS = [
-  { label: 'Festival Dates', value: 'March 15–16' },
-  { label: 'Prize Pool', value: '₹1,50,000+' },
-  { label: 'Events Arsenal', value: '20+ Battles' },
-  { label: 'Participants', value: '1,500+ Expected' },
-]
 
 /* ─── component ────────────────────────────────────────────── */
 export default function Landing() {
@@ -300,49 +293,48 @@ export default function Landing() {
             <div className="w-12 sm:w-20 h-[1px] bg-gradient-to-l from-transparent to-doom-glow/60" />
           </div>
 
-          {/* Narrative description */}
-          <p className="overview-reveal mt-3 font-body text-xs sm:text-sm md:text-base text-text-muted/80 max-w-xl mx-auto leading-relaxed">
-            Two days. Seven battlegrounds. One stage where minds collide,
-            machines awaken, and ideas become reality.
-          </p>
-
           {/* Action CTAs */}
-          <div className="overview-reveal mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-            <button
+          <div className="overview-reveal mt-10 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <SpecularButton
+              size="lg"
+              radius={16}
+              lineColor="#1EFFA0"
+              baseColor="#0B0F13"
+              textColor="#1EFFA0"
+              intensity={1.2}
+              shineSize={12}
+              shineFade={45}
+              thickness={1.5}
+              speed={0.35}
+              followMouse
+              proximity={280}
               onClick={handleEntryPass}
-              className="doom-btn-primary"
               aria-label={hasPass ? 'View My Entry Pass' : 'Claim Entry Pass'}
             >
-              <span className="doom-btn-primary-inner !px-7">
-                {hasPass ? 'View My Pass' : 'Claim Entry Pass'}
-              </span>
-            </button>
+              {hasPass ? 'View My Pass' : 'Claim Entry Pass'}
+            </SpecularButton>
 
-            <button
+            <SpecularButton
+              size="lg"
+              radius={16}
+              variant="titanium"
+              lineColor="#ffffff"
+              baseColor="#12171C"
+              textColor="#EDEFF1"
+              intensity={0.8}
+              shineSize={10}
+              thickness={1}
+              speed={0.35}
+              followMouse
+              proximity={250}
               onClick={handleExploreEvents}
-              className="doom-btn-ghost"
               aria-label="Explore Events"
             >
-              <span>Explore Events</span>
-              <ArrowRight size={14} className="ghost-arrow text-doom-glow" />
-            </button>
-          </div>
-
-          {/* Key Metric Stats Cards */}
-          <div className="overview-reveal mt-12 sm:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
-            {STATS.map((stat, i) => (
-              <div
-                key={i}
-                className="p-4 bg-white/[0.03] border border-white/[0.08] hover:border-doom-glow/30 transition-all duration-300 text-center backdrop-blur-sm group"
-              >
-                <span className="block font-mono text-[9px] tracking-[0.2em] uppercase text-text-muted/60 group-hover:text-doom-glow/70 transition-colors">
-                  {stat.label}
-                </span>
-                <span className="block font-display text-base sm:text-lg md:text-xl font-bold text-text-primary mt-1 tracking-wide">
-                  {stat.value}
-                </span>
-              </div>
-            ))}
+              <span className="flex items-center gap-2">
+                <span>Explore Events</span>
+                <ArrowRight size={14} className="text-doom-glow transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+            </SpecularButton>
           </div>
         </div>
       </section>
@@ -356,12 +348,13 @@ export default function Landing() {
         className="relative py-24 sm:py-32 md:py-40 px-4 sm:px-6 md:px-8"
       >
         <div className="max-w-6xl mx-auto">
-          {/* Section label */}
-          <div className="reveal-up mb-6 flex items-center gap-3">
-            <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-doom-glow">
-              [ 01 // About ]
+          {/* Unified Section Header */}
+          <div className="reveal-up mb-8 flex items-center gap-3">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-doom-glow/[0.07] border border-doom-glow/20 text-doom-glow font-mono text-[10px] tracking-[0.25em] uppercase font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-doom-glow animate-pulse" />
+              About The Symposium
             </span>
-            <div className="flex-1 h-[1px] bg-gradient-to-r from-doom-glow/30 to-transparent" />
+            <div className="flex-1 h-[1px] bg-gradient-to-r from-doom-glow/30 via-white/[0.05] to-transparent" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
@@ -432,9 +425,10 @@ export default function Landing() {
           {/* Section header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
             <div>
-              <span className="font-mono text-[10px] tracking-[0.3em] uppercase text-doom-glow block mb-2">
-                [ 02 // Event Arsenal ]
-              </span>
+              <div className="mb-3 inline-flex items-center gap-2 px-3 py-1 bg-doom-glow/[0.07] border border-doom-glow/20 text-doom-glow font-mono text-[10px] tracking-[0.25em] uppercase font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-doom-glow animate-pulse" />
+                Event Arsenal
+              </div>
               <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-wider text-text-primary">
                 Two Days. The Ultimate Arena.
               </h2>
@@ -579,9 +573,10 @@ export default function Landing() {
         />
 
         <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <span className="cta-reveal font-mono text-[10px] tracking-[0.3em] uppercase text-doom-glow/60 block mb-5">
-            [ The Call ]
-          </span>
+          <div className="cta-reveal mb-5 inline-flex items-center gap-2 px-3.5 py-1.5 bg-doom-glow/[0.07] border border-doom-glow/20 text-doom-glow font-mono text-[10px] tracking-[0.25em] uppercase font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-doom-glow animate-pulse" />
+            Initiate Protocol
+          </div>
 
           <h2 className="cta-reveal font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold uppercase tracking-wider leading-[1.05] text-text-primary">
             Ready to Enter
@@ -597,24 +592,45 @@ export default function Landing() {
           </p>
 
           <div className="cta-reveal mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-            <button
+            <SpecularButton
+              size="xl"
+              radius={16}
+              lineColor="#1EFFA0"
+              baseColor="#0B0F13"
+              textColor="#1EFFA0"
+              intensity={1.3}
+              shineSize={14}
+              shineFade={50}
+              thickness={1.5}
+              speed={0.35}
+              followMouse
+              proximity={300}
               onClick={handleEntryPass}
-              className="doom-btn-primary"
-              aria-label={hasPass ? 'View My Entry Pass' : 'Claim Entry Pass'}
+              aria-label={hasPass ? 'View My Entry Pass' : 'Claim Your Entry Pass'}
             >
-              <span className="doom-btn-primary-inner !px-8">
-                {hasPass ? 'View My Pass' : 'Claim Your Entry Pass'}
-              </span>
-            </button>
+              {hasPass ? 'View My Pass' : 'Claim Your Entry Pass'}
+            </SpecularButton>
 
-            <button
+            <SpecularButton
+              size="xl"
+              radius={16}
+              variant="titanium"
+              lineColor="#ffffff"
+              baseColor="#12171C"
+              textColor="#EDEFF1"
+              intensity={0.8}
+              thickness={1}
+              speed={0.35}
+              followMouse
+              proximity={250}
               onClick={handleExploreEvents}
-              className="doom-btn-ghost"
               aria-label="Explore Event Vaults"
             >
-              <span>Explore Event Vaults</span>
-              <ArrowRight size={14} className="ghost-arrow text-doom-glow" />
-            </button>
+              <span className="flex items-center gap-2">
+                <span>Explore Event Vaults</span>
+                <ArrowRight size={14} className="text-doom-glow transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+            </SpecularButton>
           </div>
         </div>
       </section>
@@ -688,7 +704,7 @@ export default function Landing() {
                   className="font-mono text-[11px] tracking-wider text-text-muted/50 hover:text-doom-glow transition-colors uppercase py-1 flex items-center gap-2"
                 >
                   <ChevronRight size={10} />
-                  <span>Sign In / Register</span>
+                  <span>Enter The Portal</span>
                 </Link>
               </div>
             </div>
