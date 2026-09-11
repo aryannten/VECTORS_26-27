@@ -8,13 +8,14 @@ import {
   ShieldCheck, 
   UserCheck, 
   HelpCircle, 
-  CheckCircle2, 
   ChevronDown 
 } from 'lucide-react'
 import { getEventById } from '../data/events'
 import { useAuth } from '../contexts/AuthContext'
 import EntryPassGate from '../components/EntryPassGate'
-import EventRegistrationModal from '../components/EventRegistrationModal'
+
+/** Single Google Form for ALL event registrations */
+const REGISTRATION_FORM_URL = 'https://docs.google.com/forms/d/1TMafhheUgchGQZHPmEdVHght-KB_Nn_SN1pKOSkLXXI/viewform'
 
 /**
  * EventDetail — Individual Event Vault & Specifications
@@ -32,41 +33,19 @@ export default function EventDetail() {
   
   const [verificationError, setVerificationError] = useState(null)
   const [eventData, setEventData] = useState(() => getEventById(eventId || ''))
-  const [isRegistered, setIsRegistered] = useState(false)
-  const [registrationRecord, setRegistrationRecord] = useState(null)
-  const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [openFaq, setOpenFaq] = useState(null)
 
-  // Fetch live event data and user's registration status
+  // Fetch live event data from API with local fallback
   useEffect(() => {
     if (!eventId) return
 
-    // 1. Fetch live event metadata from API with local fallback
     fetch(`/api/events/${eventId}`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) setEventData(prev => ({ ...prev, ...data }))
       })
       .catch(() => {})
-
-    // 2. Check if authenticated user is already registered for this event
-    if (user) {
-      getToken().then(token => {
-        if (!token) return
-        fetch(`/api/events/${eventId}/my-registration`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-          .then(res => res.ok ? res.json() : null)
-          .then(data => {
-            if (data?.isRegistered) {
-              setIsRegistered(true)
-              setRegistrationRecord(data.registration)
-            }
-          })
-          .catch(() => {})
-      })
-    }
-  }, [eventId, user, getToken])
+  }, [eventId])
 
   // Gate: If pass status is loading, render clearance scanner
   if (passLoading) {
@@ -115,65 +94,20 @@ export default function EventDetail() {
   }
 
   const categoryQuery = eventData.category?.toLowerCase() || 'technical'
-  const isFull = eventData.status === 'full'
-  const isClosed = eventData.status === 'closed' || eventData.status === 'completed' || !eventData.registrationOpen
 
-  const renderRegisterButton = (customClass = '') => {
-    if (eventData.googleFormUrl && eventData.googleFormUrl.startsWith('http')) {
-      return (
-        <a
-          href={eventData.googleFormUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`doom-btn-primary text-center inline-block ${customClass}`}
-          id="btn-register-google-form"
-        >
-          <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3 px-6 text-xs tracking-widest uppercase">
-            <span>OPEN REGISTRATION FORM ↗</span>
-          </span>
-        </a>
-      )
-    }
-
-    if (isRegistered) {
-      return (
-        <button
-          onClick={() => navigate('/dashboard')}
-          className={`doom-btn-primary text-center ${customClass}`}
-        >
-          <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3 px-6 text-xs tracking-widest uppercase">
-            <CheckCircle2 size={14} />
-            <span>VIEW IN DASHBOARD</span>
-          </span>
-        </button>
-      )
-    }
-
-    return (
-      <button
-        disabled={isClosed || isFull}
-        onClick={() => {
-          if (eventData.googleFormUrl && eventData.googleFormUrl !== '#') {
-            window.open(eventData.googleFormUrl, '_blank', 'noopener,noreferrer')
-          } else {
-            setShowRegisterModal(true)
-          }
-        }}
-        className={`doom-btn-primary text-center disabled:opacity-50 disabled:pointer-events-none ${customClass}`}
-        id="btn-register-participate"
-      >
-        <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3 px-6 text-xs tracking-widest uppercase">
-          <span>
-            {isFull 
-              ? 'EVENT FULL' 
-              : isClosed 
-              ? 'REGISTRATION CLOSED' 
-              : 'REGISTER VIA FORM / PORTAL'}
-          </span>
-        </span>
-      </button>
-    )
-  }
+  const renderRegisterButton = (customClass = '') => (
+    <a
+      href={REGISTRATION_FORM_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`doom-btn-primary text-center inline-block ${customClass}`}
+      id="btn-register-google-form"
+    >
+      <span className="doom-btn-primary-inner flex items-center justify-center gap-2 py-3 px-6 text-xs tracking-widest uppercase">
+        <span>REGISTER VIA FORM / PORTAL</span>
+      </span>
+    </a>
+  )
 
   return (
     <div className="min-h-screen px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-16 relative z-10">
@@ -215,25 +149,7 @@ export default function EventDetail() {
               Branch: <strong className="text-text-primary font-bold">{eventData.branch}</strong>
             </span>
 
-            {/* Registration Status Badge */}
-            {isRegistered ? (
-              <span className="font-mono text-xs tracking-wider text-doom-glow px-3 py-1 bg-doom-glow/20 border border-doom-glow uppercase font-bold flex items-center gap-1">
-                <CheckCircle2 size={12} />
-                <span>You are Registered</span>
-              </span>
-            ) : isFull ? (
-              <span className="font-mono text-xs tracking-wider text-doom-crimson-bright px-3 py-1 bg-doom-crimson/20 border border-doom-crimson uppercase font-bold">
-                Capacity Full
-              </span>
-            ) : isClosed ? (
-              <span className="font-mono text-xs tracking-wider text-text-muted px-3 py-1 bg-white/[0.04] border border-white/[0.1] uppercase font-bold">
-                Registration Closed
-              </span>
-            ) : (
-              <span className="font-mono text-xs tracking-wider text-doom-glow px-3 py-1 bg-doom-glow/10 border border-doom-glow/40 uppercase font-bold animate-pulse">
-                Registration Open
-              </span>
-            )}
+
           </div>
 
           <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-wide text-text-primary drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
@@ -244,23 +160,7 @@ export default function EventDetail() {
             {eventData.description}
           </p>
 
-          {isRegistered && registrationRecord && (
-            <div className="p-4 bg-doom-glow/10 border border-doom-glow/40 rounded flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono text-xs">
-              <div className="flex items-center gap-2 text-doom-glow">
-                <CheckCircle2 size={16} />
-                <span>
-                  Confirmed Entry: <strong>{registrationRecord.registrationId}</strong>
-                  {registrationRecord.teamName && ` (Team: ${registrationRecord.teamName})`}
-                </span>
-              </div>
-              <Link
-                to="/dashboard"
-                className="text-text-primary hover:text-doom-glow underline underline-offset-4 uppercase tracking-wider text-[11px]"
-              >
-                Manage in Dashboard →
-              </Link>
-            </div>
-          )}
+
 
           <div className="pt-2">
             {renderRegisterButton('w-full sm:w-auto sm:min-w-[240px]')}
@@ -443,16 +343,6 @@ export default function EventDetail() {
 
       </div>
 
-      {/* In-App Registration Modal */}
-      <EventRegistrationModal
-        event={eventData}
-        isOpen={showRegisterModal}
-        onClose={() => setShowRegisterModal(false)}
-        onSuccess={(reg) => {
-          setIsRegistered(true)
-          setRegistrationRecord(reg)
-        }}
-      />
     </div>
   )
 }
