@@ -1,40 +1,58 @@
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
-import { ArrowLeft, ArrowRight, ShieldCheck, Download, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ShieldCheck, Shield } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 /**
  * My Pass — Displays the user's digital entry pass with QR code.
  * Styled with the Doomsday Protocol aesthetic:
  * - Gunmetal card with emerald border and clipped corners
- * - Authoritative sync with AuthContext and backend
- * - Action buttons to access Event Vaults or return Home
+ * - Synchronous safe pass derivation from AuthContext, LocalStorage, or Admin clearance
+ * - Prevents null pointer crashes and black screen tears
  */
 export default function MyPass() {
-  const { userPass, hasPass, passLoading } = useAuth()
-  const [pass, setPass] = useState(null)
+  const { user, userPass, passLoading, userRole } = useAuth()
 
-  useEffect(() => {
-    if (userPass) {
-      setPass(userPass)
-      return
-    }
-    const savedPass = localStorage.getItem('vectorsPass')
-    if (savedPass) {
+  // Derive pass synchronously with fail-safe fallbacks
+  const pass = useMemo(() => {
+    // 1. Authoritative pass object in AuthContext state
+    if (userPass?.registrationId) return userPass
+
+    // 2. Client-side local storage backup
+    if (typeof window !== 'undefined') {
       try {
-        setPass(JSON.parse(savedPass))
+        const savedPass = localStorage.getItem('vectorsPass')
+        if (savedPass) {
+          const parsed = JSON.parse(savedPass)
+          if (parsed?.registrationId) return parsed
+        }
       } catch (err) {
-        console.error('Invalid pass in storage', err)
+        console.warn('[MyPass] LocalStorage pass parse failed:', err)
       }
     }
-  }, [userPass])
 
-  if (passLoading) {
+    // 3. Admin automatic VIP / Command Council Pass
+    if (userRole === 'admin' && user) {
+      return {
+        registrationId: `VEC-ADM-${(user.uid || 'ROOT').slice(0, 6).toUpperCase()}`,
+        name: user.displayName || user.email?.split('@')[0] || 'VECTORS Administrator',
+        college: 'Command Headquarters',
+        email: user.email,
+        status: 'COMMAND COUNCIL // VIP ACCESS',
+        isAdminPass: true,
+      }
+    }
+
+    return null
+  }, [userPass, userRole, user])
+
+  // Loading state: only show when loading AND no pass is available yet
+  if (passLoading && !pass) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 relative z-10">
-        <div className="p-8 doom-btn-clipped bg-doom-bg2 border border-doom-glow/40 text-center space-y-4">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 relative z-10">
+        <div className="p-8 doom-btn-clipped bg-doom-bg2 border border-doom-glow/40 text-center space-y-4 shadow-[0_0_30px_rgba(30,255,160,0.15)]">
           <div className="w-10 h-10 mx-auto rounded-full border-2 border-doom-glow border-t-transparent animate-spin" />
           <p className="font-mono text-xs text-doom-glow uppercase tracking-widest">
             RETRIEVING DIGITAL PASS ARCHIVES...
@@ -44,9 +62,10 @@ export default function MyPass() {
     )
   }
 
-  if (!pass && !hasPass) {
+  // Not registered yet
+  if (!pass) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative z-10">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 text-center relative z-10 py-16">
         <div className="max-w-md w-full p-8 doom-btn-clipped bg-doom-bg2 border border-white/[0.08] space-y-6">
           <div className="space-y-2">
             <span className="font-mono text-[10px] text-doom-crimson-bright tracking-widest uppercase font-bold">
@@ -80,6 +99,8 @@ export default function MyPass() {
       </div>
     )
   }
+
+  const qrValue = pass.registrationId || 'VEC-UNVERIFIED'
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 pt-24 pb-16 relative z-10">
@@ -117,8 +138,8 @@ export default function MyPass() {
             {/* Pass Header */}
             <div className="w-full text-center space-y-1 relative z-10 pb-4 border-b border-white/[0.08]">
               <div className="flex items-center justify-center gap-2 text-doom-glow font-mono text-[10px] tracking-[0.25em] uppercase font-bold">
-                <ShieldCheck size={14} />
-                <span>OFFICIAL DIGITAL PASS</span>
+                {pass.isAdminPass ? <Shield size={14} /> : <ShieldCheck size={14} />}
+                <span>{pass.isAdminPass ? 'ADMIN CLEARANCE PASS' : 'OFFICIAL DIGITAL PASS'}</span>
               </div>
               <h2 className="font-display text-xl sm:text-2xl tracking-wider text-text-primary uppercase font-bold">
                 VECTORS 2026
@@ -128,7 +149,7 @@ export default function MyPass() {
             {/* High-Contrast QR Code */}
             <div className="bg-white p-3.5 border-2 border-doom-glow/60 doom-btn-clipped shadow-[0_0_25px_rgba(30,255,160,0.25)] relative z-10">
               <QRCodeSVG 
-                value={pass.registrationId} 
+                value={qrValue} 
                 size={160}
                 className="w-40 h-40"
                 bgColor="#FFFFFF"
@@ -142,19 +163,19 @@ export default function MyPass() {
               <div className="flex justify-between items-center gap-3 border-b border-white/[0.06] pb-2">
                 <span className="text-text-muted shrink-0 uppercase text-[11px]">Pass ID</span>
                 <span className="text-doom-glow font-bold truncate max-w-[200px] text-right font-mono tracking-wider">
-                  {pass.registrationId}
+                  {pass.registrationId || 'N/A'}
                 </span>
               </div>
               <div className="flex justify-between items-center gap-3 border-b border-white/[0.06] pb-2">
                 <span className="text-text-muted shrink-0 uppercase text-[11px]">Operative</span>
                 <span className="text-text-primary font-semibold truncate max-w-[200px] text-right">
-                  {pass.name}
+                  {pass.name || 'Anonymous User'}
                 </span>
               </div>
               <div className="flex justify-between items-center gap-3 border-b border-white/[0.06] pb-2">
-                <span className="text-text-muted shrink-0 uppercase text-[11px]">College</span>
+                <span className="text-text-muted shrink-0 uppercase text-[11px]">Institution</span>
                 <span className="text-chrome-light truncate max-w-[200px] text-right">
-                  {pass.college}
+                  {pass.college || 'Authorized Institution'}
                 </span>
               </div>
             </div>

@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
 import PageLoading from './ui/PageLoading'
+import ErrorBoundary from './ErrorBoundary'
 
 /**
  * Layout — Structural shell only.
@@ -13,9 +14,11 @@ export default function Layout() {
     <div className="min-h-screen relative flex flex-col w-full max-w-full overflow-x-hidden bg-doom-bg">
       <Navbar />
       <main className="flex-grow relative w-full min-w-0 max-w-full">
-        <Suspense fallback={<PageLoading />}>
-          <Outlet />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<PageLoading />}>
+            <Outlet />
+          </Suspense>
+        </ErrorBoundary>
       </main>
       <footer className="relative z-10 border-t border-brass-dim/10 py-6 px-4 sm:px-6 text-center text-slate text-xs font-mono bg-charcoal">
         <p>&copy; 2026 VECTORS. All rights reserved.</p>

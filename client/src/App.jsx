@@ -9,6 +9,7 @@ import Signup from './pages/Signup'
 import Particles from './components/ui/Particles'
 import PageLoading from './components/ui/PageLoading'
 import ScrollToTop from './components/ScrollToTop'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Lazy loaded pages
 const EntryRegistration = lazy(() => import('./pages/EntryRegistration'))
@@ -57,8 +58,9 @@ function App() {
       )}
 
       <div className="relative z-10">
-        <Suspense fallback={<PageLoading />}>
-          <Routes>
+        <ErrorBoundary>
+          <Suspense fallback={<PageLoading />}>
+            <Routes>
             {/* Public & User routes with main layout */}
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
@@ -109,8 +111,9 @@ function App() {
             </Route>
           </Routes>
         </Suspense>
-      </div>
+      </ErrorBoundary>
     </div>
+  </div>
   )
 }
 
