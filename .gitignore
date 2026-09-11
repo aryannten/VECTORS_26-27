@@ -8,8 +8,9 @@
 # Firebase Admin SDK service account key
 serviceAccountKey.json
 
-# Master Specification 
+# Master Specification & Large Documents
 VECTORS_2026_Antigravity_Master_Specification.md
+*.pdf
 
 # Node modules
 node_modules/

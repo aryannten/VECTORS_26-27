@@ -101,8 +101,8 @@ export default function Navbar() {
 
           <Link to="/" className="flex items-center group select-none" aria-label="VECTORS 26 Home">
             <img
-              src="/vector26-logo.svg"
-              alt="VECTORS 26"
+              src="/vector26-logo.png"
+              alt="VECTORS 26-27"
               className="h-10 sm:h-11 w-auto max-w-[170px] sm:max-w-[200px] object-contain transition-transform duration-300 group-hover:scale-105 mix-blend-screen"
             />
           </Link>
