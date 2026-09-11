@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { LayoutDashboard, Users, Ticket, Calendar, LogOut, Shield, ArrowLeft, Menu, X, Bell, ClipboardList } from 'lucide-react'
 import { cn } from '../lib/utils'
+import PageLoading from './ui/PageLoading'
 
 /**
  * AdminLayout — Responsive dashboard shell with collapsible sidebar navigation for mobile.
@@ -140,7 +141,9 @@ export default function AdminLayout() {
 
       {/* Main content area */}
       <main className="flex-1 ml-0 md:ml-56 p-4 sm:p-6 md:p-8 pt-18 md:pt-8 min-w-0 max-w-full overflow-x-hidden min-h-screen">
-        <Outlet />
+        <Suspense fallback={<PageLoading />}>
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   )

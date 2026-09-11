@@ -171,7 +171,7 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
         },
       },
       { $inc: { registrationCount: 1 } },
-      { new: true }
+      { returnDocument: 'after' }
     )
 
     if (!updatedEvent) {

@@ -35,19 +35,20 @@ router.post('/sync', async (req, res) => {
       ...(decodedToken.picture ? { photoURL: decodedToken.picture } : {}),
     }
 
+    const updateOps = {
+      $set: updateSet,
+    }
+
     if (isAdmin) {
       updateSet.role = 'admin'
+    } else {
+      updateOps.$setOnInsert = { role: 'user' }
     }
 
     const user = await User.findOneAndUpdate(
       { firebaseUid: decodedToken.uid },
-      {
-        $set: updateSet,
-        $setOnInsert: {
-          role: isAdmin ? 'admin' : 'user',
-        }
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      updateOps,
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     )
 
     res.status(200).json({

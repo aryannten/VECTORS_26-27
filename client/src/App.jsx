@@ -7,6 +7,8 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Particles from './components/ui/Particles'
+import PageLoading from './components/ui/PageLoading'
+import ScrollToTop from './components/ScrollToTop'
 
 // Lazy loaded pages
 const EntryRegistration = lazy(() => import('./pages/EntryRegistration'))
@@ -27,16 +29,8 @@ const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements')
 const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
-function PageLoading() {
-  return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
-      <div className="w-8 h-8 rounded-full border-2 border-emerald/20 border-t-emerald animate-spin" />
-      <span className="font-mono text-xs uppercase tracking-widest text-steel/60">
-        INITIALIZING SUBROUTINE...
-      </span>
-    </div>
-  )
-}
+// Immutable constant to prevent re-instantiating WebGL context on route re-renders
+const PARTICLE_COLORS = ['#1EFFA0', '#C7CCD1', '#5C6270']
 
 function App() {
   const location = useLocation()
@@ -44,11 +38,13 @@ function App() {
 
   return (
     <div className="relative min-h-screen bg-doom-bg">
+      <ScrollToTop />
+
       {/* 3D Particle background for all pages except the landing page */}
       {!isLandingPage && (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
           <Particles
-            particleColors={['#1EFFA0', '#C7CCD1', '#5C6270']}
+            particleColors={PARTICLE_COLORS}
             particleCount={200}
             particleSpread={10}
             speed={0.1}

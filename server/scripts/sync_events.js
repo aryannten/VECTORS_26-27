@@ -622,7 +622,7 @@ async function syncAllEvents() {
     await Event.findOneAndUpdate(
       { slug: evt.slug },
       { $set: evt },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     )
     console.log(`✓ Upserted [${evt.category.toUpperCase()}] ${evt.name} (${evt.slug})`)
   }

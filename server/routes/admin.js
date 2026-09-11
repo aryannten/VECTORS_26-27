@@ -539,7 +539,7 @@ router.patch('/users/:id/role', async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { role },
-      { new: true }
+      { returnDocument: 'after' }
     )
 
     if (!user) {

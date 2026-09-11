@@ -101,6 +101,7 @@ const Particles = ({
 }) => {
   const containerRef = useRef(null);
   const mouseRef = useRef({ x: 0, y: 0 });
+  const colorsKey = JSON.stringify(particleColors);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -109,7 +110,8 @@ const Particles = ({
     const renderer = new Renderer({
       dpr: pixelRatio,
       depth: false,
-      alpha: true
+      alpha: true,
+      premultipliedAlpha: true
     });
     const gl = renderer.gl;
 
@@ -120,6 +122,7 @@ const Particles = ({
     gl.canvas.style.width = '100%';
     gl.canvas.style.height = '100%';
     gl.canvas.style.pointerEvents = 'none';
+    gl.canvas.style.backgroundColor = 'transparent';
 
     while (container.firstChild) {
       container.removeChild(container.firstChild);
@@ -197,6 +200,9 @@ const Particles = ({
 
     const particles = new Mesh(gl, { mode: gl.POINTS, geometry, program });
 
+    // Render initial frame immediately so the canvas is painted before next refresh
+    renderer.render({ scene: particles, camera });
+
     let animationFrameId;
     let lastTime = performance.now();
     let elapsed = 0;
@@ -252,7 +258,7 @@ const Particles = ({
     cameraDistance,
     disableRotation,
     pixelRatio,
-    particleColors
+    colorsKey
   ]);
 
   return <div ref={containerRef} className={`relative w-full h-full ${className}`} style={style} />;
