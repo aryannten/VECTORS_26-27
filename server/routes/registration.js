@@ -11,20 +11,20 @@ const PASS_ID_REGEX = /^VEC-[A-Z0-9]{8}$/i
  * POST /api/register
  * Register a new entry pass.
  * Requires authenticated user.
+ * The pass email is always the authenticated user's email (ownership enforced).
  */
 router.post('/register', verifyFirebaseToken, async (req, res) => {
   try {
-    const { name, email, phone, college } = req.body
+    const { name, phone, college } = req.body
 
     // 1. Validate required fields
-    if (!name || !email || !phone || !college) {
+    if (!name || !phone || !college) {
       return res.status(400).json({ message: 'All fields are required.' })
     }
 
     // 2. Type and length checks (anti-spam / sanitization)
     if (
       typeof name !== 'string' ||
-      typeof email !== 'string' ||
       typeof phone !== 'string' ||
       typeof college !== 'string'
     ) {
@@ -32,16 +32,13 @@ router.post('/register', verifyFirebaseToken, async (req, res) => {
     }
 
     const cleanName = name.trim().slice(0, 100)
-    const cleanEmail = email.trim().toLowerCase().slice(0, 150)
+    // Use authenticated user's email — prevents registering passes for other users
+    const cleanEmail = req.user.email.toLowerCase().trim()
     const cleanPhone = phone.trim().slice(0, 20)
     const cleanCollege = college.trim().slice(0, 150)
 
-    if (!cleanName || !cleanEmail || !cleanPhone || !cleanCollege) {
+    if (!cleanName || !cleanPhone || !cleanCollege) {
       return res.status(400).json({ message: 'Fields cannot be empty.' })
-    }
-
-    if (!EMAIL_REGEX.test(cleanEmail)) {
-      return res.status(400).json({ message: 'Please provide a valid email address.' })
     }
 
     // 3. Check for existing registration
@@ -95,6 +92,7 @@ router.get(['/register/status', '/status'], verifyFirebaseToken, async (req, res
         name: registration.name,
         college: registration.college,
         email: registration.email,
+        phone: registration.phone,
         checkedIn: registration.checkedIn,
         status: 'VERIFIED',
       },
@@ -109,6 +107,8 @@ router.get(['/register/status', '/status'], verifyFirebaseToken, async (req, res
  * GET /api/verify/:registrationId
  * Verify an entry pass (used by gate scanner).
  * Requires security or admin role.
+ * Uses atomic findOneAndUpdate to prevent race conditions when two scanners
+ * scan the same pass simultaneously.
  */
 router.get('/verify/:registrationId', verifyFirebaseToken, requireRole('security', 'admin'), async (req, res) => {
   try {
@@ -118,32 +118,39 @@ router.get('/verify/:registrationId', verifyFirebaseToken, requireRole('security
       return res.status(400).json({ status: 'INVALID', message: 'Malformed pass ID format.' })
     }
 
-    const registration = await EntryRegistration.findOne({ registrationId: registrationId.trim().toUpperCase() })
+    const cleanId = registrationId.trim().toUpperCase()
 
-    if (!registration) {
-      return res.status(404).json({ status: 'INVALID', message: 'Pass not found.' })
-    }
+    // Atomic check-in: only update if not already checked in
+    const checkedInPass = await EntryRegistration.findOneAndUpdate(
+      { registrationId: cleanId, checkedIn: false },
+      { $set: { checkedIn: true, checkInTimestamp: new Date() } },
+      { returnDocument: 'after' }
+    )
 
-    if (registration.checkedIn) {
+    if (checkedInPass) {
+      // Successfully checked in (first scan)
       return res.status(200).json({
-        status: 'ALREADY_CHECKED_IN',
-        name: registration.name,
-        college: registration.college,
-        checkInTimestamp: registration.checkInTimestamp,
-        message: 'This pass has already been used.',
+        status: 'VALID',
+        name: checkedInPass.name,
+        college: checkedInPass.college,
+        message: 'Entry approved.',
       })
     }
 
-    // Mark as checked in
-    registration.checkedIn = true
-    registration.checkInTimestamp = new Date()
-    await registration.save()
+    // Not updated — either already checked in or pass doesn't exist
+    const existingPass = await EntryRegistration.findOne({ registrationId: cleanId })
 
-    res.status(200).json({
-      status: 'VALID',
-      name: registration.name,
-      college: registration.college,
-      message: 'Entry approved.',
+    if (!existingPass) {
+      return res.status(404).json({ status: 'INVALID', message: 'Pass not found.' })
+    }
+
+    // Pass exists but was already checked in
+    return res.status(200).json({
+      status: 'ALREADY_CHECKED_IN',
+      name: existingPass.name,
+      college: existingPass.college,
+      checkInTimestamp: existingPass.checkInTimestamp,
+      message: 'This pass has already been used.',
     })
   } catch (error) {
     console.error('[API] Verify error:', error.message)
@@ -152,3 +159,4 @@ router.get('/verify/:registrationId', verifyFirebaseToken, requireRole('security
 })
 
 module.exports = router
+

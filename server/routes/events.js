@@ -89,31 +89,41 @@ router.get('/:slug/my-registration', verifyFirebaseToken, async (req, res) => {
  * 1. Authenticated User (verifyFirebaseToken)
  * 2. Verified Entry Pass (requireEntryPass)
  * 3. Input validation (participant info, team details, team size constraints)
- * 4. Concurrency-safe atomic capacity increment (prevents race conditions)
+ * 4. Concurrency-safe atomic registration counter (metric only — no capacity gate)
  * 5. Duplicate registration check
+ *
+ * The verified Entry Pass (req.entryPass) provides trusted defaults for name, phone,
+ * and college. This supports both in-app registration and Google Form confirmation
+ * flows without requiring a client-controlled bypass flag.
  */
 router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req, res) => {
   const eventSlug = req.params.slug.toLowerCase()
   const userEmail = req.user.email.toLowerCase()
 
   try {
-    const { name, phone, college, teamName, teamMembers, confirmedViaGoogleForm } = req.body
+    const { name, phone, college, teamName, teamMembers } = req.body
 
-    // Fallback to verified Entry Pass info
-    const effectiveName = name || req.userPass?.name || req.user?.displayName || 'Participant'
-    const effectivePhone = phone || req.userPass?.phone || '9999999999'
-    const effectiveCollege = college || req.userPass?.college || 'Affiliated Institution'
+    // Use verified Entry Pass data as trusted defaults (requireEntryPass guarantees req.entryPass)
+    const effectiveName = (name && typeof name === 'string' && name.trim())
+      || req.entryPass.name
+      || req.user.displayName
+    const effectivePhone = (phone && typeof phone === 'string' && phone.trim())
+      || req.entryPass.phone
+    const effectiveCollege = (college && typeof college === 'string' && college.trim())
+      || req.entryPass.college
+
+    if (!effectiveName || !effectivePhone || !effectiveCollege) {
+      return res.status(400).json({ message: 'Participant identity details are required. Please ensure your Entry Pass has complete information.' })
+    }
 
     const cleanName = String(effectiveName).trim().slice(0, 100)
     const cleanPhone = String(effectivePhone).trim().slice(0, 20)
     const cleanCollege = String(effectiveCollege).trim().slice(0, 150)
     const cleanTeamName = teamName ? String(teamName).trim().slice(0, 100) : null
 
-    if (!cleanName || !cleanPhone || !cleanCollege) {
-      return res.status(400).json({ message: 'Participant identity details are required.' })
-    }
-
-    if (!confirmedViaGoogleForm && !PHONE_REGEX.test(cleanPhone)) {
+    // Validate phone format only when client provides a phone explicitly
+    // (entry pass phone was already validated during pass registration)
+    if (phone && typeof phone === 'string' && phone.trim() && !PHONE_REGEX.test(cleanPhone)) {
       return res.status(400).json({ message: 'Please provide a valid contact phone number.' })
     }
 
@@ -131,7 +141,7 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
       })
     }
 
-    // 3. Find event definition to check capacity and status
+    // 3. Find event definition to check status
     const eventDef = await Event.findOne({ slug: eventSlug, isActive: true })
     if (!eventDef) {
       return res.status(404).json({ message: 'Event not found or inactive.' })
@@ -141,22 +151,22 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
       return res.status(400).json({ message: 'Registrations for this event are currently closed.' })
     }
 
-    // 4. Validate team size if team event (bypassed if registered via official Google Form)
+    // 4. Validate team members if provided for team events
+    // When no team members are provided for a team event, the registration is allowed
+    // (supports Google Form confirmation flow where team was formed externally)
     const validatedTeamMembers = []
-    if (eventDef.maxTeamSize > 1 && !confirmedViaGoogleForm) {
-      // Primary participant counts as member 1
-      if (Array.isArray(teamMembers) && teamMembers.length > 0) {
-        for (const m of teamMembers) {
-          if (!m.name || !m.email) {
-            return res.status(400).json({ message: 'All team members must have a name and valid email.' })
-          }
-          validatedTeamMembers.push({
-            name: String(m.name).trim().slice(0, 100),
-            email: String(m.email).trim().toLowerCase().slice(0, 150),
-            phone: m.phone ? String(m.phone).trim().slice(0, 20) : '',
-            college: m.college ? String(m.college).trim().slice(0, 150) : cleanCollege,
-          })
+    if (eventDef.maxTeamSize > 1 && Array.isArray(teamMembers) && teamMembers.length > 0) {
+      for (const m of teamMembers) {
+        if (!m || typeof m !== 'object') continue
+        if (!m.name || !m.email) {
+          return res.status(400).json({ message: 'All team members must have a name and valid email.' })
         }
+        validatedTeamMembers.push({
+          name: String(m.name).trim().slice(0, 100),
+          email: String(m.email).trim().toLowerCase().slice(0, 150),
+          phone: m.phone ? String(m.phone).trim().slice(0, 20) : '',
+          college: m.college ? String(m.college).trim().slice(0, 150) : cleanCollege,
+        })
       }
 
       const totalTeamSize = 1 + validatedTeamMembers.length
@@ -172,7 +182,7 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
       }
     }
 
-    // 5. Atomic Registration Counter Increment
+    // 5. Atomic Registration Counter Increment (metric — no capacity gate)
     const updatedEvent = await Event.findOneAndUpdate(
       {
         slug: eventSlug,
@@ -189,6 +199,10 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
     }
 
     // 6. Create Event Registration record
+    // Determine team name: use provided name, or mark as Google Form if no team details
+    const resolvedTeamName = cleanTeamName
+      || (eventDef.maxTeamSize > 1 && validatedTeamMembers.length === 0 ? 'Google Form Registration' : null)
+
     let registration
     try {
       registration = await EventRegistration.create({
@@ -199,7 +213,7 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
         userName: cleanName,
         userPhone: cleanPhone,
         userCollege: cleanCollege,
-        teamName: cleanTeamName || (confirmedViaGoogleForm ? 'Google Form Registration' : null),
+        teamName: resolvedTeamName,
         teamMembers: validatedTeamMembers,
         status: 'confirmed',
       })
@@ -227,7 +241,7 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
     })
   } catch (error) {
     console.error('[API] Event registration error:', error.message)
-    res.status(500).json({ message: error.message || 'Failed to complete event registration.' })
+    res.status(500).json({ message: 'Failed to complete event registration.' })
   }
 })
 

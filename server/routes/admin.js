@@ -12,6 +12,22 @@ const AuditLog = require('../models/AuditLog')
 // All admin routes require admin role
 router.use(verifyFirebaseToken, requireRole('admin'))
 
+// Pagination limit cap
+const MAX_PAGE_LIMIT = 200
+
+/**
+ * Escape special regex characters to prevent ReDoS attacks.
+ * Admin search values are used in $regex queries — raw user input must be escaped.
+ */
+const escapeRegex = (str) => {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * Validate that a string is a valid MongoDB ObjectId.
+ */
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id)
+
 /**
  * GET /api/admin/stats
  * Dashboard overview statistics.
@@ -60,18 +76,19 @@ router.get('/stats', async (req, res) => {
  */
 router.get('/registrations', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 20
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const limit = Math.min(MAX_PAGE_LIMIT, Math.max(1, parseInt(req.query.limit) || 20))
     const search = req.query.search || ''
     const skip = (page - 1) * limit
 
-    const filter = search
+    const escapedSearch = search ? escapeRegex(search) : ''
+    const filter = escapedSearch
       ? {
           $or: [
-            { name: { $regex: search, $options: 'i' } },
-            { email: { $regex: search, $options: 'i' } },
-            { college: { $regex: search, $options: 'i' } },
-            { registrationId: { $regex: search, $options: 'i' } },
+            { name: { $regex: escapedSearch, $options: 'i' } },
+            { email: { $regex: escapedSearch, $options: 'i' } },
+            { college: { $regex: escapedSearch, $options: 'i' } },
+            { registrationId: { $regex: escapedSearch, $options: 'i' } },
           ],
         }
       : {}
@@ -106,6 +123,10 @@ router.get('/registrations', async (req, res) => {
  */
 router.put('/registrations/:id', async (req, res) => {
   try {
+    // Validate ID format
+    if (!req.params.id || req.params.id.length > 50) {
+      return res.status(400).json({ message: 'Invalid registration ID format.' })
+    }
     const { name, email, phone, college, checkedIn } = req.body
 
     const isObjectId = mongoose.Types.ObjectId.isValid(req.params.id)
@@ -173,7 +194,7 @@ router.put('/registrations/:id', async (req, res) => {
     res.status(200).json({ registration })
   } catch (error) {
     console.error('[Admin] Update registration error:', error.message)
-    res.status(500).json({ message: error.message || 'Failed to update registration.' })
+    res.status(500).json({ message: 'Failed to update registration.' })
   }
 })
 
@@ -184,6 +205,10 @@ router.put('/registrations/:id', async (req, res) => {
  */
 router.delete('/registrations/:id', async (req, res) => {
   try {
+    // Validate ID format
+    if (!req.params.id || req.params.id.length > 50) {
+      return res.status(400).json({ message: 'Invalid registration ID format.' })
+    }
     const isObjectId = mongoose.Types.ObjectId.isValid(req.params.id)
     const registration = await EntryRegistration.findOne(
       isObjectId
@@ -223,8 +248,8 @@ router.delete('/registrations/:id', async (req, res) => {
  */
 router.get('/event-registrations', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 20
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const limit = Math.min(MAX_PAGE_LIMIT, Math.max(1, parseInt(req.query.limit) || 20))
     const search = req.query.search || ''
     const eventSlug = req.query.eventSlug || ''
     const skip = (page - 1) * limit
@@ -234,13 +259,14 @@ router.get('/event-registrations', async (req, res) => {
       filter.eventSlug = eventSlug.toLowerCase()
     }
     if (search) {
+      const escapedSearch = escapeRegex(search)
       filter.$or = [
-        { userName: { $regex: search, $options: 'i' } },
-        { userEmail: { $regex: search, $options: 'i' } },
-        { userCollege: { $regex: search, $options: 'i' } },
-        { registrationId: { $regex: search, $options: 'i' } },
-        { teamName: { $regex: search, $options: 'i' } },
-        { eventName: { $regex: search, $options: 'i' } },
+        { userName: { $regex: escapedSearch, $options: 'i' } },
+        { userEmail: { $regex: escapedSearch, $options: 'i' } },
+        { userCollege: { $regex: escapedSearch, $options: 'i' } },
+        { registrationId: { $regex: escapedSearch, $options: 'i' } },
+        { teamName: { $regex: escapedSearch, $options: 'i' } },
+        { eventName: { $regex: escapedSearch, $options: 'i' } },
       ]
     }
 
@@ -282,7 +308,11 @@ router.get('/event-registrations/export', async (req, res) => {
 
     const escapeCsv = (val) => {
       if (val === null || val === undefined) return '""'
-      const str = String(val).replace(/"/g, '""')
+      let str = String(val).replace(/"/g, '""')
+      // Neutralize CSV injection: prefix cells starting with formula characters
+      if (/^[=+\-@\t\r]/.test(str)) {
+        str = "'" + str
+      }
       return `"${str}"`
     }
 
@@ -341,7 +371,11 @@ router.get('/registrations/export', async (req, res) => {
 
     const escapeCsv = (val) => {
       if (val === null || val === undefined) return '""'
-      const str = String(val).replace(/"/g, '""')
+      let str = String(val).replace(/"/g, '""')
+      // Neutralize CSV injection: prefix cells starting with formula characters
+      if (/^[=+\-@\t\r]/.test(str)) {
+        str = "'" + str
+      }
       return `"${str}"`
     }
 
@@ -389,6 +423,9 @@ router.get('/registrations/export', async (req, res) => {
  */
 router.put('/events/:id', async (req, res) => {
   try {
+    if (!req.params.id || req.params.id.length > 100) {
+      return res.status(400).json({ message: 'Invalid event ID format.' })
+    }
     const {
       capacity,
       registrationOpen,
@@ -421,7 +458,13 @@ router.put('/events/:id', async (req, res) => {
 
     if (capacity !== undefined) event.capacity = Number(capacity)
     if (registrationOpen !== undefined) event.registrationOpen = Boolean(registrationOpen)
-    if (status !== undefined) event.status = status
+    if (status !== undefined) {
+      const validStatuses = ['draft', 'published', 'coming_soon', 'open', 'almost_full', 'full', 'closed', 'completed']
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: 'Invalid event status.' })
+      }
+      event.status = status
+    }
     if (venue !== undefined) event.venue = venue
     if (venueDetails !== undefined) event.venueDetails = { ...event.venueDetails, ...venueDetails }
     if (date !== undefined) event.date = date
@@ -454,7 +497,7 @@ router.put('/events/:id', async (req, res) => {
     res.status(200).json({ event })
   } catch (error) {
     console.error('[Admin] Update event error:', error.message)
-    res.status(500).json({ message: 'Failed to update event: ' + error.message })
+    res.status(500).json({ message: 'Failed to update event.' })
   }
 })
 
@@ -464,8 +507,8 @@ router.put('/events/:id', async (req, res) => {
  */
 router.get('/audit-logs', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 30
+    const page = Math.max(1, parseInt(req.query.page) || 1)
+    const limit = Math.min(MAX_PAGE_LIMIT, Math.max(1, parseInt(req.query.limit) || 30))
     const skip = (page - 1) * limit
 
     const [logs, total] = await Promise.all([
@@ -503,9 +546,10 @@ router.get('/users', async (req, res) => {
 
     const filter = {}
     if (search) {
+      const escapedSearch = escapeRegex(search)
       filter.$or = [
-        { email: { $regex: search, $options: 'i' } },
-        { displayName: { $regex: search, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+        { displayName: { $regex: escapedSearch, $options: 'i' } },
       ]
     }
     if (role && ['user', 'security', 'admin'].includes(role)) {
@@ -567,11 +611,20 @@ router.post('/users', async (req, res) => {
       lastLoginAt: new Date(),
     })
 
+    // Audit log
+    await AuditLog.create({
+      action: 'USER_CREATED',
+      performedBy: req.user.email,
+      targetType: 'User',
+      targetId: user._id.toString(),
+      details: { email: user.email, role: user.role },
+    }).catch(err => console.error('[AuditLog] Error:', err.message))
+
     console.log(`[Admin] Created user: ${user.email} with role: ${user.role}`)
     res.status(201).json({ user })
   } catch (error) {
     console.error('[Admin] Create user error:', error.message)
-    res.status(500).json({ message: error.message || 'Failed to create user.' })
+    res.status(500).json({ message: 'Failed to create user.' })
   }
 })
 
@@ -581,6 +634,9 @@ router.post('/users', async (req, res) => {
  */
 router.put('/users/:id', async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid user ID format.' })
+    }
     const { displayName, role, password } = req.body
     const user = await User.findById(req.params.id)
     if (!user) {
@@ -609,11 +665,20 @@ router.put('/users/:id', async (req, res) => {
       }
     }
 
+    // Audit log
+    await AuditLog.create({
+      action: 'USER_UPDATED',
+      performedBy: req.user.email,
+      targetType: 'User',
+      targetId: user._id.toString(),
+      details: { email: user.email, updatedFields: { displayName, role } },
+    }).catch(err => console.error('[AuditLog] Error:', err.message))
+
     console.log(`[Admin] Updated user details: ${user.email}`)
     res.status(200).json({ user })
   } catch (error) {
     console.error('[Admin] Update user error:', error.message)
-    res.status(500).json({ message: 'Failed to update user: ' + error.message })
+    res.status(500).json({ message: 'Failed to update user.' })
   }
 })
 
@@ -623,6 +688,9 @@ router.put('/users/:id', async (req, res) => {
  */
 router.delete('/users/:id', async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid user ID format.' })
+    }
     const user = await User.findById(req.params.id)
     if (!user) {
       return res.status(404).json({ message: 'User not found.' })
@@ -645,6 +713,15 @@ router.delete('/users/:id', async (req, res) => {
     // Delete from MongoDB
     await User.findByIdAndDelete(req.params.id)
 
+    // Audit log
+    await AuditLog.create({
+      action: 'USER_DELETED',
+      performedBy: req.user.email,
+      targetType: 'User',
+      targetId: req.params.id,
+      details: { email: user.email, role: user.role },
+    }).catch(err => console.error('[AuditLog] Error:', err.message))
+
     console.log(`[Admin] Deleted user: ${user.email}`)
     res.status(200).json({ message: `User ${user.email} removed successfully.` })
   } catch (error) {
@@ -659,6 +736,9 @@ router.delete('/users/:id', async (req, res) => {
  */
 router.patch('/users/:id/role', async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid user ID format.' })
+    }
     const { role } = req.body
     if (!['user', 'security', 'admin'].includes(role)) {
       return res.status(400).json({ message: 'Invalid role.' })
@@ -674,6 +754,15 @@ router.patch('/users/:id/role', async (req, res) => {
       return res.status(404).json({ message: 'User not found.' })
     }
 
+    // Audit log
+    await AuditLog.create({
+      action: 'USER_ROLE_CHANGED',
+      performedBy: req.user.email,
+      targetType: 'User',
+      targetId: user._id.toString(),
+      details: { email: user.email, newRole: role },
+    }).catch(err => console.error('[AuditLog] Error:', err.message))
+
     console.log(`[Admin] Role updated: ${user.email} → ${role}`)
     res.status(200).json({ user })
   } catch (error) {
@@ -688,12 +777,24 @@ router.patch('/users/:id/role', async (req, res) => {
  */
 router.post('/users/:id/reset-password', async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid user ID format.' })
+    }
     const user = await User.findById(req.params.id)
     if (!user) {
       return res.status(404).json({ message: 'User not found.' })
     }
 
     const resetLink = await getAuth().generatePasswordResetLink(user.email)
+    // Audit log
+    await AuditLog.create({
+      action: 'PASSWORD_RESET_GENERATED',
+      performedBy: req.user.email,
+      targetType: 'User',
+      targetId: user._id.toString(),
+      details: { email: user.email },
+    }).catch(err => console.error('[AuditLog] Error:', err.message))
+
     console.log(`[Admin] Password reset link generated for ${user.email}`)
     res.status(200).json({
       message: `Password reset link generated for ${user.email}`,
@@ -701,7 +802,7 @@ router.post('/users/:id/reset-password', async (req, res) => {
     })
   } catch (error) {
     console.error('[Admin] Password reset error:', error.message)
-    res.status(500).json({ message: 'Failed to generate reset link: ' + error.message })
+    res.status(500).json({ message: 'Failed to generate reset link.' })
   }
 })
 

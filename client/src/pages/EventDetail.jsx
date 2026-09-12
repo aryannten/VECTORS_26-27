@@ -156,10 +156,9 @@ export default function EventDetail() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          confirmedViaGoogleForm: true,
-          name: userPass?.name || user?.displayName || 'Participant',
-          phone: userPass?.phone || '9999999999',
-          college: userPass?.college || 'Affiliated Institution',
+          name: userPass?.name || user?.displayName || '',
+          phone: userPass?.phone || '',
+          college: userPass?.college || '',
         }),
       })
 

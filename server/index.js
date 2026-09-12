@@ -102,9 +102,18 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/announcements', announcementRoutes)
 app.use('/api/user', userRoutes)
 
-// Health check
+// Health check — reports actual database connectivity
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() })
+  const mongoose = require('mongoose')
+  const dbState = mongoose.connection.readyState
+  // readyState: 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+  const dbConnected = dbState === 1
+  const statusCode = dbConnected ? 200 : 503
+  res.status(statusCode).json({
+    status: dbConnected ? 'ok' : 'degraded',
+    database: dbConnected ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString(),
+  })
 })
 
 // 404 handler for unmatched API routes (returns JSON instead of Express default HTML)

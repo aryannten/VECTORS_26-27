@@ -1,4 +1,5 @@
 const express = require('express')
+const mongoose = require('mongoose')
 const router = express.Router()
 const Announcement = require('../models/Announcement')
 const AuditLog = require('../models/AuditLog')
@@ -96,11 +97,25 @@ router.post('/', verifyFirebaseToken, requireRole('admin'), async (req, res) => 
       return res.status(400).json({ message: 'Title and content are required.' })
     }
 
+    if (typeof title !== 'string' || typeof content !== 'string') {
+      return res.status(400).json({ message: 'Title and content must be strings.' })
+    }
+
+    const cleanTitle = title.trim().slice(0, 200)
+    const cleanContent = content.trim().slice(0, 5000)
+
+    if (!cleanTitle || !cleanContent) {
+      return res.status(400).json({ message: 'Title and content cannot be empty.' })
+    }
+
+    const validCategories = ['general', 'schedule', 'urgent', 'registration']
+    const resolvedCategory = (category && validCategories.includes(category)) ? category : 'general'
+
     const announcement = await Announcement.create({
-      title: title.trim(),
-      content: content.trim(),
-      category: category || 'general',
-      relatedEventSlug: relatedEventSlug ? relatedEventSlug.toLowerCase().trim() : null,
+      title: cleanTitle,
+      content: cleanContent,
+      category: resolvedCategory,
+      relatedEventSlug: relatedEventSlug ? String(relatedEventSlug).toLowerCase().trim().slice(0, 100) : null,
       isPinned: Boolean(isPinned),
       author: req.user.displayName || req.user.email,
     })
@@ -127,6 +142,10 @@ router.post('/', verifyFirebaseToken, requireRole('admin'), async (req, res) => 
  */
 router.put('/:id', verifyFirebaseToken, requireRole('admin'), async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid announcement ID format.' })
+    }
+
     const { title, content, category, relatedEventSlug, isPinned, isPublished } = req.body
     const announcement = await Announcement.findById(req.params.id)
 
@@ -134,10 +153,20 @@ router.put('/:id', verifyFirebaseToken, requireRole('admin'), async (req, res) =
       return res.status(404).json({ message: 'Announcement not found.' })
     }
 
-    if (title !== undefined) announcement.title = title.trim()
-    if (content !== undefined) announcement.content = content.trim()
-    if (category !== undefined) announcement.category = category
-    if (relatedEventSlug !== undefined) announcement.relatedEventSlug = relatedEventSlug ? relatedEventSlug.toLowerCase().trim() : null
+    const validCategories = ['general', 'schedule', 'urgent', 'registration']
+
+    if (title !== undefined) {
+      if (typeof title !== 'string') return res.status(400).json({ message: 'Title must be a string.' })
+      announcement.title = title.trim().slice(0, 200)
+    }
+    if (content !== undefined) {
+      if (typeof content !== 'string') return res.status(400).json({ message: 'Content must be a string.' })
+      announcement.content = content.trim().slice(0, 5000)
+    }
+    if (category !== undefined) {
+      if (validCategories.includes(category)) announcement.category = category
+    }
+    if (relatedEventSlug !== undefined) announcement.relatedEventSlug = relatedEventSlug ? String(relatedEventSlug).toLowerCase().trim().slice(0, 100) : null
     if (isPinned !== undefined) announcement.isPinned = Boolean(isPinned)
     if (isPublished !== undefined) announcement.isPublished = Boolean(isPublished)
 
@@ -165,6 +194,10 @@ router.put('/:id', verifyFirebaseToken, requireRole('admin'), async (req, res) =
  */
 router.delete('/:id', verifyFirebaseToken, requireRole('admin'), async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid announcement ID format.' })
+    }
+
     const announcement = await Announcement.findByIdAndDelete(req.params.id)
     if (!announcement) {
       return res.status(404).json({ message: 'Announcement not found.' })
