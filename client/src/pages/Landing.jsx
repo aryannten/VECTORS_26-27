@@ -288,8 +288,8 @@ export default function Landing() {
             </h3>
           </div>
 
-          {/* 3 ASCII Terminal Box Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* 2 ASCII Terminal Box Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {[
               {
                 title: 'TECHNICAL',
@@ -304,13 +304,6 @@ export default function Landing() {
                 count: '08 EVENTS',
                 action: 'VIEW EVENTS →',
                 to: '/events?category=non-technical',
-              },
-              {
-                title: 'WORKSHOPS',
-                lines: ['Learn from', 'industry experts.'],
-                count: '04 SESSIONS',
-                action: 'EXPLORE →',
-                to: '/events',
               },
             ].map((card) => (
               <div
@@ -432,13 +425,6 @@ export default function Landing() {
                     onClick={() => navigate('/events')}
                     className="flex items-center justify-between p-2.5 bg-white/[0.03] hover:bg-doom-glow/10 border border-white/5 hover:border-doom-glow/40 transition-all cursor-pointer group"
                   >
-                    <span className="group-hover:text-doom-glow transition-colors">WORKSHOPS</span>
-                    <span className="text-doom-glow font-bold text-[10px]">04</span>
-                  </div>
-                  <div
-                    onClick={() => navigate('/events')}
-                    className="flex items-center justify-between p-2.5 bg-white/[0.03] hover:bg-doom-glow/10 border border-white/5 hover:border-doom-glow/40 transition-all cursor-pointer group"
-                  >
                     <span className="group-hover:text-doom-glow transition-colors">LIVE EXPERIENCES</span>
                     <span className="text-doom-glow font-bold text-[10px]">02</span>
                   </div>
@@ -544,7 +530,7 @@ export default function Landing() {
                     GO BEYOND THE CLASSROOM
                   </h4>
                   <p className="font-sans text-xs sm:text-sm text-text-muted mt-3 leading-relaxed">
-                    Workshops and experiences that connect technology with practice.
+                    Competitive challenges and experiences that connect technology with practice.
                   </p>
                 </div>
                 <div className="mt-6 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-text-muted group-hover:text-doom-glow transition-colors">
