@@ -291,10 +291,65 @@ function DoctorDoomMask({ maskRef }) {
 }
 
 /**
+ * Responsive scale and scroll trajectory calibration:
+ * - Desktop (>= 1024px): 100% scale (1.0), deep z-travel (up to 3.2), full parallax
+ * - Tablet (768px - 1023px): 75% scale (0.75), medium z-travel (up to 2.0)
+ * - Mobile (< 768px): 54% scale (0.54), gentle z-travel (up to 1.0)
+ * - Small Mobile (< 480px / phone preview): 46% scale (0.46), tight z-travel (up to 0.75)
+ */
+function getResponsiveSettings(width) {
+  if (width < 480) {
+    return {
+      scale: 0.46,
+      maxZ: 0.75,
+      zRate: 2.0,
+      yMultiplier: 3.6,
+      yBase: 0.25,
+      isMobile: true,
+    }
+  }
+  if (width < 768) {
+    return {
+      scale: 0.54,
+      maxZ: 1.0,
+      zRate: 2.8,
+      yMultiplier: 4.0,
+      yBase: 0.3,
+      isMobile: true,
+    }
+  }
+  if (width < 1024) {
+    return {
+      scale: 0.75,
+      maxZ: 2.0,
+      zRate: 5.5,
+      yMultiplier: 4.5,
+      yBase: 0.35,
+      isMobile: false,
+    }
+  }
+  return {
+    scale: 1.0,
+    maxZ: 3.2,
+    zRate: 8.5,
+    yMultiplier: 5.0,
+    yBase: 0.4,
+    isMobile: false,
+  }
+}
+
+/**
  * 3D Gyroscopic Chrono-Astrolabe & Armillary Spheres
  * Multi-axis revolutions with razor-sharp mechanical detailing and neon circuits.
  */
 function DoomsdayAstrolabe({ scrollOffsetRef }) {
+  const { size } = useThree()
+  const initialSettings = useMemo(() => getResponsiveSettings(size.width), [size.width])
+  const targetScaleVec = useMemo(
+    () => new THREE.Vector3(initialSettings.scale, initialSettings.scale, initialSettings.scale),
+    [initialSettings.scale]
+  )
+
   const group = useRef()
   const maskGroup = useRef()
 
@@ -371,6 +426,11 @@ function DoomsdayAstrolabe({ scrollOffsetRef }) {
     if (!group.current) return
     const offset = scrollOffsetRef.current
     const time = state.clock.elapsedTime
+    const settings = getResponsiveSettings(state.size.width)
+
+    // Smoothly adapt group scale for responsive viewports and preview resizing
+    targetScaleVec.set(settings.scale, settings.scale, settings.scale)
+    group.current.scale.lerp(targetScaleVec, 0.15)
 
     // Multi-axis orbital revolutions
     if (ring1Ref.current) {
@@ -418,13 +478,13 @@ function DoomsdayAstrolabe({ scrollOffsetRef }) {
       maskGroup.current.rotation.z = Math.cos(time * 0.6) * 0.06
     }
 
-    // Scroll parallax position
-    group.current.position.y = -offset * 5 + 0.4
-    group.current.position.z = Math.min(offset * 8.5, 3.2)
+    // Scroll parallax position calibrated per device tier
+    group.current.position.y = -offset * settings.yMultiplier + settings.yBase
+    group.current.position.z = Math.min(offset * settings.zRate, settings.maxZ)
   })
 
   return (
-    <group ref={group}>
+    <group ref={group} scale={initialSettings.scale}>
       <Float speed={1.4} rotationIntensity={0.25} floatIntensity={0.65}>
         {/* Core Radiance: Illuminates all inner ring bevels */}
         <pointLight
@@ -570,14 +630,18 @@ function Rig() {
   const { camera } = useThree()
 
   useFrame((state) => {
+    const isMobile = state.size.width < 768
+    const swayX = isMobile ? 0.6 : 2.8
+    const swayY = isMobile ? 0.5 : 2.2
+
     camera.position.x = THREE.MathUtils.lerp(
       camera.position.x,
-      state.pointer.x * 2.8,
+      state.pointer.x * swayX,
       0.05
     )
     camera.position.y = THREE.MathUtils.lerp(
       camera.position.y,
-      state.pointer.y * 2.2,
+      state.pointer.y * swayY,
       0.05
     )
     camera.lookAt(0, 0, 0)
