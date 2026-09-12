@@ -1,21 +1,60 @@
-require('dotenv').config()
+const path = require('path')
+require('dotenv').config({ path: path.resolve(__dirname, '.env') })
 const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
 const rateLimit = require('express-rate-limit')
 const mongoSanitize = require('express-mongo-sanitize')
-const { initializeApp, cert } = require('firebase-admin/app')
+const { initializeApp, getApps, cert } = require('firebase-admin/app')
 const connectDB = require('./config/db')
 const User = require('./models/User')
 const Event = require('./models/Event')
 const Announcement = require('./models/Announcement')
 
-// Initialize Firebase Admin SDK
-const serviceAccount = require(process.env.FIREBASE_SERVICE_ACCOUNT_PATH || './serviceAccountKey.json')
-initializeApp({
-  credential: cert(serviceAccount),
-})
-console.log('[Firebase] Admin SDK initialized.')
+// Initialize Firebase Admin SDK safely (Vercel serverless & production compatible)
+if (getApps().length === 0) {
+  let credential = null
+
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      const parsed = typeof process.env.FIREBASE_SERVICE_ACCOUNT === 'string'
+        ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+        : process.env.FIREBASE_SERVICE_ACCOUNT
+      credential = cert(parsed)
+      console.log('[Firebase] Initialized with FIREBASE_SERVICE_ACCOUNT env JSON.')
+    } catch (err) {
+      console.error('[Firebase] Failed to parse FIREBASE_SERVICE_ACCOUNT JSON:', err.message)
+    }
+  } else if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    credential = cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    })
+    console.log('[Firebase] Initialized with discrete FIREBASE_* env variables.')
+  } else {
+    // Local development fallback: check if file exists on disk
+    const fs = require('fs')
+    const path = require('path')
+    const keyPath = path.resolve(__dirname, process.env.FIREBASE_SERVICE_ACCOUNT_PATH || './serviceAccountKey.json')
+    if (fs.existsSync(keyPath)) {
+      try {
+        const serviceAccount = JSON.parse(fs.readFileSync(keyPath, 'utf8'))
+        credential = cert(serviceAccount)
+        console.log('[Firebase] Initialized with local serviceAccountKey.json.')
+      } catch (err) {
+        console.error('[Firebase] Error reading serviceAccountKey.json:', err.message)
+      }
+    } else {
+      console.warn('[Firebase] Notice: No service account credentials found. Set FIREBASE_SERVICE_ACCOUNT or FIREBASE_CLIENT_EMAIL in production.')
+    }
+  }
+
+  if (credential) {
+    initializeApp({ credential })
+    console.log('[Firebase] Admin SDK initialized.')
+  }
+}
 
 // Import routes
 const registrationRoutes = require('./routes/registration')
@@ -28,8 +67,9 @@ const userRoutes = require('./routes/user')
 const app = express()
 const PORT = process.env.PORT || 5000
 
-// 1. Hide framework signature
+// 1. Hide framework signature & trust edge proxies for accurate rate limiting on Vercel
 app.disable('x-powered-by')
+app.set('trust proxy', 1)
 
 // 2. HTTP Security Headers
 app.use(helmet({
@@ -44,7 +84,14 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+    // Allow same-origin (no Origin header on GET/direct requests), explicit allowedOrigins,
+    // Vercel preview deployments (*.vercel.app), or any origin in non-production
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      (process.env.VERCEL && origin.endsWith('.vercel.app')) ||
+      process.env.NODE_ENV !== 'production'
+    ) {
       callback(null, true)
     } else {
       callback(new Error('Blocked by CORS policy'))
@@ -93,6 +140,32 @@ const authLimiter = rateLimit({
 })
 app.use('/api/auth', authLimiter)
 app.use('/api/register', authLimiter)
+
+// 8. URL Normalizer for Vercel Serverless Function compatibility
+// Guarantees routes match regardless of whether Vercel preserves or rewrites the /api prefix
+app.use((req, res, next) => {
+  if (req.url && !req.url.startsWith('/api') && req.url !== '/') {
+    req.url = '/api' + req.url
+  }
+  next()
+})
+
+// 9. Ensure database is connected before processing API requests (essential for Vercel)
+app.use(async (req, res, next) => {
+  // Let health check pass through even if DB is down so it accurately returns 503
+  if (req.path === '/api/health' || req.path === '/health') {
+    return next()
+  }
+  try {
+    await connectDB()
+    next()
+  } catch (err) {
+    console.error('[DB Middleware] Connection error:', err.message)
+    res.status(503).json({
+      message: 'Database connection unavailable. Please check MongoDB Atlas network access.',
+    })
+  }
+})
 
 // Routes
 app.use('/api', registrationRoutes)
@@ -271,4 +344,10 @@ const start = async () => {
   }
 }
 
-start()
+// Export Express app for Vercel Serverless Functions
+module.exports = app
+
+// Only start HTTP listener and run initial seed when executed directly via node index.js
+if (require.main === module) {
+  start()
+}
