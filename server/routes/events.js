@@ -84,7 +84,7 @@ router.get('/:slug/my-registration', verifyFirebaseToken, async (req, res) => {
 
 /**
  * POST /api/events/:slug/register
- * Register for an event in-app.
+ * Register for an event.
  * Requires:
  * 1. Authenticated User (verifyFirebaseToken)
  * 2. Verified Entry Pass (requireEntryPass)
@@ -92,9 +92,16 @@ router.get('/:slug/my-registration', verifyFirebaseToken, async (req, res) => {
  * 4. Concurrency-safe atomic registration counter (metric only — no capacity gate)
  * 5. Duplicate registration check
  *
+ * Registration modes:
+ * - Solo events (maxTeamSize == 1): always 'confirmed' — no team data needed.
+ * - Team events with valid teamMembers: validates min/max team size → 'confirmed'.
+ * - Team events WITHOUT teamMembers (external Google Form claim): creates registration
+ *   as 'pending_verification'. The backend has no trusted integration with the external
+ *   Google Form, so it cannot treat a client click as proof of completed registration.
+ *   An admin must verify these registrations against actual Google Form responses.
+ *
  * The verified Entry Pass (req.entryPass) provides trusted defaults for name, phone,
- * and college. This supports both in-app registration and Google Form confirmation
- * flows without requiring a client-controlled bypass flag.
+ * and college, supporting both flows without a client-controlled bypass flag.
  */
 router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req, res) => {
   const eventSlug = req.params.slug.toLowerCase()
@@ -136,8 +143,11 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
 
     if (existingRegistration) {
       return res.status(409).json({
-        message: 'You are already registered for this event.',
+        message: existingRegistration.status === 'pending_verification'
+          ? 'Your registration is pending admin verification. Please wait for confirmation.'
+          : 'You are already registered for this event.',
         registrationId: existingRegistration.registrationId,
+        status: existingRegistration.status,
       })
     }
 
@@ -151,34 +161,44 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
       return res.status(400).json({ message: 'Registrations for this event are currently closed.' })
     }
 
-    // 4. Validate team members if provided for team events
-    // When no team members are provided for a team event, the registration is allowed
-    // (supports Google Form confirmation flow where team was formed externally)
+    // 4. Determine registration mode and validate accordingly
+    const isTeamEvent = eventDef.maxTeamSize > 1
+    const hasTeamMembers = Array.isArray(teamMembers) && teamMembers.length > 0
     const validatedTeamMembers = []
-    if (eventDef.maxTeamSize > 1 && Array.isArray(teamMembers) && teamMembers.length > 0) {
-      for (const m of teamMembers) {
-        if (!m || typeof m !== 'object') continue
-        if (!m.name || !m.email) {
-          return res.status(400).json({ message: 'All team members must have a name and valid email.' })
-        }
-        validatedTeamMembers.push({
-          name: String(m.name).trim().slice(0, 100),
-          email: String(m.email).trim().toLowerCase().slice(0, 150),
-          phone: m.phone ? String(m.phone).trim().slice(0, 20) : '',
-          college: m.college ? String(m.college).trim().slice(0, 150) : cleanCollege,
-        })
-      }
+    let registrationStatus = 'confirmed'
 
-      const totalTeamSize = 1 + validatedTeamMembers.length
-      if (totalTeamSize < eventDef.minTeamSize) {
-        return res.status(400).json({
-          message: `Minimum team size for ${eventDef.name} is ${eventDef.minTeamSize} members (including team lead). Current: ${totalTeamSize}.`,
-        })
-      }
-      if (totalTeamSize > eventDef.maxTeamSize) {
-        return res.status(400).json({
-          message: `Maximum team size for ${eventDef.name} is ${eventDef.maxTeamSize} members. Current: ${totalTeamSize}.`,
-        })
+    if (isTeamEvent) {
+      if (hasTeamMembers) {
+        // In-app team registration: validate team members against min/max constraints
+        for (const m of teamMembers) {
+          if (!m || typeof m !== 'object') continue
+          if (!m.name || !m.email) {
+            return res.status(400).json({ message: 'All team members must have a name and valid email.' })
+          }
+          validatedTeamMembers.push({
+            name: String(m.name).trim().slice(0, 100),
+            email: String(m.email).trim().toLowerCase().slice(0, 150),
+            phone: m.phone ? String(m.phone).trim().slice(0, 20) : '',
+            college: m.college ? String(m.college).trim().slice(0, 150) : cleanCollege,
+          })
+        }
+
+        const totalTeamSize = 1 + validatedTeamMembers.length
+        if (totalTeamSize < eventDef.minTeamSize) {
+          return res.status(400).json({
+            message: `Minimum team size for ${eventDef.name} is ${eventDef.minTeamSize} members (including team lead). Current: ${totalTeamSize}.`,
+          })
+        }
+        if (totalTeamSize > eventDef.maxTeamSize) {
+          return res.status(400).json({
+            message: `Maximum team size for ${eventDef.name} is ${eventDef.maxTeamSize} members. Current: ${totalTeamSize}.`,
+          })
+        }
+      } else {
+        // External Google Form claim: no team data provided for a team event.
+        // The backend cannot verify the external Google Form was actually completed.
+        // Record as 'pending_verification' — admin must confirm after cross-referencing.
+        registrationStatus = 'pending_verification'
       }
     }
 
@@ -199,9 +219,8 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
     }
 
     // 6. Create Event Registration record
-    // Determine team name: use provided name, or mark as Google Form if no team details
     const resolvedTeamName = cleanTeamName
-      || (eventDef.maxTeamSize > 1 && validatedTeamMembers.length === 0 ? 'Google Form Registration' : null)
+      || (registrationStatus === 'pending_verification' ? 'Pending — Google Form' : null)
 
     let registration
     try {
@@ -215,7 +234,7 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
         userCollege: cleanCollege,
         teamName: resolvedTeamName,
         teamMembers: validatedTeamMembers,
-        status: 'confirmed',
+        status: registrationStatus,
       })
     } catch (createErr) {
       // Rollback atomic counter increment if registration document creation failed
@@ -223,10 +242,17 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
       throw createErr
     }
 
-    console.log(`[Registration] Confirmed ${registration.registrationId} for ${userEmail} in ${eventSlug}`)
+    const statusLabel = registrationStatus === 'pending_verification'
+      ? 'pending admin verification'
+      : 'confirmed'
+    console.log(`[Registration] ${statusLabel}: ${registration.registrationId} for ${userEmail} in ${eventSlug}`)
+
+    const responseMessage = registrationStatus === 'pending_verification'
+      ? 'Your registration has been recorded and is pending admin verification. An admin will confirm it after cross-referencing with the Google Form responses.'
+      : 'Event registration confirmed successfully.'
 
     res.status(201).json({
-      message: 'Event registration confirmed successfully.',
+      message: responseMessage,
       registration: {
         registrationId: registration.registrationId,
         eventSlug: registration.eventSlug,

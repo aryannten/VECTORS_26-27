@@ -179,6 +179,7 @@ export default function EventDetail() {
 
   const renderRegisterButtons = () => {
     if (isRegistered) {
+      const isPending = registrationRecord?.status === 'pending_verification'
       return (
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <button
@@ -190,9 +191,15 @@ export default function EventDetail() {
               <span>VIEW IN DASHBOARD</span>
             </span>
           </button>
-          <span className="font-mono text-xs text-doom-glow flex items-center gap-1 font-bold">
-            ✓ Registration Confirmed ({registrationRecord?.registrationId || 'ACTIVE'})
-          </span>
+          {isPending ? (
+            <span className="font-mono text-xs text-amber-400 flex items-center gap-1 font-bold">
+              ⏳ Pending Admin Verification ({registrationRecord?.registrationId || 'PENDING'})
+            </span>
+          ) : (
+            <span className="font-mono text-xs text-doom-glow flex items-center gap-1 font-bold">
+              ✓ Registration Confirmed ({registrationRecord?.registrationId || 'ACTIVE'})
+            </span>
+          )}
         </div>
       )
     }

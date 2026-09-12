@@ -294,6 +294,59 @@ router.get('/event-registrations', async (req, res) => {
 })
 
 /**
+ * PATCH /api/admin/event-registrations/:id/status
+ * Update an event registration status (e.g., approve a pending Google Form registration).
+ */
+router.patch('/event-registrations/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { status } = req.body
+
+    const validStatuses = ['confirmed', 'pending_verification', 'cancelled', 'attended']
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({
+        message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+      })
+    }
+
+    const isObjectId = isValidObjectId(id)
+    const query = isObjectId ? { _id: id } : { registrationId: id.trim().toUpperCase() }
+
+    const registration = await EventRegistration.findOne(query)
+    if (!registration) {
+      return res.status(404).json({ message: 'Event registration not found.' })
+    }
+
+    const previousStatus = registration.status
+    registration.status = status
+    await registration.save()
+
+    // Audit log
+    await AuditLog.create({
+      action: 'EVENT_REGISTRATION_STATUS_UPDATED',
+      performedBy: req.user.email,
+      targetType: 'EventRegistration',
+      targetId: registration._id.toString(),
+      details: {
+        registrationId: registration.registrationId,
+        eventSlug: registration.eventSlug,
+        userEmail: registration.userEmail,
+        previousStatus,
+        newStatus: status,
+      },
+    }).catch((err) => console.error('[AuditLog] Error:', err.message))
+
+    res.status(200).json({
+      message: `Event registration status updated to '${status}'.`,
+      registration,
+    })
+  } catch (error) {
+    console.error('[Admin] Update event registration status error:', error.message)
+    res.status(500).json({ message: 'Failed to update event registration status.' })
+  }
+})
+
+/**
  * GET /api/admin/event-registrations/export
  * Export event registrations as CSV.
  * Optional query param: eventSlug

@@ -49,6 +49,31 @@ export default function AdminEventRegistrations() {
     fetchRegistrations(1, search, selectedEvent)
   }
 
+  const handleStatusUpdate = async (regId, newStatus) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`/api/admin/event-registrations/${regId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (res.ok) {
+        setRegistrations((prev) =>
+          prev.map((r) => (r._id === regId ? { ...r, status: newStatus } : r))
+        )
+      } else {
+        const err = await res.json()
+        alert(err.message || 'Failed to update status.')
+      }
+    } catch (error) {
+      console.error('Status update failed:', error)
+      alert('Network error updating status.')
+    }
+  }
+
   const handleExportCsv = async () => {
     setExporting(true)
     try {
@@ -208,9 +233,32 @@ export default function AdminEventRegistrations() {
                     </td>
 
                     <td className="px-4 py-3.5">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase bg-emerald/10 text-emerald border border-emerald/20">
-                        {reg.status || 'confirmed'}
-                      </span>
+                      {reg.status === 'pending_verification' ? (
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase bg-amber-400/10 text-amber-400 border border-amber-400/20">
+                            Pending Verification
+                          </span>
+                          <button
+                            onClick={() => handleStatusUpdate(reg._id, 'confirmed')}
+                            title="Confirm Registration after Google Form verification"
+                            className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-emerald/20 text-emerald hover:bg-emerald/30 border border-emerald/30 transition-colors"
+                          >
+                            Confirm
+                          </button>
+                        </div>
+                      ) : reg.status === 'cancelled' ? (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                          Cancelled
+                        </span>
+                      ) : reg.status === 'attended' ? (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase bg-cyan-400/10 text-cyan-400 border border-cyan-400/20">
+                          Attended
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase bg-emerald/10 text-emerald border border-emerald/20">
+                          Confirmed
+                        </span>
+                      )}
                     </td>
 
                     <td className="px-4 py-3.5 font-mono text-[11px] text-steel whitespace-nowrap">

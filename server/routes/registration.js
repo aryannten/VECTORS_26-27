@@ -104,13 +104,14 @@ router.get(['/register/status', '/status'], verifyFirebaseToken, async (req, res
 })
 
 /**
- * GET /api/verify/:registrationId
- * Verify an entry pass (used by gate scanner).
+ * POST /api/verify/:registrationId
+ * Check in an entry pass (used by gate scanner).
+ * Uses POST because this is a state-changing operation (sets checkedIn = true).
  * Requires security or admin role.
  * Uses atomic findOneAndUpdate to prevent race conditions when two scanners
  * scan the same pass simultaneously.
  */
-router.get('/verify/:registrationId', verifyFirebaseToken, requireRole('security', 'admin'), async (req, res) => {
+router.post('/verify/:registrationId', verifyFirebaseToken, requireRole('security', 'admin'), async (req, res) => {
   try {
     const { registrationId } = req.params
 

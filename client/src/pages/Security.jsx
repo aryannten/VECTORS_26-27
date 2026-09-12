@@ -39,6 +39,7 @@ export default function Security() {
     try {
       const token = await getToken()
       const res = await fetch(`/api/verify/${idToVerify}`, {
+        method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
       const data = await res.json()
