@@ -127,7 +127,7 @@ router.put('/registrations/:id', async (req, res) => {
     if (!req.params.id || req.params.id.length > 50) {
       return res.status(400).json({ message: 'Invalid registration ID format.' })
     }
-    const { name, email, phone, college, checkedIn } = req.body
+    const { name, email, phone, college, checkedIn, day1CheckedIn, day2CheckedIn } = req.body
 
     const isObjectId = mongoose.Types.ObjectId.isValid(req.params.id)
     const registration = await EntryRegistration.findOne(
@@ -145,6 +145,8 @@ router.put('/registrations/:id', async (req, res) => {
       phone: registration.phone,
       college: registration.college,
       checkedIn: registration.checkedIn,
+      day1CheckedIn: registration.day1CheckedIn,
+      day2CheckedIn: registration.day2CheckedIn,
     }
 
     if (email && email.toLowerCase() !== registration.email.toLowerCase()) {
@@ -159,14 +161,48 @@ router.put('/registrations/:id', async (req, res) => {
     if (phone !== undefined) registration.phone = phone.trim()
     if (college !== undefined) registration.college = college.trim()
 
-    if (checkedIn !== undefined) {
+    if (day1CheckedIn !== undefined) {
+      const boolD1 = Boolean(day1CheckedIn)
+      if (boolD1 && !registration.day1CheckedIn) {
+        registration.day1CheckedIn = true
+        registration.day1Timestamp = new Date()
+        registration.checkedIn = true
+        if (!registration.checkInTimestamp) registration.checkInTimestamp = new Date()
+      } else if (!boolD1 && registration.day1CheckedIn) {
+        registration.day1CheckedIn = false
+        registration.day1Timestamp = null
+        registration.checkedIn = Boolean(registration.day2CheckedIn)
+      }
+    }
+
+    if (day2CheckedIn !== undefined) {
+      const boolD2 = Boolean(day2CheckedIn)
+      if (boolD2 && !registration.day2CheckedIn) {
+        registration.day2CheckedIn = true
+        registration.day2Timestamp = new Date()
+        registration.checkedIn = true
+        if (!registration.checkInTimestamp) registration.checkInTimestamp = new Date()
+      } else if (!boolD2 && registration.day2CheckedIn) {
+        registration.day2CheckedIn = false
+        registration.day2Timestamp = null
+        registration.checkedIn = Boolean(registration.day1CheckedIn)
+      }
+    }
+
+    if (checkedIn !== undefined && day1CheckedIn === undefined && day2CheckedIn === undefined) {
       const boolCheckedIn = Boolean(checkedIn)
       if (boolCheckedIn && !registration.checkedIn) {
         registration.checkedIn = true
+        registration.day1CheckedIn = true
+        registration.day1Timestamp = new Date()
         registration.checkInTimestamp = new Date()
       } else if (!boolCheckedIn && registration.checkedIn) {
         registration.checkedIn = false
         registration.checkInTimestamp = null
+        registration.day1CheckedIn = false
+        registration.day1Timestamp = null
+        registration.day2CheckedIn = false
+        registration.day2Timestamp = null
       }
     }
 

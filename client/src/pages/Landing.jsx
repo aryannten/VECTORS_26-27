@@ -186,11 +186,11 @@ export default function Landing() {
         {/* Top Mission Telemetry Header */}
         <div className="w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono tracking-widest text-text-muted/80 uppercase pt-2 z-10">
           <div className="flex items-center gap-2">
-            <span className="inline-block w-1.5 h-1.5 bg-doom-glow rounded-full animate-ping" />
-            <span className="text-doom-glow/90 font-semibold">[ VECTORS 2026-27 // DOOMSDAY PROTOCOL ]</span>
+            <span className="inline-block w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: '#032c18' }} />
+            <span className="font-bold tracking-widest" style={{ color: '#032c18' }}>[ VECTORS 2026-27 // DOOMSDAY PROTOCOL ]</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
-            <span className="text-doom-glow/90 font-bold">STATUS: ADMISSION OPEN</span>
+            <span className="font-bold tracking-wider" style={{ color: '#032c18' }}>STATUS: ADMISSION OPEN</span>
           </div>
         </div>
 

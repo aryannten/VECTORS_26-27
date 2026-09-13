@@ -39,6 +39,22 @@ const entryRegistrationSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    day1CheckedIn: {
+      type: Boolean,
+      default: false,
+    },
+    day1Timestamp: {
+      type: Date,
+      default: null,
+    },
+    day2CheckedIn: {
+      type: Boolean,
+      default: false,
+    },
+    day2Timestamp: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

@@ -180,6 +180,24 @@ export default function MyPass() {
               </div>
             </div>
 
+            {/* 2-Day Attendance Badges */}
+            <div className="grid grid-cols-2 gap-2 w-full font-mono text-[11px] relative z-10">
+              <div className={`p-2 rounded border text-center uppercase tracking-wider font-bold ${
+                pass.day1CheckedIn 
+                  ? 'bg-doom-glow/15 border-doom-glow/40 text-doom-glow' 
+                  : 'bg-white/[0.03] border-white/10 text-text-muted'
+              }`}>
+                <span>DAY 1: {pass.day1CheckedIn ? 'CHECKED IN ✓' : 'PENDING'}</span>
+              </div>
+              <div className={`p-2 rounded border text-center uppercase tracking-wider font-bold ${
+                pass.day2CheckedIn 
+                  ? 'bg-doom-glow/15 border-doom-glow/40 text-doom-glow' 
+                  : 'bg-white/[0.03] border-white/10 text-text-muted'
+              }`}>
+                <span>DAY 2: {pass.day2CheckedIn ? 'CHECKED IN ✓' : 'PENDING'}</span>
+              </div>
+            </div>
+
             {/* Verification Badge */}
             <div className="w-full py-2.5 text-center font-mono tracking-[0.2em] uppercase text-xs bg-doom-glow/10 text-doom-glow border border-doom-glow/40 font-bold relative z-10">
               STATUS: {pass.status || 'VERIFIED // ACTIVE'}

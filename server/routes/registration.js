@@ -120,21 +120,36 @@ router.post('/verify/:registrationId', verifyFirebaseToken, requireRole('securit
     }
 
     const cleanId = registrationId.trim().toUpperCase()
+    const targetDay = Number(req.query.day || req.body?.day) === 2 ? 2 : 1
+    const now = new Date()
 
-    // Atomic check-in: only update if not already checked in
+    // Atomic check-in: only update if not already checked in for target day
+    const updateQuery = targetDay === 1
+      ? { registrationId: cleanId, day1CheckedIn: { $ne: true }, $or: [{ checkedIn: false }, { day2CheckedIn: true }] }
+      : { registrationId: cleanId, day2CheckedIn: { $ne: true } }
+
+    const updateSet = targetDay === 1
+      ? { $set: { day1CheckedIn: true, day1Timestamp: now, checkedIn: true, checkInTimestamp: now } }
+      : { $set: { day2CheckedIn: true, day2Timestamp: now, checkedIn: true } }
+
     const checkedInPass = await EntryRegistration.findOneAndUpdate(
-      { registrationId: cleanId, checkedIn: false },
-      { $set: { checkedIn: true, checkInTimestamp: new Date() } },
+      updateQuery,
+      updateSet,
       { returnDocument: 'after' }
     )
 
     if (checkedInPass) {
-      // Successfully checked in (first scan)
+      // Successfully checked in for the target day
       return res.status(200).json({
         status: 'VALID',
+        day: targetDay,
         name: checkedInPass.name,
         college: checkedInPass.college,
-        message: 'Entry approved.',
+        day1CheckedIn: Boolean(checkedInPass.day1CheckedIn),
+        day1Timestamp: checkedInPass.day1Timestamp,
+        day2CheckedIn: Boolean(checkedInPass.day2CheckedIn),
+        day2Timestamp: checkedInPass.day2Timestamp,
+        message: `Day ${targetDay} entry approved.`,
       })
     }
 
@@ -145,13 +160,22 @@ router.post('/verify/:registrationId', verifyFirebaseToken, requireRole('securit
       return res.status(404).json({ status: 'INVALID', message: 'Pass not found.' })
     }
 
-    // Pass exists but was already checked in
+    // Pass exists but was already checked in for this target day
+    const targetTimestamp = targetDay === 1
+      ? (existingPass.day1Timestamp || existingPass.checkInTimestamp)
+      : existingPass.day2Timestamp
+
     return res.status(200).json({
       status: 'ALREADY_CHECKED_IN',
+      day: targetDay,
       name: existingPass.name,
       college: existingPass.college,
-      checkInTimestamp: existingPass.checkInTimestamp,
-      message: 'This pass has already been used.',
+      checkInTimestamp: targetTimestamp,
+      day1CheckedIn: Boolean(existingPass.day1CheckedIn || (targetDay !== 2 && existingPass.checkedIn)),
+      day1Timestamp: existingPass.day1Timestamp || existingPass.checkInTimestamp,
+      day2CheckedIn: Boolean(existingPass.day2CheckedIn),
+      day2Timestamp: existingPass.day2Timestamp,
+      message: `This pass has already been checked in for Day ${targetDay}.`,
     })
   } catch (error) {
     console.error('[API] Verify error:', error.message)

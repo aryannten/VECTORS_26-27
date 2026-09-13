@@ -20,12 +20,16 @@ export default function Security() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [cameraError, setCameraError] = useState(null)
   const [scannerKey, setScannerKey] = useState(0)
+  const [selectedDay, setSelectedDay] = useState(1)
 
-  // Auto-select preferred camera if devices change
+  // Auto-detect and prefer back camera
   useEffect(() => {
     if (devices && devices.length > 0 && !selectedDeviceId) {
-      // Prefer back camera if label mentions back / environment
-      const backCam = devices.find(d => d.label?.toLowerCase().includes('back') || d.label?.toLowerCase().includes('rear'))
+      const backCam = devices.find(d => 
+        d.label?.toLowerCase().includes('back') || 
+        d.label?.toLowerCase().includes('rear') ||
+        d.label?.toLowerCase().includes('environment')
+      )
       if (backCam) {
         setSelectedDeviceId(backCam.deviceId)
       }
@@ -38,7 +42,7 @@ export default function Security() {
 
     try {
       const token = await getToken()
-      const res = await fetch(`/api/verify/${idToVerify}`, {
+      const res = await fetch(`/api/verify/${idToVerify}?day=${selectedDay}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -143,6 +147,38 @@ export default function Security() {
           </div>
         </div>
 
+        {/* Festival Day Selector */}
+        <div className="grid grid-cols-2 gap-2 bg-iron/40 p-1 border border-white/[0.08]">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedDay(1)
+              resetScanner()
+            }}
+            className={`py-2 text-center font-display text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer ${
+              selectedDay === 1
+                ? 'bg-emerald text-charcoal font-bold shadow-sm'
+                : 'text-steel hover:text-bone hover:bg-white/[0.04]'
+            }`}
+          >
+            DAY 1 SCAN
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedDay(2)
+              resetScanner()
+            }}
+            className={`py-2 text-center font-display text-xs tracking-widest uppercase transition-all duration-200 cursor-pointer ${
+              selectedDay === 2
+                ? 'bg-emerald text-charcoal font-bold shadow-sm'
+                : 'text-steel hover:text-bone hover:bg-white/[0.04]'
+            }`}
+          >
+            DAY 2 SCAN
+          </button>
+        </div>
+
         {/* Camera Selector (if multiple cameras detected) */}
         {devices && devices.length > 1 && !scanResult && (
           <div className="flex items-center gap-2 bg-iron/30 border border-white/[0.06] px-3 py-2 min-w-0">
@@ -209,34 +245,42 @@ export default function Security() {
                   }}
                   styles={{
                     container: { width: '100%', height: '100%' },
-                    video: { objectFit: 'cover', width: '100%', height: '100%' }
+                    video: { width: '100%', height: '100%', objectFit: 'cover' }
                   }}
                 />
               )}
 
-              {/* Scan Overlay UI */}
+              {/* Scanning crosshairs animation overlay */}
               {!cameraError && (
-                <div className="absolute inset-0 pointer-events-none border-[1px] border-emerald/50 m-8 flex items-center justify-center">
-                  <span className="font-mono text-emerald/80 text-xs tracking-widest uppercase bg-charcoal/80 px-2.5 py-1 border border-emerald/30">
-                    Align QR Code
-                  </span>
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="w-48 h-48 border border-brass/30 relative">
+                    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-emerald" />
+                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-emerald" />
+                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-emerald" />
+                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-emerald" />
+                    <div className="w-full h-0.5 bg-emerald/60 shadow-[0_0_8px_rgba(30,255,160,0.8)] absolute top-0 animate-[scannerLaser_2s_ease-in-out_infinite]" />
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Manual Input Fallback */}
-            <form onSubmit={handleManualSubmit} className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-[1px] flex-1 bg-brass-dim/20" />
-                <span className="font-mono text-xs text-steel uppercase tracking-widest">OR ENTER ID</span>
-                <div className="h-[1px] flex-1 bg-brass-dim/20" />
+            {/* Status indicator */}
+            <div className="flex items-center justify-center gap-2 text-xs font-mono text-steel">
+              <span className={`w-2 h-2 rounded-full ${isProcessing ? 'bg-brass animate-pulse' : 'bg-emerald'}`} />
+              <span>{isProcessing ? 'Processing pass...' : `Ready to scan // Day ${selectedDay}`}</span>
+            </div>
+
+            {/* Manual ID Input */}
+            <form onSubmit={handleManualSubmit} className="space-y-3 pt-2">
+              <div className="text-center font-mono text-[10px] text-steel uppercase tracking-wider">
+                — Or enter pass ID manually —
               </div>
               <input
                 type="text"
-                placeholder="VEC-XXXXXXXX"
                 value={manualId}
                 onChange={(e) => setManualId(e.target.value)}
-                className="w-full bg-iron/50 border border-brass-dim/30 text-bone px-4 py-3 font-mono text-sm text-center focus:outline-none focus:border-emerald transition-colors duration-300 uppercase tracking-widest"
+                placeholder="VEC-XXXXXXXX"
+                className="w-full px-4 py-3 bg-iron/50 border border-white/10 text-bone placeholder-steel/50 font-mono text-center tracking-widest text-sm focus:outline-none focus:border-brass transition-colors duration-300 uppercase"
                 id="input-manual-id"
                 disabled={isProcessing}
               />
@@ -246,7 +290,7 @@ export default function Security() {
                 className="w-full py-4 font-display tracking-widest uppercase bg-emerald text-charcoal hover:bg-emerald-dim disabled:opacity-50 transition-colors duration-300"
                 id="btn-verify"
               >
-                {isProcessing ? 'Verifying...' : 'Verify Pass'}
+                {isProcessing ? 'Verifying...' : `Verify Pass (Day ${selectedDay})`}
               </button>
             </form>
           </div>
@@ -259,9 +303,27 @@ export default function Security() {
                   <div className="w-12 h-12 rounded-full bg-emerald/20 flex items-center justify-center mb-2">
                     <span className="text-emerald text-2xl font-bold">✓</span>
                   </div>
-                  <h2 className="font-display text-xl sm:text-2xl tracking-widest text-emerald">APPROVED</h2>
+                  <h2 className="font-display text-xl sm:text-2xl tracking-widest text-emerald">DAY {selectedDay} APPROVED</h2>
                   <p className="font-mono text-bone text-base sm:text-lg font-bold break-words">{scanResult.name}</p>
                   <p className="font-mono text-steel text-xs sm:text-sm break-words">{scanResult.college}</p>
+                  
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className={`font-mono text-[10px] px-2 py-0.5 rounded border uppercase font-bold ${
+                      scanResult.day1CheckedIn
+                        ? 'border-emerald/50 bg-emerald/15 text-emerald'
+                        : 'border-white/10 bg-iron/40 text-steel'
+                    }`}>
+                      Day 1: {scanResult.day1CheckedIn ? 'Checked In' : 'Pending'}
+                    </span>
+                    <span className={`font-mono text-[10px] px-2 py-0.5 rounded border uppercase font-bold ${
+                      scanResult.day2CheckedIn
+                        ? 'border-emerald/50 bg-emerald/15 text-emerald'
+                        : 'border-white/10 bg-iron/40 text-steel'
+                    }`}>
+                      Day 2: {scanResult.day2CheckedIn ? 'Checked In' : 'Pending'}
+                    </span>
+                  </div>
+
                   <span className="font-mono text-[10px] text-emerald/80 tracking-wider uppercase mt-1">Pass Verified • Entry Granted</span>
                 </>
               )}
@@ -271,11 +333,28 @@ export default function Security() {
                   <div className="w-12 h-12 rounded-full bg-brass/20 flex items-center justify-center mb-2">
                     <span className="text-brass text-2xl font-bold">!</span>
                   </div>
-                  <h2 className="font-display text-lg sm:text-xl tracking-widest text-brass text-center leading-relaxed">ALREADY CHECKED IN</h2>
+                  <h2 className="font-display text-lg sm:text-xl tracking-widest text-brass text-center leading-relaxed">ALREADY CHECKED IN (DAY {selectedDay})</h2>
                   <p className="font-mono text-bone mt-2 font-bold text-base sm:text-lg break-words">{scanResult.name}</p>
                   <p className="font-mono text-steel text-xs sm:text-sm mt-1 break-words">
-                    Checked in at: {scanResult.checkInTimestamp ? new Date(scanResult.checkInTimestamp).toLocaleTimeString() : 'Earlier today'}
+                    {scanResult.message || `Checked in at: ${scanResult.checkInTimestamp ? new Date(scanResult.checkInTimestamp).toLocaleTimeString() : 'Earlier today'}`}
                   </p>
+
+                  <div className="flex items-center gap-2 mt-3">
+                    <span className={`font-mono text-[10px] px-2 py-0.5 rounded border uppercase font-bold ${
+                      scanResult.day1CheckedIn
+                        ? 'border-emerald/50 bg-emerald/15 text-emerald'
+                        : 'border-white/10 bg-iron/40 text-steel'
+                    }`}>
+                      Day 1: {scanResult.day1CheckedIn ? 'Checked In' : 'Not Checked In'}
+                    </span>
+                    <span className={`font-mono text-[10px] px-2 py-0.5 rounded border uppercase font-bold ${
+                      scanResult.day2CheckedIn
+                        ? 'border-emerald/50 bg-emerald/15 text-emerald'
+                        : 'border-white/10 bg-iron/40 text-steel'
+                    }`}>
+                      Day 2: {scanResult.day2CheckedIn ? 'Checked In' : 'Not Checked In'}
+                    </span>
+                  </div>
                 </>
               )}
 

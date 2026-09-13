@@ -58,6 +58,10 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
             email: entryPass.email,
             checkedIn: entryPass.checkedIn,
             checkInTimestamp: entryPass.checkInTimestamp,
+            day1CheckedIn: Boolean(entryPass.day1CheckedIn),
+            day1Timestamp: entryPass.day1Timestamp,
+            day2CheckedIn: Boolean(entryPass.day2CheckedIn),
+            day2Timestamp: entryPass.day2Timestamp,
             status: 'VERIFIED',
           }
         : null,
