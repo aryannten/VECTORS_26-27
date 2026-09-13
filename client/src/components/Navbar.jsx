@@ -95,9 +95,9 @@ export default function Navbar() {
 
           <Link to="/" className="flex items-center group select-none py-1" aria-label="VECTORS 2026-27 Home">
             <img
-              src="/vector26-logo.png"
+              src="/vector26-logo-new.png"
               alt="VECTORS 2026-27"
-              className="h-11 sm:h-13 md:h-14 w-auto max-w-[190px] sm:max-w-[240px] md:max-w-[280px] object-contain transition-transform duration-300 group-hover:scale-105 mix-blend-screen drop-shadow-[0_0_15px_rgba(30,255,160,0.3)]"
+              className="h-11 sm:h-13 md:h-14 w-auto max-w-[190px] sm:max-w-[240px] md:max-w-[280px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_15px_rgba(30,255,160,0.3)]"
             />
           </Link>
         </div>

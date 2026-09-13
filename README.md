@@ -87,8 +87,9 @@ VECTORS_26-27/
 │   ├── package.json                  # Frontend dependencies
 │   ├── vite.config.js                # Build configuration and development proxy
 │   ├── public/
-│   │   ├── favicon.png               # Application icon
-│   │   ├── vector26-logo.png         # Festival identity assets
+│   │   ├── favicon.png               # Application icon and touch icon (square)
+│   │   ├── vector26-logo-new.png     # Active transparent festival identity logo (UI banner/wordmark)
+│   │   ├── vector26-logo.png         # Preserved legacy festival identity asset
 │   │   ├── hero-bg.jpg               # Portal visual assets
 │   │   └── fonts/                    # Display typography assets
 │   └── src/

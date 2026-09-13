@@ -20,16 +20,16 @@
 
 ```text
 Asset ID: LOGO-01
-Asset Name: VECTORS 2026 Wordmark
-Type: 2D Graphic (SVG / Transparent PNG)
-Status: REPLACE (Using old logo temporarily)
-Required For: Hero sequence, Navigation, QR Pass
-Dimensions: Vector (or 1000x300 min)
-Aspect Ratio: Flexible (Wide preferred)
-File Format: .svg or .png
-Visual Description: The official VECTORS text.
-Implementation Location: <Header />, <Hero />, <QRPass />
-Notes: The user will provide the old logo as a placeholder. Once the new one is ready, it must match the "monumental serif / metallic" art direction.
+Asset Name: VECTORS 2026-27 Wordmark
+Type: 2D Graphic (Transparent PNG)
+Status: IMPLEMENTED (Testing new transparent metallic asset: vector26-logo-new.png; legacy vector26-logo.png retained)
+Required For: Hero sequence, Navigation, Digital Pass
+Dimensions: 1024x512
+Aspect Ratio: 2:1 Wide
+File Format: .png (true alpha transparency)
+Visual Description: Distressed metallic green VECTORS 2026-27 logo with "THE INCURSION HAS BEGUN" header.
+Implementation Location: <LandingNav />, <Navbar />, <Landing />
+Notes: Replaced legacy black-background placeholder with transparent metallic high-resolution asset. Legacy files preserved.
 ```
 
 ## 2. 3D & Environmental Assets

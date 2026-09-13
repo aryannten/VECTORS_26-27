@@ -713,9 +713,9 @@ export default function Landing() {
             <div className="flex items-center justify-between border-b border-white/10 pb-6">
               <div className="flex items-center gap-3">
                 <img
-                  src="/vector26-logo.png"
+                  src="/vector26-logo-new.png"
                   alt="VECTORS 2026-27"
-                  className="h-8 w-auto mix-blend-screen"
+                  className="h-8 w-auto object-contain"
                 />
                 <span className="font-mono text-xs tracking-widest uppercase text-doom-glow font-bold">
                   DIGITAL CREDENTIAL
