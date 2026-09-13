@@ -156,8 +156,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        setUser(firebaseUser)
+        // Sync with backend BEFORE exposing the user to the app.
+        // This prevents a race where Dashboard mounts and calls the
+        // API before the MongoDB user record exists.
         await syncWithBackend(firebaseUser)
+        setUser(firebaseUser)
         await checkPassStatus(firebaseUser)
       } else {
         setUser(null)
