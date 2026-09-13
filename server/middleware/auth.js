@@ -18,7 +18,31 @@ const verifyFirebaseToken = async (req, res, next) => {
     const decodedToken = await getAuth().verifyIdToken(idToken)
     
     // Find the user in MongoDB
-    const user = await User.findOne({ firebaseUid: decodedToken.uid })
+    let user = await User.findOne({ firebaseUid: decodedToken.uid })
+    if (!user && decodedToken.email) {
+      user = await User.findOne({ email: decodedToken.email.toLowerCase() })
+      if (user && !user.firebaseUid) {
+        user.firebaseUid = decodedToken.uid
+        await user.save()
+      }
+    }
+    if (!user && decodedToken.email) {
+      const userEmail = decodedToken.email.toLowerCase()
+      const adminEmailsRaw = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || ''
+      const adminEmails = adminEmailsRaw
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean)
+      const isAdmin = adminEmails.includes(userEmail)
+      const role = isAdmin ? 'admin' : 'user'
+      user = await User.create({
+        firebaseUid: decodedToken.uid,
+        email: decodedToken.email,
+        displayName: decodedToken.name || '',
+        photoURL: decodedToken.picture || '',
+        role
+      })
+    }
     if (!user) {
       return res.status(401).json({ message: 'User not found. Please sign up first.' })
     }

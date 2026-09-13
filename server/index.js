@@ -52,7 +52,15 @@ if (getApps().length === 0) {
 
   if (credential) {
     initializeApp({ credential })
-    console.log('[Firebase] Admin SDK initialized.')
+    console.log('[Firebase] Admin SDK initialized with credentials.')
+  } else {
+    try {
+      const projectId = process.env.FIREBASE_PROJECT_ID || 'vectors-26-27'
+      initializeApp({ projectId })
+      console.log(`[Firebase] Admin SDK initialized with projectId (${projectId}) for token verification.`)
+    } catch (err) {
+      console.error('[Firebase] Admin SDK fallback initialization failed:', err.message)
+    }
   }
 }
 

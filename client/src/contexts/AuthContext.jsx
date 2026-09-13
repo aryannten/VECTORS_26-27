@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import {
   auth,
   googleProvider,
@@ -27,12 +27,16 @@ export function AuthProvider({ children }) {
   const [userRole, setUserRole] = useState(null)  // 'user' | 'security' | 'admin'
   const [loading, setLoading] = useState(true)    // Initial auth check
   const [idToken, setIdToken] = useState(null)    // Firebase ID token for API calls
+  const [hasPass, setHasPass] = useState(false)
+  const [userPass, setUserPass] = useState(null)
+  const [passLoading, setPassLoading] = useState(true)
 
   /**
    * Sync the Firebase user with the backend MongoDB user.
    * Returns the user's role.
    */
-  const syncWithBackend = async (firebaseUser) => {
+  const syncWithBackend = useCallback(async (firebaseUser) => {
+    if (!firebaseUser) return null
     try {
       const token = await firebaseUser.getIdToken()
       setIdToken(token)
@@ -54,18 +58,18 @@ export function AuthProvider({ children }) {
       console.error('[Auth] Backend sync failed:', error)
     }
     return null
-  }
-
-  const [hasPass, setHasPass] = useState(false)
-  const [userPass, setUserPass] = useState(null)
-  const [passLoading, setPassLoading] = useState(true)
+  }, [])
 
   /**
    * Check and sync entry pass verification status with the backend.
+   * Wrapped in useCallback so reference remains stable across renders.
    */
-  const checkPassStatus = async (firebaseUser) => {
-    const targetUser = firebaseUser || auth.currentUser || user
-    setPassLoading(true)
+  const checkPassStatus = useCallback(async (firebaseUser) => {
+    const targetUser = firebaseUser || auth.currentUser
+    
+    // Only flag passLoading if pass state is entirely absent
+    setPassLoading(prev => (!hasPass && !userPass ? true : prev))
+
     try {
       // 1. Instant optimistic check from localStorage
       const cached = localStorage.getItem('vectorsPass')
@@ -74,7 +78,12 @@ export function AuthProvider({ children }) {
           const parsed = JSON.parse(cached)
           if (parsed && parsed.registrationId) {
             setHasPass(true)
-            setUserPass(parsed)
+            setUserPass(prev => {
+              if (prev && prev.registrationId === parsed.registrationId && prev.checkedIn === parsed.checkedIn) {
+                return prev
+              }
+              return parsed
+            })
           }
         } catch {
           // ignore corrupted local storage
@@ -96,7 +105,18 @@ export function AuthProvider({ children }) {
           const data = await res.json()
           if (data.hasPass) {
             setHasPass(true)
-            setUserPass(data.pass)
+            setUserPass(prev => {
+              if (
+                prev &&
+                prev.registrationId === data.pass?.registrationId &&
+                prev.checkedIn === data.pass?.checkedIn &&
+                prev.day1CheckedIn === data.pass?.day1CheckedIn &&
+                prev.day2CheckedIn === data.pass?.day2CheckedIn
+              ) {
+                return prev
+              }
+              return data.pass
+            })
             localStorage.setItem('vectorsPass', JSON.stringify(data.pass))
             return data.pass
           } else {
@@ -106,7 +126,7 @@ export function AuthProvider({ children }) {
             return null
           }
         }
-      } else if (!auth.currentUser && !user) {
+      } else if (!auth.currentUser) {
         setHasPass(false)
         setUserPass(null)
       }
@@ -115,12 +135,12 @@ export function AuthProvider({ children }) {
     } finally {
       setPassLoading(false)
     }
-  }
+  }, [hasPass, userPass])
 
   /**
    * Direct setter called when a pass is newly generated in the frontend.
    */
-  const setPassData = (passData) => {
+  const setPassData = useCallback((passData) => {
     if (passData && passData.registrationId) {
       setHasPass(true)
       setUserPass(passData)
@@ -130,7 +150,7 @@ export function AuthProvider({ children }) {
       setUserPass(null)
       localStorage.removeItem('vectorsPass')
     }
-  }
+  }, [])
 
   // Listen to Firebase auth state & token refreshes
   useEffect(() => {
@@ -167,54 +187,56 @@ export function AuthProvider({ children }) {
       unsubscribeAuth()
       unsubscribeToken()
     }
-  }, [])
+  }, [syncWithBackend, checkPassStatus])
 
   /**
    * Sign in with email and password.
    */
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     const result = await signInWithEmailAndPassword(auth, email, password)
     const backendUser = await syncWithBackend(result.user)
     return backendUser
-  }
+  }, [syncWithBackend])
 
   /**
    * Sign in with Google.
    */
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = useCallback(async () => {
     const result = await signInWithPopup(auth, googleProvider)
     const backendUser = await syncWithBackend(result.user)
     return backendUser
-  }
+  }, [syncWithBackend])
 
   /**
    * Sign up with email, password, and display name.
    */
-  const signup = async (email, password, displayName) => {
+  const signup = useCallback(async (email, password, displayName) => {
     const result = await createUserWithEmailAndPassword(auth, email, password)
     if (displayName) {
       await updateProfile(result.user, { displayName })
     }
     const backendUser = await syncWithBackend(result.user)
     return backendUser
-  }
+  }, [syncWithBackend])
 
   /**
    * Send password reset email to user.
    */
-  const resetPassword = async (email) => {
+  const resetPassword = useCallback(async (email) => {
     return await sendPasswordResetEmail(auth, email)
-  }
+  }, [])
 
   /**
    * Sign out.
    */
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await signOut(auth)
     setUser(null)
     setUserRole(null)
     setIdToken(null)
-  }
+    setHasPass(false)
+    setUserPass(null)
+  }, [])
 
   /**
    * Get a fresh ID token for API calls.
@@ -225,16 +247,15 @@ export function AuthProvider({ children }) {
     if (activeUser) {
       try {
         const token = await activeUser.getIdToken(forceRefresh)
-        setIdToken(token)
         return token
       } catch (err) {
         console.error('[Auth] Failed to retrieve fresh token:', err)
       }
     }
     return null
-  }, [user])
+  }, [user?.uid])
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     userRole,
     loading,
@@ -250,7 +271,23 @@ export function AuthProvider({ children }) {
     resetPassword,
     logout,
     getToken,
-  }
+  }), [
+    user,
+    userRole,
+    loading,
+    idToken,
+    hasPass,
+    userPass,
+    passLoading,
+    setPassData,
+    checkPassStatus,
+    login,
+    loginWithGoogle,
+    signup,
+    resetPassword,
+    logout,
+    getToken,
+  ])
 
   return (
     <AuthContext.Provider value={value}>

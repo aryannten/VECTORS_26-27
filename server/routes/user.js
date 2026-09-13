@@ -15,12 +15,7 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
     const userEmail = req.user.email.toLowerCase()
 
     // 1. Fetch user's entry pass
-    const entryPass = await EntryRegistration.findOne({
-      $or: [
-        { userId: req.user.uid },
-        { email: userEmail }
-      ]
-    })
+    const entryPass = await EntryRegistration.findOne({ email: userEmail })
 
     // 2. Fetch user's event registrations
     const eventRegistrations = await EventRegistration.find({

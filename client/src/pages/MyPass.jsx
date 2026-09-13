@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState, useCallback } from 'react'
+import { useMemo, useEffect, useState, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
@@ -16,23 +16,27 @@ import { useAuth } from '../contexts/AuthContext'
 export default function MyPass() {
   const { user, userPass, passLoading, userRole, checkPassStatus } = useAuth()
   const [isSyncing, setIsSyncing] = useState(false)
+  const syncingRef = useRef(false)
 
   // Live status synchronization with backend
   const syncPass = useCallback(async () => {
-    if (!user) return
+    if (!user || syncingRef.current) return
+    syncingRef.current = true
     setIsSyncing(true)
     try {
       await checkPassStatus(user)
     } catch (err) {
       console.warn('[MyPass] Live sync failed:', err)
     } finally {
+      syncingRef.current = false
       setIsSyncing(false)
     }
-  }, [user, checkPassStatus])
+  }, [user?.uid, checkPassStatus])
 
   // Sync pass check-in status on mount and debounced on window focus (no aggressive polling)
+  const userId = user?.uid
   useEffect(() => {
-    if (!user) return
+    if (!userId) return
     syncPass()
 
     let lastSync = Date.now()
@@ -48,7 +52,7 @@ export default function MyPass() {
     return () => {
       window.removeEventListener('focus', handleFocus)
     }
-  }, [user, syncPass])
+  }, [userId, syncPass])
 
   // Derive pass synchronously with fail-safe fallbacks
   const pass = useMemo(() => {
