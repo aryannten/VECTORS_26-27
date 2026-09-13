@@ -143,16 +143,7 @@ const apiLimiter = rateLimit({
 })
 app.use('/api', apiLimiter)
 
-// 7. Strict Registration Rate Limiter (Anti-Bot Protection for pass creation)
-const registrationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: 'Too many registration attempts. Please try again after 15 minutes.' },
-  skip: () => process.env.NODE_ENV !== 'production',
-})
-app.post('/api/register', registrationLimiter)
+// 7. (Registration and auth rate limiters are now MongoDB-backed and applied at the route level)
 
 // 8. URL Normalizer for Vercel Serverless Function compatibility
 // Guarantees routes match regardless of whether Vercel preserves or rewrites the /api prefix

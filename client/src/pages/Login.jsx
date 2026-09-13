@@ -91,16 +91,12 @@ export default function Login() {
     setResetSuccess(null)
 
     try {
-      await resetPassword(email)
-      setResetSuccess(`Password reset email sent to ${email}. Check your inbox and spam folder.`)
+      const data = await resetPassword(email)
+      // Server always returns the same generic message regardless of whether
+      // the email exists — prevents account enumeration.
+      setResetSuccess(data.message || 'If an account with that email exists, a password reset link has been sent.')
     } catch (err) {
-      if (err.code === 'auth/user-not-found') {
-        setResetError('No account found with this email address.')
-      } else if (err.code === 'auth/invalid-email') {
-        setResetError('Please enter a valid email address.')
-      } else {
-        setResetError(err.message || 'Failed to send password reset email.')
-      }
+      setResetError(err.message || 'Failed to send password reset email. Please try again later.')
     } finally {
       setResetLoading(false)
     }

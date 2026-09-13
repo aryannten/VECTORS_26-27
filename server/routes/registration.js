@@ -3,6 +3,33 @@ const router = express.Router()
 const EntryRegistration = require('../models/EntryRegistration')
 const User = require('../models/User')
 const { verifyFirebaseToken, requireRole } = require('../middleware/auth')
+const { rateLimitMongo } = require('../middleware/rateLimitMongo')
+
+const FIFTEEN_MINUTES = 15 * 60 * 1000
+
+/**
+ * MongoDB-backed rate limiter for pass registration.
+ * 100 requests per IP per 15 minutes (anti-bot protection).
+ */
+const registrationLimiter = rateLimitMongo({
+  category: 'registration_ip',
+  windowMs: FIFTEEN_MINUTES,
+  max: 100,
+  keyGenerator: (req) => req.ip || req.connection?.remoteAddress || 'unknown',
+  message: 'Too many registration attempts. Please try again after 15 minutes.',
+})
+
+/**
+ * MongoDB-backed rate limiter for gate security scanner.
+ * 30 requests per IP per 15 minutes (defense-in-depth; requires security/admin role).
+ */
+const verifyLimiter = rateLimitMongo({
+  category: 'verify_ip',
+  windowMs: FIFTEEN_MINUTES,
+  max: 30,
+  keyGenerator: (req) => req.ip || req.connection?.remoteAddress || 'unknown',
+  message: 'Too many verification attempts. Please try again later.',
+})
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -14,7 +41,7 @@ const PASS_ID_REGEX = /^VEC-[A-Z0-9]{8}$/i
  * Requires authenticated user.
  * The pass email is always the authenticated user's email (ownership enforced).
  */
-router.post('/register', verifyFirebaseToken, async (req, res) => {
+router.post('/register', registrationLimiter, verifyFirebaseToken, async (req, res) => {
   try {
     const { name, phone, college } = req.body
 
@@ -123,7 +150,7 @@ router.get(['/register/status', '/status'], verifyFirebaseToken, async (req, res
  * Uses atomic findOneAndUpdate to prevent race conditions when two scanners
  * scan the same pass simultaneously.
  */
-router.post('/verify/:registrationId', verifyFirebaseToken, requireRole('security', 'admin'), async (req, res) => {
+router.post('/verify/:registrationId', verifyLimiter, verifyFirebaseToken, requireRole('security', 'admin'), async (req, res) => {
   try {
     const { registrationId } = req.params
 

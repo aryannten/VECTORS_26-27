@@ -65,7 +65,8 @@ flowchart TD
 - **Security Middleware**:
   - `helmet`: Secure HTTP headers
   - `cors`: Explicit origin allowlist supporting production and preview environments
-  - `express-rate-limit`: Multi-tier IP rate limiting with reverse proxy trust
+  - `express-rate-limit`: Global production traffic shaping with reverse proxy trust
+  - `rateLimitMongo` (Custom): Distributed MongoDB-backed multi-tier rate limiter utilizing atomic `$inc` updates and TTL index auto-eviction (`server/middleware/rateLimitMongo.js`)
   - `express-mongo-sanitize`: NoSQL injection query sanitization
 
 ### Infrastructure & Deployment
@@ -101,10 +102,12 @@ VECTORS_26-27/
 │   ├── package.json                  # Backend dependencies
 │   ├── config/db.js                  # Database connection pooling and caching
 │   ├── data/officialEvents.js        # Seed definitions for festival events
-│   ├── middleware/auth.js            # Token authentication and RBAC middleware
-│   ├── models/                       # Mongoose schemas (Pass, Event, User, Audit)
+│   ├── middleware/                   # Authentication, RBAC, and rate limiting middleware
+│   │   ├── auth.js                   # Token verification and role enforcement
+│   │   └── rateLimitMongo.js         # Distributed MongoDB-backed atomic rate limiter
+│   ├── models/                       # Mongoose schemas (Pass, Event, User, Audit, RateLimit)
 │   ├── routes/                       # Express route controllers
-│   └── test/                         # System validation and integration test suites
+│   └── test/                         # System validation and integration test suites (rate_limit, etc.)
 ├── vercel.json                       # Unified edge routing, rewrites, and security headers
 ├── .gitignore                        # Git exclusion rules for secrets, builds, and local configs
 └── package.json                      # Monorepo workspaces and top-level lifecycle scripts
@@ -164,14 +167,15 @@ VECTORS_26-27/
 | `GET` | `/api/events` | List all active festival events with search and category filtering |
 | `GET` | `/api/events/:slug` | Retrieve complete specifications and metadata for a specific event |
 | `GET` | `/api/announcements` | Retrieve official broadcasts and pinned festival notices |
+| `POST` | `/api/auth/reset-password` | Anti-enumeration password reset proxy dispatching reset links via Google Identity Toolkit (Rate limited: 5 req/IP/15m, 3 req/email/hr; returns uniform 200 message regardless of account existence) |
 
 ### Authenticated User Endpoints (Bearer Token Required)
 
 | Method | Route | Description |
 |---|---|---|
-| `POST` | `/api/auth/sync` | Synchronize Firebase identity with MongoDB user profile, auto-assigning configured `admin` and `security` roles, resolving `displayName` via Firebase Admin SDK fallback, and auto-attaching verified phone numbers |
+| `POST` | `/api/auth/sync` | Synchronize Firebase identity with MongoDB user profile, auto-assigning configured `admin` and `security` roles, resolving `displayName` via Firebase Admin SDK fallback, and auto-attaching verified phone numbers (Rate limited: 10 req/IP/15m baseline + 5 failed attempts/email/15m applied post-token verification) |
 | `GET` | `/api/user/dashboard` | Aggregated user summary including pass status, Day 1 & Day 2 check-in timestamps, and active registrations |
-| `POST` | `/api/register` | Mint a verified campus Entry Pass (`VEC-XXXXXXXX`) and sync attendee contact phone to user account |
+| `POST` | `/api/register` | Mint a verified campus Entry Pass (`VEC-XXXXXXXX`) and sync attendee contact phone to user account (Rate limited: 100 req/IP/15m anti-bot defense) |
 | `GET` | `/api/register/status` | Retrieve the authenticated user's authoritative pass status, QR payload, and Day 1 / Day 2 check-in telemetry |
 | `GET` | `/api/my-pass` | Alias route retrieving digital pass details with Day 1 & Day 2 attendance stamps |
 | `POST` | `/api/events/:slug/register` | Register for an event with validation of team parameters |
@@ -180,7 +184,7 @@ VECTORS_26-27/
 
 | Method | Route | Description |
 |---|---|---|
-| `POST` | `/api/verify/:registrationId?day=1\|2` | Perform atomic check-in on an Entry Pass for Day 1 or Day 2 (returns `VALID` or `ALREADY_CHECKED_IN` with multi-day attendance metadata) |
+| `POST` | `/api/verify/:registrationId?day=1\|2` | Perform atomic check-in on an Entry Pass for Day 1 or Day 2 (returns `VALID` or `ALREADY_CHECKED_IN` with multi-day attendance metadata; Rate limited: 30 req/IP/15m scanner flood defense) |
 
 ### Administration Endpoints (`admin` Role Required)
 
@@ -219,6 +223,7 @@ A comprehensive full-stack security and reliability audit was conducted across t
 | **CSV / Formula Injection** | Malicious spreadsheet formula prefixes (`=`, `+`, `-`, `@`) in attendee exports | Output encoding and formula neutralization escaping all exported string fields. |
 | **Serverless Resource Exhaustion** | Connection storms and socket starvation across cold/warm function cycles | Global Mongoose connection caching and promise reuse across stateless invocation lifecycles. |
 | **Client IP Spoofing & Rate Limiting** | Reverse proxy header manipulation and false-positive developer/attendee lockouts | Configured Express `trust proxy: 1` aligned with Vercel Edge CDN forwarding. Rate limiting automatically bypassed during development and for loopback proxies (`127.0.0.1`, `::1`); production global ceiling elevated to 5000 req/15min to prevent navigation lockouts while securing pass creation. |
+| **Brute-Force, Account Enumeration & Scanner Flooding** | Token sync flood abuse on `/api/auth/sync`, user enumeration on `/api/auth/reset-password`, and high-frequency QR scanning race attacks | Multi-tier MongoDB-backed rate limiter (`rateLimitMongo`) with compound `(key, category)` unique indexes and atomic 3-phase `findOneAndUpdate` + `$inc` counters. TTL indexes automatically purge expired windows. Auth sync enforces 10 req/IP/15m baseline flood protection plus 5 failed sync attempts/identity/15m against verified identities for API abuse prevention. Password reset enforces 5 req/IP/15m plus 3 req/email/hr with uniform responses and server-side Identity Toolkit dispatch. Gate verification enforces 30 req/IP/15m defense-in-depth. |
 | **Database Connectivity & IP Access** | Dynamic developer IP or VPN routing changes rejecting MongoDB Atlas handshakes | Health probes report status 503; client dashboard telemetry surfaces descriptive diagnostic messages directing administrators to Atlas IP Access List. |
 
 ### Automated Test Verification
@@ -228,6 +233,7 @@ The platform architecture is covered by automated integration test suites verify
 - Enforcement of Role-Based Access Control (RBAC) preventing horizontal and vertical privilege escalation.
 - Simulated concurrency tests verifying atomic check-in prevents duplicate gate admissions under load.
 - Strict payload validation preventing unregistered or malformed team sizes from entering state persistence.
+- Distributed MongoDB rate limiter test suite (`server/test/rate_limit.test.js`) verifying 66 boundary conditions: IP quotas, email velocity caps, identical enumeration protection responses, gate scanner thresholds, and atomic concurrency limits.
 - Sanity checks confirming safe fallback behavior during external dependency outages.
 
 ---

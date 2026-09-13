@@ -5,7 +5,6 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
   updateProfile,
   signOut,
   onAuthStateChanged,
@@ -226,10 +225,28 @@ export function AuthProvider({ children }) {
   }, [syncWithBackend])
 
   /**
-   * Send password reset email to user.
+   * Send password reset email via server-side endpoint.
+   * The server always returns the same generic response to prevent
+   * account enumeration. Rate limited: 5/IP/15min + 3/email/hour.
    */
   const resetPassword = useCallback(async (email) => {
-    return await sendPasswordResetEmail(auth, email)
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+
+    const data = await res.json().catch(() => ({}))
+
+    if (res.status === 429) {
+      throw new Error(data.message || 'Too many requests. Please try again later.')
+    }
+
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed to send password reset email.')
+    }
+
+    return data
   }, [])
 
   /**
