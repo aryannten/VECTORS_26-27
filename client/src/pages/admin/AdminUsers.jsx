@@ -16,6 +16,8 @@ import {
   RefreshCw,
   Ticket,
   Users,
+  Phone,
+  PhoneOff,
 } from 'lucide-react'
 
 /**
@@ -48,11 +50,13 @@ export default function AdminUsers() {
   const [newFormData, setNewFormData] = useState({
     displayName: '',
     email: '',
+    phone: '',
     password: '',
     role: 'user',
   })
   const [editFormData, setEditFormData] = useState({
     displayName: '',
+    phone: '',
     role: 'user',
     password: '',
   })
@@ -154,7 +158,7 @@ export default function AdminUsers() {
 
       setUsers([data.user, ...users])
       setShowAddModal(false)
-      setNewFormData({ displayName: '', email: '', password: '', role: 'user' })
+      setNewFormData({ displayName: '', email: '', phone: '', password: '', role: 'user' })
       notify(`User ${data.user.email} created successfully!`)
     } catch (err) {
       setModalError(err.message)
@@ -168,6 +172,7 @@ export default function AdminUsers() {
     setEditingUser(user)
     setEditFormData({
       displayName: user.displayName || '',
+      phone: user.phone || user.pass?.phone || '',
       role: user.role || 'user',
       password: '',
     })
@@ -184,6 +189,7 @@ export default function AdminUsers() {
       const token = await getToken()
       const payload = {
         displayName: editFormData.displayName,
+        phone: editFormData.phone,
         role: editFormData.role,
       }
       if (editFormData.password) {
@@ -512,7 +518,7 @@ export default function AdminUsers() {
           <thead>
             <tr className="border-b border-white/[0.06] bg-iron/30">
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Account User</th>
-              <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Email</th>
+              <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Email & Contact</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Role</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">QR Entry Pass</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Last Active</th>
@@ -535,6 +541,7 @@ export default function AdminUsers() {
             ) : (
               users.map((u) => {
                 const isCurrentAdmin = currentAdmin?.email?.toLowerCase() === u.email?.toLowerCase()
+                const phoneNum = u.phone || u.pass?.phone
 
                 return (
                   <tr key={u._id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
@@ -554,7 +561,24 @@ export default function AdminUsers() {
                         </div>
                       </div>
                     </td>
-                    <td className="font-mono text-xs text-steel px-4 py-3">{u.email}</td>
+                    <td className="font-mono text-xs px-4 py-3">
+                      <span className="text-steel block select-all">{u.email}</span>
+                      {phoneNum ? (
+                        <a
+                          href={`tel:${phoneNum}`}
+                          className="text-emerald hover:underline text-[11px] inline-flex items-center gap-1 mt-1 font-bold tracking-wider"
+                          title="Call Attendee"
+                        >
+                          <Phone size={10} className="text-emerald shrink-0" />
+                          <span>{phoneNum}</span>
+                        </a>
+                      ) : (
+                        <span className="text-steel/40 text-[10px] block mt-1 italic flex items-center gap-1">
+                          <PhoneOff size={10} className="text-steel/30 shrink-0" />
+                          <span>No number (No QR pass)</span>
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">{roleBadge(u.role)}</td>
                     <td className="px-4 py-3">
                       {u.hasPass ? (
@@ -695,6 +719,19 @@ export default function AdminUsers() {
 
               <div>
                 <label className="block font-mono text-[10px] tracking-wider uppercase text-steel/60 mb-1.5">
+                  Phone Number (Optional)
+                </label>
+                <input
+                  type="tel"
+                  value={newFormData.phone}
+                  onChange={(e) => setNewFormData({ ...newFormData, phone: e.target.value })}
+                  placeholder="+91 9876543210"
+                  className="w-full bg-iron/40 border border-white/[0.08] text-bone font-mono text-sm px-3.5 py-2.5 focus:outline-none focus:border-brass-dim/50"
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] tracking-wider uppercase text-steel/60 mb-1.5">
                   Password (min 6 characters)
                 </label>
                 <input
@@ -781,6 +818,19 @@ export default function AdminUsers() {
                   type="text"
                   value={editFormData.displayName}
                   onChange={(e) => setEditFormData({ ...editFormData, displayName: e.target.value })}
+                  className="w-full bg-iron/40 border border-white/[0.08] text-bone font-mono text-sm px-3.5 py-2.5 focus:outline-none focus:border-brass-dim/50"
+                />
+              </div>
+
+              <div>
+                <label className="block font-mono text-[10px] tracking-wider uppercase text-steel/60 mb-1.5">
+                  Phone Number (Optional)
+                </label>
+                <input
+                  type="tel"
+                  value={editFormData.phone}
+                  onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                  placeholder="+91 9876543210"
                   className="w-full bg-iron/40 border border-white/[0.08] text-bone font-mono text-sm px-3.5 py-2.5 focus:outline-none focus:border-brass-dim/50"
                 />
               </div>

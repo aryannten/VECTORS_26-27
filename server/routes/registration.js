@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const EntryRegistration = require('../models/EntryRegistration')
+const User = require('../models/User')
 const { verifyFirebaseToken, requireRole } = require('../middleware/auth')
 
 // Email validation regex
@@ -57,6 +58,12 @@ router.post('/register', verifyFirebaseToken, async (req, res) => {
       phone: cleanPhone,
       college: cleanCollege,
     })
+
+    // Sync phone number to User account
+    await User.findOneAndUpdate(
+      { email: cleanEmail },
+      { $set: { phone: cleanPhone } }
+    ).catch(err => console.warn('[Registration] User phone sync notice:', err.message))
 
     res.status(201).json({
       message: 'Registration successful.',

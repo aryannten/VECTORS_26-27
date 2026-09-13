@@ -687,7 +687,7 @@ router.get('/users/export', async (req, res) => {
         escapeCsv(pass ? 'YES' : 'NO'),
         escapeCsv(pass?.registrationId || 'NO_PASS'),
         escapeCsv(pass?.college || ''),
-        escapeCsv(pass?.phone || ''),
+        escapeCsv(pass?.phone || u.phone || ''),
         escapeCsv(pass ? (pass.day1CheckedIn || pass.checkedIn ? 'YES' : 'NO') : 'N/A'),
         escapeCsv(pass ? (pass.day2CheckedIn ? 'YES' : 'NO') : 'N/A'),
       ].join(',')
@@ -760,8 +760,10 @@ router.get('/users', async (req, res) => {
     let enrichedUsers = users.map(u => {
       const userObj = u.toObject ? u.toObject() : u
       const pass = passMap.get((u.email || '').toLowerCase())
+      const effectivePhone = pass?.phone || u.phone || null
       return {
         ...userObj,
+        phone: effectivePhone,
         hasPass: Boolean(pass),
         pass: pass ? {
           registrationId: pass.registrationId,
@@ -806,7 +808,7 @@ router.get('/users', async (req, res) => {
  */
 router.post('/users', async (req, res) => {
   try {
-    const { email, password, displayName, role } = req.body
+    const { email, password, displayName, role, phone } = req.body
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required.' })
@@ -842,6 +844,7 @@ router.post('/users', async (req, res) => {
       firebaseUid: firebaseUser.uid,
       email: email.toLowerCase(),
       displayName: displayName || firebaseUser.displayName || '',
+      phone: phone || null,
       photoURL: firebaseUser.photoURL || null,
       role: validRole,
       lastLoginAt: new Date(),
@@ -853,7 +856,7 @@ router.post('/users', async (req, res) => {
       performedBy: req.user.email,
       targetType: 'User',
       targetId: user._id.toString(),
-      details: { email: user.email, role: user.role },
+      details: { email: user.email, role: user.role, phone: user.phone },
     }).catch(err => console.error('[AuditLog] Error:', err.message))
 
     console.log(`[Admin] Created user: ${user.email} with role: ${user.role}`)
@@ -866,14 +869,14 @@ router.post('/users', async (req, res) => {
 
 /**
  * PUT /api/admin/users/:id
- * Admin updates user details (name, role, or sets new password).
+ * Admin updates user details (name, role, phone, or sets new password).
  */
 router.put('/users/:id', async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid user ID format.' })
     }
-    const { displayName, role, password } = req.body
+    const { displayName, role, password, phone } = req.body
     const user = await User.findById(req.params.id)
     if (!user) {
       return res.status(404).json({ message: 'User not found.' })
@@ -884,6 +887,11 @@ router.put('/users/:id', async (req, res) => {
     }
     if (displayName !== undefined) {
       user.displayName = displayName
+    }
+    if (phone !== undefined) {
+      user.phone = phone
+      // Also sync to EntryRegistration if exists
+      await EntryRegistration.findOneAndUpdate({ email: user.email }, { $set: { phone } }).catch(() => {})
     }
 
     await user.save()

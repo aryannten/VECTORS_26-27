@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { getAuth } = require('firebase-admin/auth')
 const User = require('../models/User')
+const EntryRegistration = require('../models/EntryRegistration')
 const { verifyFirebaseToken } = require('../middleware/auth')
 
 /**
@@ -35,9 +36,13 @@ router.post('/sync', async (req, res) => {
       .filter(Boolean)
     const isSecurity = securityEmails.includes(userEmail)
 
+    const existingPass = await EntryRegistration.findOne({ email: userEmail })
+    const userPhone = existingPass?.phone || decodedToken.phone_number || null
+
     const updateSet = {
       email: decodedToken.email,
       lastLoginAt: new Date(),
+      ...(userPhone ? { phone: userPhone } : {}),
       ...(decodedToken.name ? { displayName: decodedToken.name } : {}),
       ...(decodedToken.picture ? { photoURL: decodedToken.picture } : {}),
     }

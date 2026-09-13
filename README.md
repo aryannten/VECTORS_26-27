@@ -118,6 +118,7 @@ VECTORS_26-27/
 - Standardized attendee intake capturing verified identity, institutional affiliation, department, and contact details.
 - Generation of permanent, cryptographically indexed identifiers (`VEC-XXXXXXXX`).
 - Dynamic client-side QR generation encoding verifiable pass credentials for campus gate entry.
+- **Immediate Post-Registration Sync**: After pass issuance, the client performs an optimistic local state update with full pass data (including phone, check-in flags) followed by an immediate authoritative backend sync via `checkPassStatus()`, ensuring the UI reflects the true database state without requiring page navigation or manual refresh.
 - **Real-Time Live Status Synchronization**: Continuous background polling (5-second cadence) and window focus listeners on the digital pass view (`MyPass.jsx`) and participant dashboard (`Dashboard.jsx`), providing zero-refresh visual updates (`DAY 1: CHECKED IN ✓`) the moment gate security scans and approves the QR pass.
 - **Manual Sync Controls**: High-contrast, interactive sync action triggers enabling immediate client-state reconciliation against authoritative backend archives.
 
@@ -136,11 +137,12 @@ VECTORS_26-27/
 
 ### 4. Administrative Control Suite
 - **Analytics Overview**: Live metrics tracking campus check-in velocity across Day 1 & Day 2, total pass issuance, event registrations, and real-time account-to-pass onboarding funnel.
-- **User Accounts & Onboarding Telemetry**: Complete directory of all user accounts created on the festival platform, with real-time tracking of whether each user has minted an Entry Pass (`QR Claimed` with Pass ID) or created an account only (`No Pass Yet`), joined timestamps, and role controls.
+- **User Accounts & Onboarding Telemetry**: Complete directory of all user accounts created on the festival platform, with real-time tracking of whether each user has minted an Entry Pass (`QR Claimed` with Pass ID) or created an account only (`No Pass Yet`), joined timestamps, contact phone sync, and role controls.
+- **Contact Details & Automatic Phone Sync**: Zero-friction signup allows initial account creation via Email/OAuth without SMS OTP hurdles. Once an attendee claims their campus QR Entry Pass, their phone number is automatically synced to their user profile. The admin user table displays direct `tel:` dialing links with an explicit indicator if an account has not yet claimed a pass.
 - **Attendee Registry**: Searchable, paginated records with field updates, Day 1/Day 2 check-in toggles, and sanitized CSV exports.
 - **Event Catalog Management**: Real-time configuration of event registration statuses and parameters.
-- **Role-Based User Management**: Role elevation management (`user`, `security`, `admin`), account controls, and secure password reset link generation.
-- **Account & Registration CSV Exports**: Injection-neutralized CSV downloads for both QR Entry Passes and All User Accounts.
+- **Role-Based User Management**: User account creation, editing (name, phone, role), role elevation management (`user`, `security`, `admin`), account deletion with Firebase sync, and secure password reset link generation.
+- **Account & Registration CSV Exports**: Injection-neutralized CSV downloads for QR Entry Passes, Event Registrations, and All User Accounts (including phone numbers and pass claim status).
 - **Audit Logging**: Forensic audit trail capturing timestamps, actor emails, target entities, and pre/post modification states.
 
 ---
@@ -160,9 +162,9 @@ VECTORS_26-27/
 
 | Method | Route | Description |
 |---|---|---|
-| `POST` | `/api/auth/sync` | Synchronize Firebase identity with MongoDB user profile |
+| `POST` | `/api/auth/sync` | Synchronize Firebase identity with MongoDB user profile, auto-attaching verified phone numbers |
 | `GET` | `/api/user/dashboard` | Aggregated user summary including pass status, Day 1 & Day 2 check-in timestamps, and active registrations |
-| `POST` | `/api/register` | Mint a verified campus Entry Pass (`VEC-XXXXXXXX`) |
+| `POST` | `/api/register` | Mint a verified campus Entry Pass (`VEC-XXXXXXXX`) and sync attendee contact phone to user account |
 | `GET` | `/api/register/status` | Retrieve the authenticated user's authoritative pass status, QR payload, and Day 1 / Day 2 check-in telemetry |
 | `GET` | `/api/my-pass` | Alias route retrieving digital pass details with Day 1 & Day 2 attendance stamps |
 | `POST` | `/api/events/:slug/register` | Register for an event with validation of team parameters |
@@ -184,8 +186,13 @@ VECTORS_26-27/
 | `GET` | `/api/admin/event-registrations` | Searchable event registration records and team rosters |
 | `PATCH` | `/api/admin/event-registrations/:id/status` | Confirm or cancel pending event registrations |
 | `GET` | `/api/admin/event-registrations/export` | Download sanitized CSV export of event submissions |
-| `GET` | `/api/admin/users` | Directory of all created user accounts with role assignment, Firebase auto-sync, and Entry Pass QR claim telemetry |
-| `GET` | `/api/admin/users/export` | Download sanitized CSV export of all created user accounts, roles, and pass claim statuses |
+| `GET` | `/api/admin/users` | Directory of all created user accounts with role assignment, contact phone numbers, Firebase auto-sync, and Entry Pass QR claim telemetry |
+| `POST` | `/api/admin/users` | Create a new user account with role, password, and optional phone |
+| `PUT` | `/api/admin/users/:id` | Update user details (displayName, phone, role, password) with automatic sync to `EntryRegistration` |
+| `DELETE` | `/api/admin/users/:id` | Delete user account from both MongoDB and Firebase Auth |
+| `PATCH` | `/api/admin/users/:id/role` | Quick role upgrade/downgrade (`user`, `security`, `admin`) |
+| `POST` | `/api/admin/users/:id/reset-password` | Generate Firebase password reset link for user |
+| `GET` | `/api/admin/users/export` | Download sanitized CSV export of all created user accounts, roles, phone numbers, and pass claim statuses |
 | `GET` | `/api/admin/audit-logs` | Forensic system audit log records |
 
 ---

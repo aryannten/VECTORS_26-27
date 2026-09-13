@@ -13,7 +13,7 @@ import { useAuth } from '../contexts/AuthContext'
  */
 export default function EntryRegistration() {
   const navigate = useNavigate()
-  const { user, getToken, hasPass, userPass, setPassData } = useAuth()
+  const { user, getToken, hasPass, userPass, setPassData, checkPassStatus } = useAuth()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     name: user?.displayName || '',
@@ -63,11 +63,19 @@ export default function EntryRegistration() {
         name: formData.name,
         college: formData.college,
         email: formData.email,
+        phone: formData.phone,
+        checkedIn: false,
+        day1CheckedIn: false,
+        day2CheckedIn: false,
         status: 'VERIFIED'
       }
 
-      // Authoritative state update in AuthContext + localStorage
+      // Optimistic state update in AuthContext + localStorage
       setPassData(newPass)
+
+      // Immediately sync authoritative pass data from backend
+      // so check-in status, timestamps, etc. are accurate
+      checkPassStatus(user).catch(() => {})
       
       setStep(4)
     } catch (err) {
