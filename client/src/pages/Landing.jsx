@@ -174,7 +174,7 @@ export default function Landing() {
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img
             src="/hero-bg.jpg"
-            alt="Doctor Doom Citadel Throne Room"
+            alt="Doctor Doom standing before the DOOM Monolith"
             className="w-full h-full object-cover object-top sm:object-center filter contrast-105 brightness-95"
             loading="eager"
           />

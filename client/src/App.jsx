@@ -3,17 +3,17 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminLayout from './components/AdminLayout'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import Signup from './pages/Signup'
 import Particles from './components/ui/Particles'
 import PageLoading from './components/ui/PageLoading'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
 import Landing from './pages/Landing'
-import DoomsdayCommandCenter from './pages/DoomsdayCommandCenter'
 
 // Lazy load non-critical pages for better initial load performance
+const Home = lazy(() => import('./pages/Home'))
+const DoomsdayCommandCenter = lazy(() => import('./pages/DoomsdayCommandCenter'))
+const Login = lazy(() => import('./pages/Login'))
+const Signup = lazy(() => import('./pages/Signup'))
 const EntryRegistration = lazy(() => import('./pages/EntryRegistration'))
 const MyPass = lazy(() => import('./pages/MyPass'))
 const Events = lazy(() => import('./pages/Events'))

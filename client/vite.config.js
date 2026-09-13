@@ -26,4 +26,27 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('three') || id.includes('@react-three')) {
+              return 'vendor-three'
+            }
+            if (id.includes('framer-motion') || id.includes('gsap') || id.includes('lenis')) {
+              return 'vendor-motion'
+            }
+            if (id.includes('firebase')) {
+              return 'vendor-firebase'
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons'
+            }
+          }
+        },
+      },
+    },
+  },
 })
