@@ -51,7 +51,8 @@ flowchart TD
 ### Frontend Application
 - **Core Framework**: React 19, Vite 8, React Router v7
 - **Styling Architecture**: Tailwind CSS v4 with custom design tokens and tactical dark palette
-- **Graphics & Rendering**: Three.js for procedural WebGL canvas rendering, Lucide React iconography
+- **Graphics & Rendering**: Three.js & `@react-three/fiber` for procedural WebGL canvas rendering, Lucide React iconography
+- **Performance & Code-Splitting**: Route-level dynamic loading (`React.lazy`) and manual Rollup vendor chunking (`vendor-three`, `vendor-motion`, `vendor-firebase`, `vendor-icons`) delivering a >75% reduction in initial payload (~398 kB entry)
 - **Hardware Integration**: `@yudiel/react-qr-scanner` for browser-level camera stream acquisition
 - **Credential Generation**: `qrcode.react` for vector-based SVG QR rendering
 
@@ -116,10 +117,13 @@ VECTORS_26-27/
 - Generation of permanent, cryptographically indexed identifiers (`VEC-XXXXXXXX`).
 - Dynamic client-side QR generation encoding verifiable pass credentials for campus gate entry.
 
-### 2. High-Throughput Gate Security Scanner
+### 2. High-Throughput Gate Security & Multi-Day Check-In
 - Browser-based camera QR scanner optimized for mobile and desktop camera inputs.
 - Dual-role authorization restricted to authorized gate personnel (`security` and `admin`).
-- Atomic state update architecture preventing duplicate entries via simultaneous scan attempts.
+- **Multi-Day Attendance Engine**: Independent atomic check-in tracking for both **Day 1** and **Day 2** using a single immutable attendee QR pass.
+- **Tactical Day Selector**: Gate personnel toggle between `DAY 1 SCAN` and `DAY 2 SCAN` directly within the scanner interface.
+- **Race Condition & Re-Scan Protection**: Atomic `findOneAndUpdate` conditional filtering prevents duplicate entry attempts on the same day while allowing legitimate entry on Day 2.
+- **Visual Credential Badging**: Real-time feedback displaying attendee name, college, and dual-day attendance badges (`Day 1: Checked In` / `Day 2: Pending`).
 
 ### 3. Event Registration Engine
 - **Solo Events**: Instant credential linkage and confirmation.
@@ -127,8 +131,8 @@ VECTORS_26-27/
 - **External Integration Pipeline**: External claims without immediate roster validation are recorded as pending verification, requiring administrator review before final confirmation.
 
 ### 4. Administrative Control Suite
-- **Analytics Overview**: Live metrics tracking campus check-in velocity, total pass issuance, and event registrations.
-- **Attendee Registry**: Searchable, paginated records with field updates, check-in status toggling, and sanitized CSV exports.
+- **Analytics Overview**: Live metrics tracking campus check-in velocity across Day 1 & Day 2, total pass issuance, and event registrations.
+- **Attendee Registry**: Searchable, paginated records with field updates, Day 1/Day 2 check-in toggles, and sanitized CSV exports.
 - **Event Catalog Management**: Real-time configuration of event registration statuses and parameters.
 - **Role-Based User Management**: Role elevation management (`user`, `security`, `admin`) and account controls.
 - **Audit Logging**: Forensic audit trail capturing timestamps, actor emails, target entities, and pre/post modification states.
@@ -151,25 +155,25 @@ VECTORS_26-27/
 | Method | Route | Description |
 |---|---|---|
 | `POST` | `/api/auth/sync` | Synchronize Firebase identity with MongoDB user profile |
-| `GET` | `/api/user/dashboard` | Aggregated user summary including pass status and active registrations |
+| `GET` | `/api/user/dashboard` | Aggregated user summary including pass status, Day 1 & Day 2 check-in timestamps, and active registrations |
 | `POST` | `/api/register` | Mint a verified campus Entry Pass (`VEC-XXXXXXXX`) |
-| `GET` | `/api/my-pass` | Retrieve the authenticated user's digital pass details |
+| `GET` | `/api/my-pass` | Retrieve the authenticated user's digital pass details with Day 1 & Day 2 attendance stamps |
 | `POST` | `/api/events/:slug/register` | Register for an event with validation of team parameters |
 
 ### Gate Security Endpoints (`security` or `admin` Role Required)
 
 | Method | Route | Description |
 |---|---|---|
-| `POST` | `/api/verify/:registrationId` | Perform atomic check-in on an Entry Pass (returns `VALID` or `ALREADY_CHECKED_IN`) |
+| `POST` | `/api/verify/:registrationId?day=1\|2` | Perform atomic check-in on an Entry Pass for Day 1 or Day 2 (returns `VALID` or `ALREADY_CHECKED_IN` with multi-day attendance metadata) |
 
 ### Administration Endpoints (`admin` Role Required)
 
 | Method | Route | Description |
 |---|---|---|
-| `GET` | `/api/admin/stats` | Aggregated system metrics, pass counts, and check-in rates |
+| `GET` | `/api/admin/stats` | Aggregated system metrics, pass counts, and Day 1 / Day 2 check-in rates |
 | `GET` | `/api/admin/registrations` | Paginated registry of attendee entry passes with query search |
-| `PUT` | `/api/admin/registrations/:id` | Update attendee metadata or toggle manual check-in status |
-| `DELETE` | `/api/admin/registrations/:id` | Revoke an entry pass and record audit log entry |
+| `PATCH` | `/api/admin/entry-registrations/:id` | Update attendee metadata or toggle manual check-in status (`day1CheckedIn`, `day2CheckedIn`) |
+| `DELETE` | `/api/admin/entry-registrations/:id` | Revoke an entry pass and record audit log entry |
 | `GET` | `/api/admin/event-registrations` | Searchable event registration records and team rosters |
 | `PATCH` | `/api/admin/event-registrations/:id/status` | Confirm or cancel pending event registrations |
 | `GET` | `/api/admin/event-registrations/export` | Download sanitized CSV export of event submissions |
