@@ -78,7 +78,8 @@ router.post('/sync', authSyncIpLimiter, async (req, res) => {
 
   try {
     const decodedToken = await getAuth().verifyIdToken(idToken)
-    verifiedEmail = (decodedToken.email || '').toLowerCase()
+    const userEmail = (decodedToken.email || '').toLowerCase()
+    verifiedEmail = userEmail
 
     // ── Identity-based sync rate limit check (post-verification, trusted identity) ──
     // Evaluated only after Firebase ID token verification has succeeded, ensuring
@@ -130,31 +131,38 @@ router.post('/sync', authSyncIpLimiter, async (req, res) => {
       }
     }
 
-    const updateSet = {
-      email: decodedToken.email,
-      lastLoginAt: new Date(),
-      ...(userPhone ? { phone: userPhone } : {}),
-      ...(resolvedName ? { displayName: resolvedName } : {}),
-      ...(resolvedPhoto ? { photoURL: resolvedPhoto } : {}),
+    // Find user by firebaseUid or email (to link pre-created accounts without duplicate key errors)
+    const uidUser = await User.findOne({ firebaseUid: decodedToken.uid })
+    const emailUser = userEmail
+      ? await User.findOne({ email: userEmail })
+      : null
+
+    if (uidUser && emailUser && !uidUser._id.equals(emailUser._id)) {
+      return res.status(409).json({ message: 'Account identity conflict.' })
     }
 
-    const updateOps = {
-      $set: updateSet,
-    }
+    let user = uidUser || emailUser
 
-    if (isAdmin) {
-      updateSet.role = 'admin'
-    } else if (isSecurity) {
-      updateSet.role = 'security'
+    if (user) {
+      user.firebaseUid = decodedToken.uid
+      user.email = decodedToken.email
+      user.lastLoginAt = new Date()
+      if (userPhone) user.phone = userPhone
+      if (resolvedName) user.displayName = resolvedName
+      if (resolvedPhoto) user.photoURL = resolvedPhoto
+      user.role = isAdmin ? 'admin' : isSecurity ? 'security' : 'user'
+      await user.save()
     } else {
-      updateOps.$setOnInsert = { role: 'user' }
+      user = await User.create({
+        firebaseUid: decodedToken.uid,
+        email: decodedToken.email,
+        lastLoginAt: new Date(),
+        phone: userPhone,
+        displayName: resolvedName || '',
+        photoURL: resolvedPhoto || null,
+        role: isAdmin ? 'admin' : isSecurity ? 'security' : 'user',
+      })
     }
-
-    const user = await User.findOneAndUpdate(
-      { firebaseUid: decodedToken.uid },
-      updateOps,
-      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
-    )
 
     res.status(200).json({
       user: {

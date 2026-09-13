@@ -233,7 +233,7 @@ The platform architecture is covered by automated integration test suites verify
 - Enforcement of Role-Based Access Control (RBAC) preventing horizontal and vertical privilege escalation.
 - Simulated concurrency tests verifying atomic check-in prevents duplicate gate admissions under load.
 - Strict payload validation preventing unregistered or malformed team sizes from entering state persistence.
-- Distributed MongoDB rate limiter test suite (`server/test/rate_limit.test.js`) verifying 66 boundary conditions: IP quotas, email velocity caps, identical enumeration protection responses, gate scanner thresholds, and atomic concurrency limits.
+- Distributed MongoDB rate limiter and auth sync regression test suite (`server/test/rate_limit.test.js`) verifying 77 boundary conditions: valid token sync and RBAC role promotion (`user`, `admin`, `security`), IP quotas, email velocity caps, identical enumeration protection responses, gate scanner thresholds, and atomic concurrency limits.
 - Sanity checks confirming safe fallback behavior during external dependency outages.
 
 ---

@@ -34,6 +34,7 @@ process.env.NODE_ENV = 'production'
 
 const connectDB = require('../config/db')
 const RateLimit = require('../models/RateLimit')
+const User = require('../models/User')
 
 // ─── Test Helpers ────────────────────────────────────────────────────────────
 
@@ -86,7 +87,112 @@ async function request(method, path, { body, headers = {} } = {}) {
   })
 }
 
+async function getRealIdToken(email, uid) {
+  const customToken = await getAuth().createCustomToken(uid, { email })
+  const apiKey = process.env.FIREBASE_WEB_API_KEY || process.env.FIREBASE_API_KEY || 'AIzaSyAC4EnjMayPKqmckO38IWIPpUzS2hucAKs'
+  const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=' + apiKey, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: customToken, returnSecureToken: true }),
+  })
+  const data = await res.json()
+  return data.idToken
+}
+
 // ─── Test Suites ─────────────────────────────────────────────────────────────
+
+async function testAuthSyncSuccess() {
+  console.log('\n── Auth Sync Success & Role Assignment (Regression Test) ──')
+
+  // Clear rate limits so test requests are not rate limited
+  await RateLimit.deleteMany({ category: 'auth_sync_ip' })
+
+  // Snapshot original environment variables
+  const origAdminEmails = process.env.ADMIN_EMAILS
+  const origAdminEmail = process.env.ADMIN_EMAIL
+  const origSecurityEmails = process.env.SECURITY_EMAILS
+  const origSecurityEmail = process.env.SECURITY_EMAIL
+
+  const testTimestamp = Date.now()
+  const normalEmail = `reg-user-${testTimestamp}@example.com`
+  const normalUid = `reg-uid-normal-${testTimestamp}`
+
+  const adminEmail = `reg-admin-${testTimestamp}@example.com`
+  const adminUid = `reg-uid-admin-${testTimestamp}`
+
+  const securityEmail = `reg-sec-${testTimestamp}@example.com`
+  const securityUid = `reg-uid-sec-${testTimestamp}`
+
+  // Temporarily configure admin & security lists matching route precedence (ADMIN_EMAILS || ADMIN_EMAIL)
+  const currentAdminList = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '').trim()
+  process.env.ADMIN_EMAILS = currentAdminList ? `${currentAdminList},${adminEmail}` : adminEmail
+
+  const currentSecurityList = (process.env.SECURITY_EMAILS || process.env.SECURITY_EMAIL || '').trim()
+  process.env.SECURITY_EMAILS = currentSecurityList ? `${currentSecurityList},${securityEmail}` : securityEmail
+
+  try {
+    // 1. Regular user sync
+    const normalToken = await getRealIdToken(normalEmail, normalUid)
+    const resNormal = await request('POST', '/api/auth/sync', {
+      headers: { Authorization: `Bearer ${normalToken}` },
+    })
+    assert(resNormal.status === 200, `Valid regular user token returns 200 (got ${resNormal.status})`)
+    assert(resNormal.body?.user?.email === normalEmail, 'Returned user email matches')
+    assert(resNormal.body?.user?.role === 'user', `Regular user receives role 'user' (got ${resNormal.body?.user?.role})`)
+
+    const dbNormal = await User.findOne({ email: normalEmail })
+    assert(dbNormal !== null, 'Regular user record created in MongoDB')
+    assert(dbNormal?.role === 'user', 'MongoDB user has role "user"')
+
+    // 2. Admin user sync (route precedence: ADMIN_EMAILS || ADMIN_EMAIL)
+    const adminToken = await getRealIdToken(adminEmail, adminUid)
+    const resAdmin = await request('POST', '/api/auth/sync', {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    })
+    assert(resAdmin.status === 200, `Admin user token returns 200 (got ${resAdmin.status})`)
+    assert(resAdmin.body?.user?.role === 'admin', `Admin user receives role 'admin' (got ${resAdmin.body?.user?.role})`)
+
+    const dbAdmin = await User.findOne({ email: adminEmail })
+    assert(dbAdmin?.role === 'admin', 'MongoDB admin user has role "admin"')
+
+    // 3. Security user sync (route precedence: SECURITY_EMAILS || SECURITY_EMAIL)
+    const securityToken = await getRealIdToken(securityEmail, securityUid)
+    const resSec = await request('POST', '/api/auth/sync', {
+      headers: { Authorization: `Bearer ${securityToken}` },
+    })
+    assert(resSec.status === 200, `Security user token returns 200 (got ${resSec.status})`)
+    assert(resSec.body?.user?.role === 'security', `Security user receives role 'security' (got ${resSec.body?.user?.role})`)
+
+    const dbSec = await User.findOne({ email: securityEmail })
+    assert(dbSec?.role === 'security', 'MongoDB security user has role "security"')
+  } finally {
+    // Restore original environment
+    if (origAdminEmails !== undefined) process.env.ADMIN_EMAILS = origAdminEmails
+    else delete process.env.ADMIN_EMAILS
+
+    if (origAdminEmail !== undefined) process.env.ADMIN_EMAIL = origAdminEmail
+    else delete process.env.ADMIN_EMAIL
+
+    if (origSecurityEmails !== undefined) process.env.SECURITY_EMAILS = origSecurityEmails
+    else delete process.env.SECURITY_EMAILS
+
+    if (origSecurityEmail !== undefined) process.env.SECURITY_EMAIL = origSecurityEmail
+    else delete process.env.SECURITY_EMAIL
+
+    // Clean up ONLY the ephemeral unique test accounts created in this run
+    await Promise.all(
+      [normalUid, adminUid, securityUid].map(async (uid) => {
+        try {
+          await getAuth().deleteUser(uid)
+        } catch (error) {
+          if (error.code !== 'auth/user-not-found') throw error
+        }
+      })
+    )
+    await User.deleteMany({ email: { $in: [normalEmail, adminEmail, securityEmail] } })
+    await RateLimit.deleteMany({ category: 'auth_sync_ip' })
+  }
+}
 
 async function testAuthSyncIpLimit() {
   console.log('\n── Auth Sync IP Rate Limit (10/IP/15min) ──')
@@ -194,8 +300,9 @@ async function testPasswordResetAntiEnumeration() {
   })
 
   // Request for a known admin email (exists in Firebase)
+  const knownAdminEmail = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || 'admin@vectors2026.com').split(',')[0].trim()
   const res2 = await request('POST', '/api/auth/reset-password', {
-    body: { email: process.env.ADMIN_EMAIL?.split(',')[0] || 'admin@vectors2026.com' },
+    body: { email: knownAdminEmail },
   })
 
   // Both should return 200 with identical structure
@@ -288,6 +395,7 @@ async function main() {
   await new Promise((resolve) => server.on('listening', resolve))
 
   try {
+    await testAuthSyncSuccess()
     await testAuthSyncIpLimit()
     await testAuthSyncNoToken()
     await testPasswordResetIpLimit()
