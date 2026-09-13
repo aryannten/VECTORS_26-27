@@ -175,6 +175,24 @@ export default function Dashboard() {
                       />
                     </div>
                   </div>
+
+                  {/* 2-Day Attendance Status Chips */}
+                  <div className="grid grid-cols-2 gap-2 w-full font-mono text-[10px] pt-1">
+                    <div className={`p-1.5 rounded border text-center font-bold uppercase ${
+                      Boolean(entryPass.day1CheckedIn || entryPass.checkedIn)
+                        ? 'bg-doom-glow/15 border-doom-glow/40 text-doom-glow'
+                        : 'bg-white/[0.03] border-white/10 text-text-muted'
+                    }`}>
+                      DAY 1: {Boolean(entryPass.day1CheckedIn || entryPass.checkedIn) ? 'CHECKED IN ✓' : 'PENDING'}
+                    </div>
+                    <div className={`p-1.5 rounded border text-center font-bold uppercase ${
+                      Boolean(entryPass.day2CheckedIn)
+                        ? 'bg-doom-glow/15 border-doom-glow/40 text-doom-glow'
+                        : 'bg-white/[0.03] border-white/10 text-text-muted'
+                    }`}>
+                      DAY 2: {Boolean(entryPass.day2CheckedIn) ? 'CHECKED IN ✓' : 'PENDING'}
+                    </div>
+                  </div>
                 </>
               ) : (
                 <div className="py-6 text-center space-y-3">
@@ -199,6 +217,14 @@ export default function Dashboard() {
                 >
                   Open Full Pass View &rarr;
                 </Link>
+                <button
+                  onClick={fetchDashboard}
+                  className="font-mono text-[11px] text-text-muted hover:text-white transition-colors uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                  title="Refresh Pass Status"
+                >
+                  <RefreshCw size={11} />
+                  <span>Sync</span>
+                </button>
               </div>
             )}
           </div>

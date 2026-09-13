@@ -118,6 +118,8 @@ VECTORS_26-27/
 - Standardized attendee intake capturing verified identity, institutional affiliation, department, and contact details.
 - Generation of permanent, cryptographically indexed identifiers (`VEC-XXXXXXXX`).
 - Dynamic client-side QR generation encoding verifiable pass credentials for campus gate entry.
+- **Real-Time Live Status Synchronization**: Continuous background polling (5-second cadence) and window focus listeners on the digital pass view (`MyPass.jsx`) and participant dashboard (`Dashboard.jsx`), providing zero-refresh visual updates (`DAY 1: CHECKED IN ✓`) the moment gate security scans and approves the QR pass.
+- **Manual Sync Controls**: High-contrast, interactive sync action triggers enabling immediate client-state reconciliation against authoritative backend archives.
 
 ### 2. High-Throughput Gate Security & Multi-Day Check-In
 - Browser-based camera QR scanner optimized for mobile and desktop camera inputs.
@@ -125,7 +127,7 @@ VECTORS_26-27/
 - **Multi-Day Attendance Engine**: Independent atomic check-in tracking for both **Day 1** and **Day 2** using a single immutable attendee QR pass.
 - **Tactical Day Selector**: Gate personnel toggle between `DAY 1 SCAN` and `DAY 2 SCAN` directly within the scanner interface.
 - **Race Condition & Re-Scan Protection**: Atomic `findOneAndUpdate` conditional filtering prevents duplicate entry attempts on the same day while allowing legitimate entry on Day 2.
-- **Visual Credential Badging**: Real-time feedback displaying attendee name, college, and dual-day attendance badges (`Day 1: Checked In` / `Day 2: Pending`).
+- **Visual Credential Badging**: Real-time feedback displaying attendee name, college, dual-day attendance badges (`Day 1: Checked In` / `Day 2: Pending`), and verification timestamps.
 
 ### 3. Event Registration Engine
 - **Solo Events**: Instant credential linkage and confirmation.
@@ -159,7 +161,8 @@ VECTORS_26-27/
 | `POST` | `/api/auth/sync` | Synchronize Firebase identity with MongoDB user profile |
 | `GET` | `/api/user/dashboard` | Aggregated user summary including pass status, Day 1 & Day 2 check-in timestamps, and active registrations |
 | `POST` | `/api/register` | Mint a verified campus Entry Pass (`VEC-XXXXXXXX`) |
-| `GET` | `/api/my-pass` | Retrieve the authenticated user's digital pass details with Day 1 & Day 2 attendance stamps |
+| `GET` | `/api/register/status` | Retrieve the authenticated user's authoritative pass status, QR payload, and Day 1 / Day 2 check-in telemetry |
+| `GET` | `/api/my-pass` | Alias route retrieving digital pass details with Day 1 & Day 2 attendance stamps |
 | `POST` | `/api/events/:slug/register` | Register for an event with validation of team parameters |
 
 ### Gate Security Endpoints (`security` or `admin` Role Required)

@@ -1,19 +1,54 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
-import { ArrowLeft, ArrowRight, ShieldCheck, Shield } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ShieldCheck, Shield, RefreshCw, CheckCircle2, Clock } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 /**
  * My Pass — Displays the user's digital entry pass with QR code.
  * Styled with the Doomsday Protocol aesthetic:
  * - Gunmetal card with emerald border and clipped corners
+ * - Real-time live status synchronization and gate check-in polling
  * - Synchronous safe pass derivation from AuthContext, LocalStorage, or Admin clearance
  * - Prevents null pointer crashes and black screen tears
  */
 export default function MyPass() {
-  const { user, userPass, passLoading, userRole } = useAuth()
+  const { user, userPass, passLoading, userRole, checkPassStatus } = useAuth()
+  const [isSyncing, setIsSyncing] = useState(false)
+
+  // Live status synchronization with backend
+  const syncPass = useCallback(async () => {
+    if (!user) return
+    setIsSyncing(true)
+    try {
+      await checkPassStatus(user)
+    } catch (err) {
+      console.warn('[MyPass] Live sync failed:', err)
+    } finally {
+      setIsSyncing(false)
+    }
+  }, [user, checkPassStatus])
+
+  // Poll pass check-in status while viewing pass and on tab focus
+  useEffect(() => {
+    if (user) {
+      syncPass()
+      const interval = setInterval(() => {
+        syncPass()
+      }, 5000)
+
+      const handleFocus = () => {
+        syncPass()
+      }
+      window.addEventListener('focus', handleFocus)
+
+      return () => {
+        clearInterval(interval)
+        window.removeEventListener('focus', handleFocus)
+      }
+    }
+  }, [user, syncPass])
 
   // Derive pass synchronously with fail-safe fallbacks
   const pass = useMemo(() => {
@@ -116,13 +151,15 @@ export default function MyPass() {
             <span>Home</span>
           </Link>
 
-          <Link
-            to="/events"
-            className="inline-flex items-center gap-2 font-mono text-xs text-doom-glow hover:underline uppercase tracking-widest font-bold"
+          <button
+            onClick={syncPass}
+            disabled={isSyncing}
+            className="inline-flex items-center gap-1.5 font-mono text-[11px] text-text-muted hover:text-doom-glow transition-colors uppercase tracking-wider cursor-pointer"
+            title="Synchronize Pass Status"
           >
-            <span>Enter Events</span>
-            <ArrowRight size={14} />
-          </Link>
+            <RefreshCw size={12} className={isSyncing ? 'animate-spin text-doom-glow' : ''} />
+            <span>{isSyncing ? 'SYNCING...' : 'SYNC PASS'}</span>
+          </button>
         </div>
 
         {/* Digital Pass Card */}
@@ -182,21 +219,47 @@ export default function MyPass() {
 
             {/* 2-Day Attendance Badges */}
             <div className="grid grid-cols-2 gap-2 w-full font-mono text-[11px] relative z-10">
-              <div className={`p-2 rounded border text-center uppercase tracking-wider font-bold ${
-                pass.day1CheckedIn 
-                  ? 'bg-doom-glow/15 border-doom-glow/40 text-doom-glow' 
+              <div className={`p-2.5 rounded border text-center uppercase tracking-wider font-bold transition-all ${
+                Boolean(pass.day1CheckedIn || pass.checkedIn) 
+                  ? 'bg-doom-glow/15 border-doom-glow/50 text-doom-glow shadow-[0_0_15px_rgba(30,255,160,0.15)]' 
                   : 'bg-white/[0.03] border-white/10 text-text-muted'
               }`}>
-                <span>DAY 1: {pass.day1CheckedIn ? 'CHECKED IN ✓' : 'PENDING'}</span>
+                <div className="flex items-center justify-center gap-1">
+                  {Boolean(pass.day1CheckedIn || pass.checkedIn) ? <CheckCircle2 size={13} className="text-doom-glow" /> : <Clock size={13} className="text-text-muted" />}
+                  <span>DAY 1: {Boolean(pass.day1CheckedIn || pass.checkedIn) ? 'CHECKED IN' : 'PENDING'}</span>
+                </div>
+                {(pass.day1Timestamp || pass.checkInTimestamp) && (
+                  <div className="text-[9px] text-doom-glow/70 font-mono mt-0.5 normal-case">
+                    {new Date(pass.day1Timestamp || pass.checkInTimestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                )}
               </div>
-              <div className={`p-2 rounded border text-center uppercase tracking-wider font-bold ${
-                pass.day2CheckedIn 
-                  ? 'bg-doom-glow/15 border-doom-glow/40 text-doom-glow' 
+              <div className={`p-2.5 rounded border text-center uppercase tracking-wider font-bold transition-all ${
+                Boolean(pass.day2CheckedIn) 
+                  ? 'bg-doom-glow/15 border-doom-glow/50 text-doom-glow shadow-[0_0_15px_rgba(30,255,160,0.15)]' 
                   : 'bg-white/[0.03] border-white/10 text-text-muted'
               }`}>
-                <span>DAY 2: {pass.day2CheckedIn ? 'CHECKED IN ✓' : 'PENDING'}</span>
+                <div className="flex items-center justify-center gap-1">
+                  {Boolean(pass.day2CheckedIn) ? <CheckCircle2 size={13} className="text-doom-glow" /> : <Clock size={13} className="text-text-muted" />}
+                  <span>DAY 2: {Boolean(pass.day2CheckedIn) ? 'CHECKED IN' : 'PENDING'}</span>
+                </div>
+                {pass.day2Timestamp && (
+                  <div className="text-[9px] text-doom-glow/70 font-mono mt-0.5 normal-case">
+                    {new Date(pass.day2Timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Quick Live Refresh Bar */}
+            <button
+              onClick={syncPass}
+              disabled={isSyncing}
+              className="w-full py-2 px-3 doom-btn-clipped border border-white/10 bg-white/[0.02] hover:bg-white/[0.06] text-text-muted hover:text-white font-mono text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer relative z-10"
+            >
+              <RefreshCw size={11} className={isSyncing ? 'animate-spin text-doom-glow' : ''} />
+              <span>{isSyncing ? 'POLLING COMMAND NETWORK...' : 'TAP TO REFRESH CHECK-IN STATUS'}</span>
+            </button>
 
             {/* Verification Badge */}
             <div className="w-full py-2.5 text-center font-mono tracking-[0.2em] uppercase text-xs bg-doom-glow/10 text-doom-glow border border-doom-glow/40 font-bold relative z-10">

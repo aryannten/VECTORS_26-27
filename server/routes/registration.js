@@ -93,7 +93,12 @@ router.get(['/register/status', '/status'], verifyFirebaseToken, async (req, res
         college: registration.college,
         email: registration.email,
         phone: registration.phone,
-        checkedIn: registration.checkedIn,
+        checkedIn: Boolean(registration.checkedIn || registration.day1CheckedIn || registration.day2CheckedIn),
+        checkInTimestamp: registration.checkInTimestamp || registration.day1Timestamp || registration.day2Timestamp,
+        day1CheckedIn: Boolean(registration.day1CheckedIn || registration.checkedIn),
+        day1Timestamp: registration.day1Timestamp || registration.checkInTimestamp,
+        day2CheckedIn: Boolean(registration.day2CheckedIn),
+        day2Timestamp: registration.day2Timestamp,
         status: 'VERIFIED',
       },
     })
@@ -125,7 +130,7 @@ router.post('/verify/:registrationId', verifyFirebaseToken, requireRole('securit
 
     // Atomic check-in: only update if not already checked in for target day
     const updateQuery = targetDay === 1
-      ? { registrationId: cleanId, day1CheckedIn: { $ne: true }, $or: [{ checkedIn: false }, { day2CheckedIn: true }] }
+      ? { registrationId: cleanId, day1CheckedIn: { $ne: true } }
       : { registrationId: cleanId, day2CheckedIn: { $ne: true } }
 
     const updateSet = targetDay === 1

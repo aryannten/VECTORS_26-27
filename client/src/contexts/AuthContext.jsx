@@ -64,6 +64,7 @@ export function AuthProvider({ children }) {
    * Check and sync entry pass verification status with the backend.
    */
   const checkPassStatus = async (firebaseUser) => {
+    const targetUser = firebaseUser || auth.currentUser || user
     setPassLoading(true)
     try {
       // 1. Instant optimistic check from localStorage
@@ -81,8 +82,8 @@ export function AuthProvider({ children }) {
       }
 
       // 2. Authoritative backend verification
-      if (firebaseUser) {
-        const token = await firebaseUser.getIdToken()
+      if (targetUser) {
+        const token = await targetUser.getIdToken()
         const res = await fetch('/api/register/status', {
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -93,13 +94,15 @@ export function AuthProvider({ children }) {
             setHasPass(true)
             setUserPass(data.pass)
             localStorage.setItem('vectorsPass', JSON.stringify(data.pass))
+            return data.pass
           } else {
             setHasPass(false)
             setUserPass(null)
             localStorage.removeItem('vectorsPass')
+            return null
           }
         }
-      } else {
+      } else if (!auth.currentUser && !user) {
         setHasPass(false)
         setUserPass(null)
       }
