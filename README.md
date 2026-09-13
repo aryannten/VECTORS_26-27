@@ -135,10 +135,12 @@ VECTORS_26-27/
 - **External Integration Pipeline**: External claims without immediate roster validation are recorded as pending verification, requiring administrator review before final confirmation.
 
 ### 4. Administrative Control Suite
-- **Analytics Overview**: Live metrics tracking campus check-in velocity across Day 1 & Day 2, total pass issuance, and event registrations.
+- **Analytics Overview**: Live metrics tracking campus check-in velocity across Day 1 & Day 2, total pass issuance, event registrations, and real-time account-to-pass onboarding funnel.
+- **User Accounts & Onboarding Telemetry**: Complete directory of all user accounts created on the festival platform, with real-time tracking of whether each user has minted an Entry Pass (`QR Claimed` with Pass ID) or created an account only (`No Pass Yet`), joined timestamps, and role controls.
 - **Attendee Registry**: Searchable, paginated records with field updates, Day 1/Day 2 check-in toggles, and sanitized CSV exports.
 - **Event Catalog Management**: Real-time configuration of event registration statuses and parameters.
-- **Role-Based User Management**: Role elevation management (`user`, `security`, `admin`) and account controls.
+- **Role-Based User Management**: Role elevation management (`user`, `security`, `admin`), account controls, and secure password reset link generation.
+- **Account & Registration CSV Exports**: Injection-neutralized CSV downloads for both QR Entry Passes and All User Accounts.
 - **Audit Logging**: Forensic audit trail capturing timestamps, actor emails, target entities, and pre/post modification states.
 
 ---
@@ -175,14 +177,15 @@ VECTORS_26-27/
 
 | Method | Route | Description |
 |---|---|---|
-| `GET` | `/api/admin/stats` | Aggregated system metrics, pass counts, and Day 1 / Day 2 check-in rates |
+| `GET` | `/api/admin/stats` | Aggregated system metrics, pass counts, account funnel breakdown, recent signups, and Day 1 / Day 2 check-in rates |
 | `GET` | `/api/admin/registrations` | Paginated registry of attendee entry passes with query search |
 | `PATCH` | `/api/admin/entry-registrations/:id` | Update attendee metadata or toggle manual check-in status (`day1CheckedIn`, `day2CheckedIn`) |
 | `DELETE` | `/api/admin/entry-registrations/:id` | Revoke an entry pass and record audit log entry |
 | `GET` | `/api/admin/event-registrations` | Searchable event registration records and team rosters |
 | `PATCH` | `/api/admin/event-registrations/:id/status` | Confirm or cancel pending event registrations |
 | `GET` | `/api/admin/event-registrations/export` | Download sanitized CSV export of event submissions |
-| `GET` | `/api/admin/users` | Directory of registered user accounts with role assignment |
+| `GET` | `/api/admin/users` | Directory of all created user accounts with role assignment, Firebase auto-sync, and Entry Pass QR claim telemetry |
+| `GET` | `/api/admin/users/export` | Download sanitized CSV export of all created user accounts, roles, and pass claim statuses |
 | `GET` | `/api/admin/audit-logs` | Forensic system audit log records |
 
 ---

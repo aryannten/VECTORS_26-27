@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import {
   Search,
@@ -11,6 +12,8 @@ import {
   X,
   Check,
   AlertTriangle,
+  Ticket,
+  Users,
 } from 'lucide-react'
 
 /**
@@ -246,6 +249,21 @@ export default function AdminRegistrations() {
             <span>{exporting ? 'Exporting...' : 'Export CSV'}</span>
           </button>
         </div>
+      </div>
+
+      {/* Contextual Link: Entry Passes vs All Accounts */}
+      <div className="flex items-center justify-between p-3.5 bg-iron/20 border border-white/[0.06] text-xs font-mono flex-wrap gap-2">
+        <div className="flex items-center gap-2 text-steel">
+          <Ticket size={14} className="text-emerald shrink-0" />
+          <span>Showing <strong>{pagination.total}</strong> attendees who completed entry pass registration to claim a gate QR code.</span>
+        </div>
+        <Link
+          to="/admin/users"
+          className="text-brass hover:text-white font-bold inline-flex items-center gap-1.5 transition-colors uppercase tracking-wider text-[11px]"
+        >
+          <Users size={12} />
+          <span>View All Created Accounts ({pagination.total}+) &rarr;</span>
+        </Link>
       </div>
 
       {/* Notification Toast */}

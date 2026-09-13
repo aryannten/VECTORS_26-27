@@ -29,7 +29,7 @@ export default function AdminLayout() {
     { to: '/admin/registrations', label: 'Entry Passes', icon: Ticket },
     { to: '/admin/event-registrations', label: 'Event Signups', icon: ClipboardList },
     { to: '/admin/events', label: 'Events Control', icon: Calendar },
-    { to: '/admin/users', label: 'User Roles', icon: Users },
+    { to: '/admin/users', label: 'User Accounts', icon: Users },
     { to: '/admin/audit-logs', label: 'Audit Logs', icon: ShieldAlert },
     { to: '/security', label: 'Gate Scanner', icon: Camera },
   ]

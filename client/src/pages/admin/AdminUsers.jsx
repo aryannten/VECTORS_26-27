@@ -12,19 +12,27 @@ import {
   Trash2,
   Edit2,
   AlertTriangle,
+  Download,
+  RefreshCw,
+  Ticket,
+  Users,
 } from 'lucide-react'
 
 /**
  * AdminUsers — Full User Management Console.
- * Allows Admin to create, view, edit, change roles, reset passwords,
- * and delete user accounts.
+ * Allows Admin to see all created user accounts, their QR pass claim status,
+ * change roles, reset passwords, export CSV, and delete accounts.
  */
 export default function AdminUsers() {
   const { getToken, user: currentAdmin } = useAuth()
   const [users, setUsers] = useState([])
+  const [meta, setMeta] = useState({ total: 0, withPass: 0, withoutPass: 0 })
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
+  const [passFilter, setPassFilter] = useState('')
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [updatingId, setUpdatingId] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [resettingId, setResettingId] = useState(null)
@@ -53,21 +61,23 @@ export default function AdminUsers() {
   const [notification, setNotification] = useState(null)
 
   useEffect(() => {
-    fetchUsers(search, roleFilter)
-  }, [roleFilter])
+    fetchUsers(search, roleFilter, passFilter)
+  }, [roleFilter, passFilter])
 
   const notify = (msg, type = 'success') => {
     setNotification({ msg, type })
     setTimeout(() => setNotification(null), 4000)
   }
 
-  const fetchUsers = async (searchTerm = '', role = '') => {
-    setLoading(true)
+  const fetchUsers = async (searchTerm = search, role = roleFilter, passStatus = passFilter, isManual = false) => {
+    if (isManual) setRefreshing(true)
+    else setLoading(true)
     try {
       const token = await getToken()
       const query = new URLSearchParams()
       if (searchTerm) query.set('search', searchTerm)
       if (role) query.set('role', role)
+      if (passStatus) query.set('passStatus', passStatus)
 
       const res = await fetch(`/api/admin/users?${query.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -75,17 +85,49 @@ export default function AdminUsers() {
       if (res.ok) {
         const data = await res.json()
         setUsers(data.users || [])
+        if (data.meta) setMeta(data.meta)
       }
     } catch (err) {
       console.error('Failed to fetch users:', err)
+      notify('Failed to load users.', 'error')
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }
 
   const handleSearch = (e) => {
     e.preventDefault()
-    fetchUsers(search, roleFilter)
+    fetchUsers(search, roleFilter, passFilter)
+  }
+
+  const handleExportCsv = async () => {
+    setExporting(true)
+    try {
+      const token = await getToken()
+      const res = await fetch('/api/admin/users/export', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const blob = await res.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `vectors_user_accounts_${Date.now()}.csv`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        window.URL.revokeObjectURL(url)
+        notify('User accounts exported to CSV successfully.')
+      } else {
+        notify('Failed to export CSV.', 'error')
+      }
+    } catch (err) {
+      console.error('Export error:', err)
+      notify('Error downloading CSV.', 'error')
+    } finally {
+      setExporting(false)
+    }
   }
 
   // --- Add User ---
@@ -283,21 +325,70 @@ export default function AdminUsers() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="font-display text-2xl tracking-widest text-bone uppercase">User Management</h1>
+          <h1 className="font-display text-2xl tracking-widest text-bone uppercase">User Accounts & Identifiers</h1>
           <p className="font-mono text-xs text-steel mt-1">
-            {users.length} total user accounts in system
+            Directory of all accounts created on the platform with pass claim telemetry ({meta.total || users.length} total)
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Refresh / Sync Button */}
+          <button
+            onClick={() => fetchUsers(search, roleFilter, passFilter, true)}
+            disabled={refreshing || loading}
+            className="flex items-center gap-1.5 px-3 py-2 border border-white/[0.08] hover:border-emerald/40 bg-charcoal text-steel hover:text-bone font-mono text-xs uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer"
+            title="Refresh and sync accounts"
+          >
+            <RefreshCw size={13} className={refreshing ? 'animate-spin text-emerald' : ''} />
+            <span>Sync</span>
+          </button>
+
+          {/* Export CSV Button */}
+          <button
+            onClick={handleExportCsv}
+            disabled={exporting || users.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 border border-white/[0.08] hover:border-brass/40 bg-charcoal text-steel hover:text-brass font-mono text-xs uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer"
+            title="Export all accounts to CSV"
+          >
+            <Download size={13} className={exporting ? 'animate-bounce text-brass' : ''} />
+            <span>{exporting ? 'Exporting...' : 'Export CSV'}</span>
+          </button>
+
           {/* Add User Button */}
           <button
             onClick={() => { setShowAddModal(true); setModalError(null) }}
-            className="px-4 py-2.5 bg-emerald text-charcoal font-mono text-xs tracking-wider uppercase flex items-center gap-2 hover:bg-emerald-dim transition-colors"
+            className="px-4 py-2 bg-emerald text-charcoal font-mono text-xs tracking-wider uppercase flex items-center gap-2 hover:bg-emerald-dim transition-colors font-bold cursor-pointer"
           >
             <UserPlus size={14} />
             <span>Add User</span>
           </button>
+        </div>
+      </div>
+
+      {/* Account Telemetry Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="p-3.5 border border-white/[0.06] bg-iron/20 flex items-center justify-between">
+          <div>
+            <span className="font-mono text-[10px] tracking-wider uppercase text-steel/70 block">Total Accounts Created</span>
+            <p className="font-mono text-2xl font-bold text-bone mt-0.5">{meta.total || users.length}</p>
+          </div>
+          <Users size={20} className="text-emerald/80" />
+        </div>
+
+        <div className="p-3.5 border border-emerald/20 bg-emerald/5 flex items-center justify-between">
+          <div>
+            <span className="font-mono text-[10px] tracking-wider uppercase text-emerald/80 block">QR Passes Claimed</span>
+            <p className="font-mono text-2xl font-bold text-emerald mt-0.5">{meta.withPass}</p>
+          </div>
+          <Ticket size={20} className="text-emerald" />
+        </div>
+
+        <div className="p-3.5 border border-brass/20 bg-brass/5 flex items-center justify-between">
+          <div>
+            <span className="font-mono text-[10px] tracking-wider uppercase text-brass/80 block">Pending QR Pass</span>
+            <p className="font-mono text-2xl font-bold text-brass mt-0.5">{meta.withoutPass}</p>
+          </div>
+          <AlertTriangle size={20} className="text-brass" />
         </div>
       </div>
 
@@ -310,11 +401,56 @@ export default function AdminUsers() {
       )}
 
       {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-iron/20 p-3 border border-white/[0.06]">
+      <div className="flex flex-col gap-3 bg-iron/20 p-3.5 border border-white/[0.06]">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* Pass Status Filter Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto max-w-full pb-1 lg:pb-0 scrollbar-none">
+            <span className="font-mono text-[10px] text-steel/60 uppercase tracking-wider mr-1.5 shrink-0">Pass Status:</span>
+            {[
+              { label: `All Accounts (${meta.total || users.length})`, value: '' },
+              { label: `QR Claimed (${meta.withPass})`, value: 'has_pass' },
+              { label: `No Pass Yet (${meta.withoutPass})`, value: 'no_pass' },
+            ].map((tab) => (
+              <button
+                key={tab.label}
+                onClick={() => setPassFilter(tab.value)}
+                className={`px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors shrink-0 ${
+                  passFilter === tab.value
+                    ? 'bg-emerald text-charcoal font-bold'
+                    : 'text-steel hover:text-bone hover:bg-white/[0.04]'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Search Input */}
+          <form onSubmit={handleSearch} className="flex gap-2 w-full lg:w-auto">
+            <div className="relative flex-1 lg:flex-initial">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel/40" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search email or name..."
+                className="bg-charcoal border border-white/[0.06] text-bone font-mono text-xs pl-9 pr-4 py-1.5 w-full lg:w-60 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-3 py-1.5 font-mono text-xs tracking-wider uppercase border border-white/[0.1] text-steel hover:text-bone transition-colors shrink-0"
+            >
+              Search
+            </button>
+          </form>
+        </div>
+
         {/* Role Filter Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-none">
+        <div className="flex items-center gap-1 border-t border-white/[0.04] pt-2.5 overflow-x-auto max-w-full scrollbar-none">
+          <span className="font-mono text-[10px] text-steel/60 uppercase tracking-wider mr-1.5 shrink-0">Role Filter:</span>
           {[
-            { label: 'All', value: '' },
+            { label: 'All Roles', value: '' },
             { label: 'Users', value: 'user' },
             { label: 'Security', value: 'security' },
             { label: 'Admins', value: 'admin' },
@@ -322,36 +458,16 @@ export default function AdminUsers() {
             <button
               key={tab.label}
               onClick={() => setRoleFilter(tab.value)}
-              className={`px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors shrink-0 ${
+              className={`px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors shrink-0 ${
                 roleFilter === tab.value
                   ? 'bg-brass text-charcoal font-bold'
-                  : 'text-steel hover:text-bone hover:bg-white/[0.04]'
+                  : 'text-steel/80 hover:text-bone hover:bg-white/[0.04]'
               }`}
             >
               {tab.label}
             </button>
           ))}
         </div>
-
-        {/* Search Input */}
-        <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-initial">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel/40" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search email or name..."
-              className="bg-charcoal border border-white/[0.06] text-bone font-mono text-xs pl-9 pr-4 py-2 w-full sm:w-56 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
-            />
-          </div>
-          <button
-            type="submit"
-            className="px-3 py-2 font-mono text-xs tracking-wider uppercase border border-white/[0.1] text-steel hover:text-bone transition-colors shrink-0"
-          >
-            Filter
-          </button>
-        </form>
       </div>
 
       {/* Generated Password Reset Link Card */}
@@ -392,12 +508,13 @@ export default function AdminUsers() {
 
       {/* Users Table */}
       <div className="border border-white/[0.06] overflow-x-auto w-full max-w-full min-w-0">
-        <table className="w-full min-w-[640px] text-left">
+        <table className="w-full min-w-[760px] text-left">
           <thead>
             <tr className="border-b border-white/[0.06] bg-iron/30">
-              <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">User</th>
+              <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Account User</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Email</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Role</th>
+              <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">QR Entry Pass</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Last Active</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3 text-right">Actions</th>
             </tr>
@@ -405,14 +522,14 @@ export default function AdminUsers() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="text-center py-12">
+                <td colSpan={6} className="text-center py-12">
                   <div className="w-6 h-6 border-2 border-brass-dim border-t-emerald rounded-full animate-spin mx-auto" />
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-12 font-mono text-sm text-steel">
-                  No users found.
+                <td colSpan={6} className="text-center py-12 font-mono text-sm text-steel">
+                  No user accounts found matching current filters.
                 </td>
               </tr>
             ) : (
@@ -422,20 +539,51 @@ export default function AdminUsers() {
                 return (
                   <tr key={u._id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-emerald/10 border border-emerald/20 flex items-center justify-center font-mono text-[11px] text-emerald uppercase font-bold shrink-0">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-emerald/10 border border-emerald/20 flex items-center justify-center font-mono text-xs text-emerald uppercase font-bold shrink-0">
                           {u.displayName?.[0] || u.email?.[0] || '?'}
                         </div>
                         <div>
-                          <span className="font-mono text-xs text-bone block">{u.displayName || '—'}</span>
+                          <span className="font-mono text-xs text-bone font-bold block">{u.displayName || 'Unnamed User'}</span>
+                          <span className="font-mono text-[9px] text-steel/50">
+                            Joined {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}
+                          </span>
                           {isCurrentAdmin && (
-                            <span className="font-mono text-[9px] text-brass-dim uppercase tracking-wider">(You)</span>
+                            <span className="font-mono text-[9px] text-brass uppercase tracking-wider ml-1 font-bold">(You)</span>
                           )}
                         </div>
                       </div>
                     </td>
                     <td className="font-mono text-xs text-steel px-4 py-3">{u.email}</td>
                     <td className="px-4 py-3">{roleBadge(u.role)}</td>
+                    <td className="px-4 py-3">
+                      {u.hasPass ? (
+                        <div className="space-y-0.5">
+                          <span className="inline-flex items-center gap-1 font-mono text-[10px] tracking-wider uppercase px-2 py-0.5 border border-emerald/30 bg-emerald/10 text-emerald font-bold">
+                            <Check size={10} />
+                            <span>{u.pass?.registrationId || 'CLAIMED'}</span>
+                          </span>
+                          {u.pass?.college && (
+                            <span className="font-mono text-[10px] text-steel/60 block truncate max-w-[170px]" title={u.pass.college}>
+                              {u.pass.college}
+                            </span>
+                          )}
+                          {(u.pass?.day1CheckedIn || u.pass?.day2CheckedIn) && (
+                            <span className="font-mono text-[9px] text-brass uppercase font-semibold block">
+                              Check-in: {u.pass.day1CheckedIn ? 'Day 1 ✓' : ''}{u.pass.day1CheckedIn && u.pass.day2CheckedIn ? ' | ' : ''}{u.pass.day2CheckedIn ? 'Day 2 ✓' : ''}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-0.5">
+                          <span className="inline-flex items-center gap-1 font-mono text-[10px] tracking-wider uppercase px-2 py-0.5 border border-brass/30 bg-brass/10 text-brass font-bold">
+                            <AlertTriangle size={10} />
+                            <span>NO PASS YET</span>
+                          </span>
+                          <span className="font-mono text-[9px] text-steel/50 block">Account created only</span>
+                        </div>
+                      )}
+                    </td>
                     <td className="font-mono text-[10px] text-steel/50 px-4 py-3">
                       {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : '—'}
                     </td>
@@ -457,7 +605,7 @@ export default function AdminUsers() {
                         <button
                           onClick={() => handleOpenEdit(u)}
                           title="Edit User Details"
-                          className="p-1.5 border border-white/[0.06] bg-charcoal hover:border-brass-dim/40 text-steel hover:text-bone transition-colors"
+                          className="p-1.5 border border-white/[0.06] bg-charcoal hover:border-brass-dim/40 text-steel hover:text-bone transition-colors cursor-pointer"
                         >
                           <Edit2 size={13} />
                         </button>
@@ -467,7 +615,7 @@ export default function AdminUsers() {
                           onClick={() => handleResetUserPassword(u._id, u.email)}
                           disabled={resettingId === u._id}
                           title="Generate Password Reset Link"
-                          className="p-1.5 border border-white/[0.06] bg-charcoal hover:border-brass-dim/40 text-steel hover:text-brass transition-colors disabled:opacity-30"
+                          className="p-1.5 border border-white/[0.06] bg-charcoal hover:border-brass-dim/40 text-steel hover:text-brass transition-colors disabled:opacity-30 cursor-pointer"
                         >
                           <KeyRound size={13} className={resettingId === u._id ? 'animate-spin' : ''} />
                         </button>
@@ -477,7 +625,7 @@ export default function AdminUsers() {
                           onClick={() => setDeletingUser(u)}
                           disabled={isCurrentAdmin || deletingId === u._id}
                           title={isCurrentAdmin ? "Cannot delete yourself" : "Delete User"}
-                          className="p-1.5 border border-white/[0.06] bg-charcoal hover:border-crimson/40 text-steel hover:text-crimson transition-colors disabled:opacity-20"
+                          className="p-1.5 border border-white/[0.06] bg-charcoal hover:border-crimson/40 text-steel hover:text-crimson transition-colors disabled:opacity-20 cursor-pointer"
                         >
                           <Trash2 size={13} />
                         </button>

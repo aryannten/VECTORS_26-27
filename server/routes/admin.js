@@ -41,6 +41,7 @@ router.get('/stats', async (req, res) => {
       totalUsers,
       securityUsers,
       totalEventRegistrations,
+      recentUsersList,
     ] = await Promise.all([
       EntryRegistration.countDocuments(),
       EntryRegistration.countDocuments({ checkedIn: true }),
@@ -48,15 +49,34 @@ router.get('/stats', async (req, res) => {
       User.countDocuments(),
       User.countDocuments({ role: 'security' }),
       EventRegistration.countDocuments(),
+      User.find().sort({ createdAt: -1 }).limit(5),
     ])
+
+    const recentUserEmails = recentUsersList.map(u => (u.email || '').toLowerCase())
+    const recentPasses = await EntryRegistration.find({ email: { $in: recentUserEmails } }, 'registrationId email')
+    const recentPassMap = new Map(recentPasses.map(p => [(p.email || '').toLowerCase(), p.registrationId]))
+
+    const recentUsers = recentUsersList.map(u => ({
+      id: u._id,
+      email: u.email,
+      displayName: u.displayName,
+      role: u.role,
+      createdAt: u.createdAt,
+      hasPass: recentPassMap.has((u.email || '').toLowerCase()),
+      passId: recentPassMap.get((u.email || '').toLowerCase()) || null,
+    }))
+
+    const usersWithoutPass = Math.max(0, totalUsers - totalRegistrations)
 
     const payload = {
       totalRegistrations,
       checkedInCount,
       totalEvents,
       totalUsers,
+      usersWithoutPass,
       securityUsers,
       totalEventRegistrations,
+      recentUsers,
     }
 
     res.status(200).json({
@@ -624,14 +644,100 @@ router.get('/audit-logs', async (req, res) => {
 })
 
 /**
+ * GET /api/admin/users/export
+ * Export all user accounts as a sanitized CSV file.
+ */
+router.get('/users/export', async (req, res) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 })
+    const allPasses = await EntryRegistration.find({}, 'registrationId email college phone checkedIn day1CheckedIn day2CheckedIn')
+    const passMap = new Map(allPasses.map(p => [(p.email || '').toLowerCase(), p]))
+
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""'
+      let str = String(val).replace(/"/g, '""')
+      if (/^[=+\-@\t\r]/.test(str)) {
+        str = "'" + str
+      }
+      return `"${str}"`
+    }
+
+    const headers = [
+      'Account Name',
+      'Email',
+      'Role',
+      'Account Created At',
+      'Last Login At',
+      'Has QR Pass',
+      'Pass ID',
+      'College',
+      'Phone',
+      'Day 1 Checked In',
+      'Day 2 Checked In',
+    ]
+
+    const rows = users.map((u) => {
+      const pass = passMap.get((u.email || '').toLowerCase())
+      return [
+        escapeCsv(u.displayName || ''),
+        escapeCsv(u.email),
+        escapeCsv(u.role),
+        escapeCsv(u.createdAt ? new Date(u.createdAt).toISOString() : ''),
+        escapeCsv(u.lastLoginAt ? new Date(u.lastLoginAt).toISOString() : ''),
+        escapeCsv(pass ? 'YES' : 'NO'),
+        escapeCsv(pass?.registrationId || 'NO_PASS'),
+        escapeCsv(pass?.college || ''),
+        escapeCsv(pass?.phone || ''),
+        escapeCsv(pass ? (pass.day1CheckedIn || pass.checkedIn ? 'YES' : 'NO') : 'N/A'),
+        escapeCsv(pass ? (pass.day2CheckedIn ? 'YES' : 'NO') : 'N/A'),
+      ].join(',')
+    })
+
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const filename = `vectors_user_accounts_${Date.now()}.csv`
+
+    res.setHeader('Content-Type', 'text/csv')
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    return res.status(200).send(csvContent)
+  } catch (error) {
+    console.error('[Admin] Export users error:', error.message)
+    res.status(500).json({ message: 'Failed to export users CSV.' })
+  }
+})
+
+/**
  * GET /api/admin/users
- * All users with their roles.
- * Query params: search, role
+ * All users with their roles, pass claim status, and account telemetry.
+ * Query params: search, role, passStatus ('all' | 'has_pass' | 'no_pass'), sync ('true' | 'false')
  */
 router.get('/users', async (req, res) => {
   try {
     const search = req.query.search || ''
     const role = req.query.role || ''
+    const passStatus = req.query.passStatus || 'all'
+
+    // Auto-sync missing users from Firebase Auth into MongoDB
+    try {
+      const fbUsersResult = await getAuth().listUsers(1000)
+      if (fbUsersResult && fbUsersResult.users.length > 0) {
+        const existingEmails = new Set((await User.find({}, 'email')).map(u => u.email?.toLowerCase()))
+        const missingUsers = fbUsersResult.users.filter(u => u.email && !existingEmails.has(u.email.toLowerCase()))
+        if (missingUsers.length > 0) {
+          const toInsert = missingUsers.map(u => ({
+            firebaseUid: u.uid,
+            email: u.email.toLowerCase(),
+            displayName: u.displayName || u.email.split('@')[0],
+            photoURL: u.photoURL || null,
+            role: 'user',
+            createdAt: u.metadata?.creationTime ? new Date(u.metadata.creationTime) : new Date(),
+            lastLoginAt: u.metadata?.lastSignInTime ? new Date(u.metadata.lastSignInTime) : null,
+          }))
+          await User.insertMany(toInsert, { ordered: false }).catch(() => {})
+        }
+      }
+    } catch (syncErr) {
+      console.warn('[Admin] Firebase users auto-sync notice:', syncErr.message)
+    }
 
     const filter = {}
     if (search) {
@@ -646,7 +752,48 @@ router.get('/users', async (req, res) => {
     }
 
     const users = await User.find(filter).sort({ createdAt: -1 })
-    res.status(200).json({ users })
+
+    // Enrich with EntryRegistration (QR pass) data
+    const allPasses = await EntryRegistration.find({}, 'registrationId email name college phone checkedIn day1CheckedIn day2CheckedIn createdAt')
+    const passMap = new Map(allPasses.map(p => [(p.email || '').toLowerCase(), p]))
+
+    let enrichedUsers = users.map(u => {
+      const userObj = u.toObject ? u.toObject() : u
+      const pass = passMap.get((u.email || '').toLowerCase())
+      return {
+        ...userObj,
+        hasPass: Boolean(pass),
+        pass: pass ? {
+          registrationId: pass.registrationId,
+          name: pass.name,
+          college: pass.college,
+          phone: pass.phone,
+          checkedIn: Boolean(pass.checkedIn || pass.day1CheckedIn || pass.day2CheckedIn),
+          day1CheckedIn: Boolean(pass.day1CheckedIn || pass.checkedIn),
+          day2CheckedIn: Boolean(pass.day2CheckedIn),
+          createdAt: pass.createdAt,
+        } : null,
+      }
+    })
+
+    const totalAccounts = enrichedUsers.length
+    const withPass = enrichedUsers.filter(u => u.hasPass).length
+    const withoutPass = totalAccounts - withPass
+
+    if (passStatus === 'has_pass') {
+      enrichedUsers = enrichedUsers.filter(u => u.hasPass)
+    } else if (passStatus === 'no_pass') {
+      enrichedUsers = enrichedUsers.filter(u => !u.hasPass)
+    }
+
+    res.status(200).json({
+      users: enrichedUsers,
+      meta: {
+        total: totalAccounts,
+        withPass,
+        withoutPass,
+      },
+    })
   } catch (error) {
     console.error('[Admin] Users error:', error.message)
     res.status(500).json({ message: 'Internal server error.' })
