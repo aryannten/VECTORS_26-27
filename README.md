@@ -52,6 +52,7 @@ flowchart TD
 - **Core Framework**: React 19, Vite 8, React Router v7
 - **Styling Architecture**: Tailwind CSS v4 with custom design tokens and tactical dark palette
 - **Graphics & Rendering**: Three.js & `@react-three/fiber` for procedural WebGL canvas rendering, Lucide React iconography
+- **Hero & Visual Direction**: Cinematic DOOM monolith citadel visual integration with high-contrast tactical telemetry HUD elements (`#00E676`)
 - **Performance & Code-Splitting**: Route-level dynamic loading (`React.lazy`) and manual Rollup vendor chunking (`vendor-three`, `vendor-motion`, `vendor-firebase`, `vendor-icons`) delivering a >75% reduction in initial payload (~398 kB entry)
 - **Hardware Integration**: `@yudiel/react-qr-scanner` for browser-level camera stream acquisition
 - **Credential Generation**: `qrcode.react` for vector-based SVG QR rendering
