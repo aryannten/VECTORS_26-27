@@ -120,26 +120,31 @@ app.use((req, res, next) => {
   next()
 })
 
-// 6. Global API Rate Limiter
+// 6. Global API Rate Limiter (Disabled in development/local environments)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300,
+  max: 5000, // Generous production ceiling
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many requests from this IP. Please try again after 15 minutes.' },
+  skip: (req) => {
+    if (process.env.NODE_ENV !== 'production') return true
+    const ip = req.ip || req.connection?.remoteAddress || ''
+    return ip === '127.0.0.1' || ip === '::1' || ip.includes('127.0.0.1')
+  },
 })
 app.use('/api', apiLimiter)
 
-// 7. Strict Auth & Registration Rate Limiter (Brute Force Protection)
-const authLimiter = rateLimit({
+// 7. Strict Registration Rate Limiter (Anti-Bot Protection for pass creation)
+const registrationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 60,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: 'Too many attempts. Please try again after 15 minutes.' },
+  message: { message: 'Too many registration attempts. Please try again after 15 minutes.' },
+  skip: () => process.env.NODE_ENV !== 'production',
 })
-app.use('/api/auth', authLimiter)
-app.use('/api/register', authLimiter)
+app.post('/api/register', registrationLimiter)
 
 // 8. URL Normalizer for Vercel Serverless Function compatibility
 // Guarantees routes match regardless of whether Vercel preserves or rewrites the /api prefix

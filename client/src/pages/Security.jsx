@@ -38,18 +38,32 @@ export default function Security() {
 
   const verifyPass = async (idToVerify) => {
     if (!idToVerify || isProcessing) return
+
+    // Extract VEC-XXXXXXXX even if surrounded by URL or whitespace
+    const raw = String(idToVerify).trim()
+    const match = raw.match(/VEC-[A-Z0-9]{8}/i)
+    const cleanId = match ? match[0].toUpperCase() : raw.toUpperCase()
+
+    if (!cleanId) return
     setIsProcessing(true)
 
     try {
       const token = await getToken()
-      const res = await fetch(`/api/verify/${idToVerify}?day=${selectedDay}`, {
+      const res = await fetch(`/api/verify/${encodeURIComponent(cleanId)}?day=${selectedDay}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
       const data = await res.json()
-      setScanResult(data)
+      if (!res.ok) {
+        setScanResult({
+          status: 'ERROR',
+          message: data?.message || `Verification failed (Status ${res.status}).`,
+        })
+      } else {
+        setScanResult(data)
+      }
     } catch (err) {
-      setScanResult({ status: 'ERROR', message: 'Network or server error.' })
+      setScanResult({ status: 'ERROR', message: err.message || 'Network or server error.' })
     } finally {
       setIsProcessing(false)
     }

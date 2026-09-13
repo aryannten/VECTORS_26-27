@@ -119,8 +119,8 @@ VECTORS_26-27/
 - Generation of permanent, cryptographically indexed identifiers (`VEC-XXXXXXXX`).
 - Dynamic client-side QR generation encoding verifiable pass credentials for campus gate entry.
 - **Immediate Post-Registration Sync**: After pass issuance, the client performs an optimistic local state update with full pass data (including phone, check-in flags) followed by an immediate authoritative backend sync via `checkPassStatus()`, ensuring the UI reflects the true database state without requiring page navigation or manual refresh.
-- **Real-Time Live Status Synchronization**: Continuous background polling (5-second cadence) and window focus listeners on the digital pass view (`MyPass.jsx`) and participant dashboard (`Dashboard.jsx`), providing zero-refresh visual updates (`DAY 1: CHECKED IN ✓`) the moment gate security scans and approves the QR pass.
-- **Manual Sync Controls**: High-contrast, interactive sync action triggers enabling immediate client-state reconciliation against authoritative backend archives.
+- **On-Demand & Window Focus Status Sync**: Efficient status synchronization triggered on pass mount, tab focus (with 15-second cooldown), and manual user refresh (`REFRESH PASS`). Strict rate limiting (`authLimiter`) is isolated exclusively to `POST /api/register` to prevent read status queries from hitting HTTP 429 locks.
+- **Manual Attendance Administration**: Gate personnel can scan passes via `/security`, while event admins can perform 1-click Day 1 & Day 2 check-ins directly from the Attendee Registry table (`AdminRegistrations.jsx`).
 
 ### 2. High-Throughput Gate Security & Multi-Day Check-In
 - Browser-based camera QR scanner optimized for mobile and desktop camera inputs.
@@ -211,7 +211,7 @@ A comprehensive full-stack security and reliability audit was conducted across t
 | **ReDoS (Regex Denial of Service)** | Catastrophic backtracking in search and filter inputs | Special regex character sanitization and input length clamping before compilation into queries. |
 | **CSV / Formula Injection** | Malicious spreadsheet formula prefixes (`=`, `+`, `-`, `@`) in attendee exports | Output encoding and formula neutralization escaping all exported string fields. |
 | **Serverless Resource Exhaustion** | Connection storms and socket starvation across cold/warm function cycles | Global Mongoose connection caching and promise reuse across stateless invocation lifecycles. |
-| **Client IP Spoofing** | Reverse proxy header manipulation bypassing rate limiters | Configured Express `trust proxy: 1` aligned with Vercel Edge CDN forwarding. |
+| **Client IP Spoofing & Rate Limiting** | Reverse proxy header manipulation and false-positive developer/attendee lockouts | Configured Express `trust proxy: 1` aligned with Vercel Edge CDN forwarding. Rate limiting automatically bypassed during development and for loopback proxies (`127.0.0.1`, `::1`); production global ceiling elevated to 5000 req/15min to prevent navigation lockouts while securing pass creation. |
 | **Database Connectivity & IP Access** | Dynamic developer IP or VPN routing changes rejecting MongoDB Atlas handshakes | Health probes report status 503; client dashboard telemetry surfaces descriptive diagnostic messages directing administrators to Atlas IP Access List. |
 
 ### Automated Test Verification

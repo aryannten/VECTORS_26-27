@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import {
   auth,
   googleProvider,
@@ -85,7 +85,11 @@ export function AuthProvider({ children }) {
       if (targetUser) {
         const token = await targetUser.getIdToken()
         const res = await fetch('/api/register/status', {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
         })
 
         if (res.ok) {
@@ -216,7 +220,7 @@ export function AuthProvider({ children }) {
    * Get a fresh ID token for API calls.
    * Supports forceRefresh if an expired or invalid token error was received.
    */
-  const getToken = async (forceRefresh = false) => {
+  const getToken = useCallback(async (forceRefresh = false) => {
     const activeUser = auth.currentUser || user
     if (activeUser) {
       try {
@@ -228,7 +232,7 @@ export function AuthProvider({ children }) {
       }
     }
     return null
-  }
+  }, [user])
 
   const value = {
     user,

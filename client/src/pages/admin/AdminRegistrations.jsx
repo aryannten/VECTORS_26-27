@@ -45,6 +45,8 @@ export default function AdminRegistrations() {
     college: '',
     phone: '',
     checkedIn: false,
+    day1CheckedIn: false,
+    day2CheckedIn: false,
   })
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState(null)
@@ -130,9 +132,47 @@ export default function AdminRegistrations() {
       email: reg.email || '',
       college: reg.college || '',
       phone: reg.phone || '',
-      checkedIn: Boolean(reg.checkedIn),
+      checkedIn: Boolean(reg.checkedIn || reg.day1CheckedIn || reg.day2CheckedIn),
+      day1CheckedIn: Boolean(reg.day1CheckedIn || reg.checkedIn),
+      day2CheckedIn: Boolean(reg.day2CheckedIn),
     })
     setEditError(null)
+  }
+
+  // 1-Click Day 1 / Day 2 check-in toggle from the attendee table
+  const handleToggleDayCheckIn = async (reg, day) => {
+    try {
+      const token = await getToken()
+      const regId = reg._id || reg.registrationId
+      const targetField = day === 1 ? 'day1CheckedIn' : 'day2CheckedIn'
+      const currentValue = Boolean(day === 1 ? (reg.day1CheckedIn || reg.checkedIn) : reg.day2CheckedIn)
+      const newValue = !currentValue
+
+      const res = await fetch(`/api/admin/registrations/${regId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ [targetField]: newValue }),
+      })
+      const data = await res.json()
+      if (res.ok && data.registration) {
+        setRegistrations((prev) =>
+          prev.map((r) =>
+            r._id === reg._id || r.registrationId === reg.registrationId
+              ? data.registration
+              : r
+          )
+        )
+        notify(`Day ${day} marked as ${newValue ? 'CHECKED IN' : 'PENDING'} for ${reg.name}.`)
+      } else {
+        notify(data?.message || 'Failed to update check-in status.', 'error')
+      }
+    } catch (err) {
+      console.error('Quick check-in error:', err)
+      notify('Network error updating check-in.', 'error')
+    }
   }
 
   const handleSaveEdit = async (e) => {
@@ -318,7 +358,8 @@ export default function AdminRegistrations() {
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Email</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">College</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Phone</th>
-              <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Status</th>
+              <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3 text-center">Day 1 Check-In</th>
+              <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3 text-center">Day 2 Check-In</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3">Date</th>
               <th className="font-mono text-[10px] tracking-wider text-steel/60 uppercase px-4 py-3 text-right">Actions</th>
             </tr>
@@ -326,13 +367,13 @@ export default function AdminRegistrations() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className="text-center py-12">
+                <td colSpan={9} className="text-center py-12">
                   <div className="w-6 h-6 border-2 border-brass-dim border-t-emerald rounded-full animate-spin mx-auto" />
                 </td>
               </tr>
             ) : registrations.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-12 font-mono text-sm text-steel">
+                <td colSpan={9} className="text-center py-12 font-mono text-sm text-steel">
                   No registrations found.
                 </td>
               </tr>
@@ -346,15 +387,42 @@ export default function AdminRegistrations() {
                   <td className="font-mono text-xs text-steel px-4 py-3 whitespace-nowrap">{reg.email}</td>
                   <td className="font-mono text-xs text-steel px-4 py-3 whitespace-nowrap">{reg.college}</td>
                   <td className="font-mono text-xs text-steel px-4 py-3 whitespace-nowrap">{reg.phone}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {reg.checkedIn ? (
-                      <span className="inline-flex items-center gap-1 font-mono text-[10px] tracking-wider uppercase text-emerald bg-emerald/10 border border-emerald/20 px-2 py-1">
-                        ✓ Checked In
-                      </span>
+                  <td className="px-4 py-3 whitespace-nowrap text-center">
+                    {Boolean(reg.day1CheckedIn || reg.checkedIn) ? (
+                      <button
+                        onClick={() => handleToggleDayCheckIn(reg, 1)}
+                        className="inline-flex items-center gap-1 font-mono text-[10px] tracking-wider uppercase text-emerald bg-emerald/15 border border-emerald/40 px-2.5 py-1 hover:bg-crimson/10 hover:border-crimson/40 hover:text-crimson transition-colors cursor-pointer"
+                        title="Click to toggle/undo Day 1 Check-In"
+                      >
+                        ✓ Day 1 In
+                      </button>
                     ) : (
-                      <span className="inline-flex items-center gap-1 font-mono text-[10px] tracking-wider uppercase text-steel bg-white/[0.03] border border-white/[0.06] px-2 py-1">
-                        Pending
-                      </span>
+                      <button
+                        onClick={() => handleToggleDayCheckIn(reg, 1)}
+                        className="inline-flex items-center gap-1 font-mono text-[10px] tracking-wider uppercase text-steel hover:text-emerald bg-white/[0.03] hover:bg-emerald/10 border border-white/[0.08] hover:border-emerald/40 px-2.5 py-1 transition-colors cursor-pointer"
+                        title="Click to Check In for Day 1"
+                      >
+                        + Check In D1
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-center">
+                    {Boolean(reg.day2CheckedIn) ? (
+                      <button
+                        onClick={() => handleToggleDayCheckIn(reg, 2)}
+                        className="inline-flex items-center gap-1 font-mono text-[10px] tracking-wider uppercase text-emerald bg-emerald/15 border border-emerald/40 px-2.5 py-1 hover:bg-crimson/10 hover:border-crimson/40 hover:text-crimson transition-colors cursor-pointer"
+                        title="Click to toggle/undo Day 2 Check-In"
+                      >
+                        ✓ Day 2 In
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleToggleDayCheckIn(reg, 2)}
+                        className="inline-flex items-center gap-1 font-mono text-[10px] tracking-wider uppercase text-steel hover:text-emerald bg-white/[0.03] hover:bg-emerald/10 border border-white/[0.08] hover:border-emerald/40 px-2.5 py-1 transition-colors cursor-pointer"
+                        title="Click to Check In for Day 2"
+                      >
+                        + Check In D2
+                      </button>
                     )}
                   </td>
                   <td className="font-mono text-[10px] text-steel/50 px-4 py-3 whitespace-nowrap">
@@ -500,15 +568,17 @@ export default function AdminRegistrations() {
                 </div>
               </div>
 
-              {/* Check-In Status Toggle */}
-              <div className="pt-2">
-                <label className="block font-mono text-[10px] tracking-wider uppercase text-steel/60 mb-1.5">
-                  Gate Check-In Status
+              {/* Day 1 & Day 2 Check-In Status Toggles */}
+              <div className="space-y-2 pt-2">
+                <label className="block font-mono text-[10px] tracking-wider uppercase text-steel/60 mb-1">
+                  Gate Attendance Status
                 </label>
+                
+                {/* Day 1 Toggle */}
                 <div
-                  onClick={() => setEditFormData({ ...editFormData, checkedIn: !editFormData.checkedIn })}
+                  onClick={() => setEditFormData({ ...editFormData, day1CheckedIn: !editFormData.day1CheckedIn })}
                   className={`flex items-center justify-between p-3 border cursor-pointer transition-colors ${
-                    editFormData.checkedIn
+                    editFormData.day1CheckedIn
                       ? 'border-emerald/40 bg-emerald/10'
                       : 'border-white/[0.08] bg-iron/30'
                   }`}
@@ -516,19 +586,47 @@ export default function AdminRegistrations() {
                   <div className="flex items-center gap-2.5">
                     <div
                       className={`w-4 h-4 border flex items-center justify-center transition-colors ${
-                        editFormData.checkedIn
+                        editFormData.day1CheckedIn
                           ? 'border-emerald bg-emerald text-charcoal'
                           : 'border-steel/40 bg-transparent'
                       }`}
                     >
-                      {editFormData.checkedIn && <Check size={12} strokeWidth={3} />}
+                      {editFormData.day1CheckedIn && <Check size={12} strokeWidth={3} />}
                     </div>
                     <span className="font-mono text-xs text-bone">
-                      {editFormData.checkedIn ? 'Checked In (Gate Verified)' : 'Pending (Not Checked In)'}
+                      Day 1: {editFormData.day1CheckedIn ? 'Checked In' : 'Pending'}
                     </span>
                   </div>
                   <span className="font-mono text-[10px] text-steel/60 uppercase">
-                    {editFormData.checkedIn ? 'Mark as Unchecked' : 'Mark as Checked In'}
+                    {editFormData.day1CheckedIn ? 'Mark Pending' : 'Mark Checked In'}
+                  </span>
+                </div>
+
+                {/* Day 2 Toggle */}
+                <div
+                  onClick={() => setEditFormData({ ...editFormData, day2CheckedIn: !editFormData.day2CheckedIn })}
+                  className={`flex items-center justify-between p-3 border cursor-pointer transition-colors ${
+                    editFormData.day2CheckedIn
+                      ? 'border-emerald/40 bg-emerald/10'
+                      : 'border-white/[0.08] bg-iron/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`w-4 h-4 border flex items-center justify-center transition-colors ${
+                        editFormData.day2CheckedIn
+                          ? 'border-emerald bg-emerald text-charcoal'
+                          : 'border-steel/40 bg-transparent'
+                      }`}
+                    >
+                      {editFormData.day2CheckedIn && <Check size={12} strokeWidth={3} />}
+                    </div>
+                    <span className="font-mono text-xs text-bone">
+                      Day 2: {editFormData.day2CheckedIn ? 'Checked In' : 'Pending'}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[10px] text-steel/60 uppercase">
+                    {editFormData.day2CheckedIn ? 'Mark Pending' : 'Mark Checked In'}
                   </span>
                 </div>
               </div>
