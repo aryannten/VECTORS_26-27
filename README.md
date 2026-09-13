@@ -106,6 +106,7 @@ VECTORS_26-27/
 │   ├── routes/                       # Express route controllers
 │   └── test/                         # System validation and integration test suites
 ├── vercel.json                       # Unified edge routing, rewrites, and security headers
+├── .gitignore                        # Git exclusion rules for secrets, builds, and local configs
 └── package.json                      # Monorepo workspaces and top-level lifecycle scripts
 ```
 
@@ -198,6 +199,7 @@ A comprehensive full-stack security and reliability audit was conducted across t
 | **CSV / Formula Injection** | Malicious spreadsheet formula prefixes (`=`, `+`, `-`, `@`) in attendee exports | Output encoding and formula neutralization escaping all exported string fields. |
 | **Serverless Resource Exhaustion** | Connection storms and socket starvation across cold/warm function cycles | Global Mongoose connection caching and promise reuse across stateless invocation lifecycles. |
 | **Client IP Spoofing** | Reverse proxy header manipulation bypassing rate limiters | Configured Express `trust proxy: 1` aligned with Vercel Edge CDN forwarding. |
+| **Database Connectivity & IP Access** | Dynamic developer IP or VPN routing changes rejecting MongoDB Atlas handshakes | Health probes report status 503; client dashboard telemetry surfaces descriptive diagnostic messages directing administrators to Atlas IP Access List. |
 
 ### Automated Test Verification
 
