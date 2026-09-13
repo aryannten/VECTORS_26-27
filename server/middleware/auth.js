@@ -17,24 +17,44 @@ const verifyFirebaseToken = async (req, res, next) => {
   try {
     const decodedToken = await getAuth().verifyIdToken(idToken)
     
+    const userEmail = (decodedToken.email || '').toLowerCase()
+    const adminEmailsRaw = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || ''
+    const adminEmails = adminEmailsRaw
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+    const isAdmin = adminEmails.includes(userEmail)
+
+    const securityEmailsRaw = process.env.SECURITY_EMAILS || process.env.SECURITY_EMAIL || ''
+    const securityEmails = securityEmailsRaw
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+    const isSecurity = securityEmails.includes(userEmail)
+
     // Find the user in MongoDB
     let user = await User.findOne({ firebaseUid: decodedToken.uid })
-    if (!user && decodedToken.email) {
-      user = await User.findOne({ email: decodedToken.email.toLowerCase() })
+    if (!user && userEmail) {
+      user = await User.findOne({ email: userEmail })
       if (user && !user.firebaseUid) {
         user.firebaseUid = decodedToken.uid
         await user.save()
       }
     }
-    if (!user && decodedToken.email) {
-      const userEmail = decodedToken.email.toLowerCase()
-      const adminEmailsRaw = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || ''
-      const adminEmails = adminEmailsRaw
-        .split(',')
-        .map((e) => e.trim().toLowerCase())
-        .filter(Boolean)
-      const isAdmin = adminEmails.includes(userEmail)
-      const role = isAdmin ? 'admin' : 'user'
+
+    // Ensure role matches configured admin/security emails if currently 'user'
+    if (user && user.role === 'user') {
+      if (isAdmin) {
+        user.role = 'admin'
+        await user.save()
+      } else if (isSecurity) {
+        user.role = 'security'
+        await user.save()
+      }
+    }
+
+    if (!user && userEmail) {
+      const targetRole = isAdmin ? 'admin' : isSecurity ? 'security' : 'user'
 
       // Resolve displayName from token or Firebase Admin record
       let resolvedName = decodedToken.name || ''
@@ -52,7 +72,7 @@ const verifyFirebaseToken = async (req, res, next) => {
         email: decodedToken.email,
         displayName: resolvedName,
         photoURL: resolvedPhoto,
-        role
+        role: targetRole
       })
     }
     if (!user) {
