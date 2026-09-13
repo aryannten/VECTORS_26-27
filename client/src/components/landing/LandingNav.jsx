@@ -1,29 +1,18 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { Menu, X, LogOut, LayoutDashboard, Shield, User } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import DoomButton from '../ui/DoomButton'
 
-const NAV_LINKS = [
-  { label: 'Arrival', href: '#hero' },
-  { label: 'Destiny', href: '#destiny' },
-  { label: 'Supremacy', href: '#supremacy' },
-  { label: 'Protocols', href: '#events' },
-  { label: 'Passes', href: '#passes' },
-]
-
 /**
  * LandingNav — Floating sticky navigation for the landing page.
  * Responsive to authentication state (logged in vs guest).
  * Transparent at top, dark glass-panel on scroll.
- * Active section highlighting via IntersectionObserver.
  */
 export default function LandingNav() {
   const [scrolled, setScrolled] = useState(false)
-  const [activeSection, setActiveSection] = useState('')
   const [mobileOpen, setMobileOpen] = useState(false)
-  const observerRef = useRef(null)
 
   const navigate = useNavigate()
   const { user, userRole, logout, loading, hasPass } = useAuth()
@@ -45,55 +34,16 @@ export default function LandingNav() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Intersection Observer for active section
-  useEffect(() => {
-    const sectionIds = NAV_LINKS.map((l) => l.href.replace('#', ''))
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id)
-          }
-        })
-      },
-      { rootMargin: '-30% 0px -60% 0px', threshold: 0 }
-    )
-
-    // Delay to let DOM mount
-    const timer = setTimeout(() => {
-      sectionIds.forEach((id) => {
-        const el = document.getElementById(id)
-        if (el) observer.observe(el)
-      })
-    }, 500)
-
-    observerRef.current = observer
-
-    return () => {
-      clearTimeout(timer)
-      observer.disconnect()
-    }
-  }, [])
-
   // Lock body scroll on mobile menu
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [mobileOpen])
 
-  const scrollToSection = useCallback((href) => {
-    setMobileOpen(false)
-    const id = href.replace('#', '')
-    const el = document.getElementById(id)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }, [])
-
-  const loggedInNavItems = [
+  const navItems = [
     { to: '/', label: 'HOME' },
     { to: '/events', label: 'EVENTS' },
-    { to: hasPass ? '/my-pass' : '/entry-registration', label: hasPass ? 'MY PASS' : 'ENTRY PASS' },
+    { to: user ? (hasPass ? '/my-pass' : '/entry-registration') : '/entry-registration', label: user && hasPass ? 'MY PASS' : 'ENTRY PASS' },
     { to: '/dashboard', label: 'DASHBOARD' },
     { to: '/faq', label: 'FAQ' },
   ]
@@ -131,67 +81,40 @@ export default function LandingNav() {
               </a>
             </div>
 
-            {/* Center: Desktop Navigation Links */}
+            {/* Center: Desktop Navigation Links (Accessible to All Users) */}
             <div className="hidden md:flex items-center gap-1 xl:gap-2">
-              {user ? (
-                /* ── Logged In Navigation: HOME, EVENTS, SCHEDULE, MY PASS, DASHBOARD, ALERTS, FAQ ── */
-                loggedInNavItems.map((item) => {
-                  const isActive = item.to === '/'
+              {navItems.map((item) => {
+                const isActive = item.to === '/'
 
-                  return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={(e) => {
-                        if (item.to === '/') {
-                          e.preventDefault()
-                          window.scrollTo({ top: 0, behavior: 'smooth' })
-                        }
-                      }}
-                      className={cn(
-                        'relative px-2.5 lg:px-3.5 py-2 font-mono text-[11px] tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer group/navitem hover:-translate-y-0.5',
-                        isActive
-                          ? 'text-doom-glow font-bold'
-                          : 'text-text-muted hover:text-white'
-                      )}
-                    >
-                      {item.label}
-                      <span
-                        className={cn(
-                          'absolute bottom-0.5 left-1/2 -translate-x-1/2 h-[1.5px] bg-doom-glow shadow-[0_0_8px_rgba(30,255,160,0.8)] transition-all duration-300',
-                          isActive
-                            ? 'w-[75%]'
-                            : 'w-0 group-hover/navitem:w-[50%]'
-                        )}
-                      />
-                    </Link>
-                  )
-                })
-              ) : (
-                /* ── Guest Section Links: ARRIVAL, DESTINY, SUPREMACY, PROTOCOLS, PASSES ── */
-                NAV_LINKS.map((link) => (
-                  <button
-                    key={link.href}
-                    onClick={() => scrollToSection(link.href)}
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={(e) => {
+                      if (item.to === '/') {
+                        e.preventDefault()
+                        window.scrollTo({ top: 0, behavior: 'smooth' })
+                      }
+                    }}
                     className={cn(
-                      'relative px-3 py-2 font-mono text-[11px] tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer group/navitem hover:-translate-y-0.5',
-                      activeSection === link.href.replace('#', '')
+                      'relative px-2.5 lg:px-3.5 py-2 font-mono text-[11px] tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer group/navitem hover:-translate-y-0.5',
+                      isActive
                         ? 'text-doom-glow font-bold'
                         : 'text-text-muted hover:text-white'
                     )}
                   >
-                    {link.label}
+                    {item.label}
                     <span
                       className={cn(
                         'absolute bottom-0.5 left-1/2 -translate-x-1/2 h-[1.5px] bg-doom-glow shadow-[0_0_8px_rgba(30,255,160,0.8)] transition-all duration-300',
-                        activeSection === link.href.replace('#', '')
-                          ? 'w-[65%]'
-                          : 'w-0 group-hover/navitem:w-[45%]'
+                        isActive
+                          ? 'w-[75%]'
+                          : 'w-0 group-hover/navitem:w-[50%]'
                       )}
                     />
-                  </button>
-                ))
-              )}
+                  </Link>
+                )
+              })}
             </div>
 
             {/* Right: Auth State & Actions */}
@@ -285,62 +208,41 @@ export default function LandingNav() {
           aria-modal="true"
           aria-label="Mobile navigation menu"
         >
-          {user ? (
-            /* ── Logged In Mobile Menu: Full App Suite ── */
-            <div className="flex flex-col items-center gap-3.5 w-full max-w-xs">
-              {loggedInNavItems.map((item) => {
-                const isActive = item.to === '/'
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => {
-                      setMobileOpen(false)
-                      if (item.to === '/') {
-                        window.scrollTo({ top: 0, behavior: 'smooth' })
-                      }
-                    }}
-                    className={cn(
-                      'font-display text-xl sm:text-2xl font-bold tracking-[0.12em] uppercase transition-colors duration-200',
-                      isActive
-                        ? 'text-doom-glow'
-                        : 'text-text-primary hover:text-doom-glow'
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                )
-              })}
+          <div className="flex flex-col items-center gap-3.5 w-full max-w-xs">
+            {navItems.map((item) => {
+              const isActive = item.to === '/'
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => {
+                    setMobileOpen(false)
+                    if (item.to === '/') {
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }
+                  }}
+                  className={cn(
+                    'font-display text-xl sm:text-2xl font-bold tracking-[0.12em] uppercase transition-colors duration-200',
+                    isActive
+                      ? 'text-doom-glow'
+                      : 'text-text-primary hover:text-doom-glow'
+                  )}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
 
-              <div className="w-48 h-[1px] bg-white/[0.1] my-2" />
+            <div className="w-48 h-[1px] bg-white/[0.1] my-2" />
 
+            {user ? (
               <button
                 onClick={handleLogout}
                 className="font-mono text-xs tracking-widest uppercase text-doom-crimson-bright hover:underline cursor-pointer"
               >
                 Sign Out
               </button>
-            </div>
-          ) : (
-            /* ── Guest Mobile Menu: Arrival, Destiny, Supremacy, Protocols, Passes ── */
-            <>
-              {NAV_LINKS.map((link) => (
-                <button
-                  key={link.href}
-                  onClick={() => scrollToSection(link.href)}
-                  className={cn(
-                    'font-display text-2xl font-bold tracking-[0.1em] uppercase transition-colors duration-300',
-                    activeSection === link.href.replace('#', '')
-                      ? 'text-doom-glow'
-                      : 'text-text-primary hover:text-doom-glow'
-                  )}
-                >
-                  {link.label}
-                </button>
-              ))}
-
-              <div className="w-48 h-[1px] bg-white/[0.1] my-2" />
-
+            ) : (
               <div className="w-52">
                 <DoomButton
                   to="/login"
@@ -352,8 +254,8 @@ export default function LandingNav() {
                   ENTER THE PORTAL
                 </DoomButton>
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       )}
     </>

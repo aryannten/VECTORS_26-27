@@ -119,7 +119,7 @@ VECTORS_26-27/
 - Generation of permanent, cryptographically indexed identifiers (`VEC-XXXXXXXX`).
 - Dynamic client-side QR generation encoding verifiable pass credentials for campus gate entry.
 - **Immediate Post-Registration Sync**: After pass issuance, the client performs an optimistic local state update with full pass data (including phone, check-in flags) followed by an immediate authoritative backend sync via `checkPassStatus()`, ensuring the UI reflects the true database state without requiring page navigation or manual refresh.
-- **On-Demand & Window Focus Status Sync**: Efficient status synchronization triggered on pass mount, tab focus (with 15-second cooldown), and manual user refresh (`REFRESH PASS`). Strict rate limiting (`authLimiter`) is isolated exclusively to `POST /api/register` to prevent read status queries from hitting HTTP 429 locks.
+- **On-Demand & Window Focus Status Sync**: Efficient status synchronization triggered on pass mount, tab focus (with 15-second cooldown), and manual user refresh via the tactical header action button (`REFRESH PASS`). The pass card layout eliminates intermediate sync banners so primary navigation actions (`ACCESS EVENT VAULTS`) remain clean and directly clickable without layout shifts.
 - **Manual Attendance Administration**: Gate personnel can scan passes via `/security`, while event admins can perform 1-click Day 1 & Day 2 check-ins directly from the Attendee Registry table (`AdminRegistrations.jsx`).
 
 ### 2. High-Throughput Gate Security & Multi-Day Check-In
@@ -143,7 +143,14 @@ VECTORS_26-27/
 - **Event Catalog Management**: Real-time configuration of event registration statuses and parameters.
 - **Role-Based User Management**: User account creation, editing (name, phone, role), role elevation management (`user`, `security`, `admin`), account deletion with Firebase sync, and secure password reset link generation.
 - **Account & Registration CSV Exports**: Injection-neutralized CSV downloads for QR Entry Passes, Event Registrations, and All User Accounts (including phone numbers and pass claim status).
-- **Audit Logging**: Forensic audit trail capturing timestamps, actor emails, target entities, and pre/post modification states.
+- **Audit Logging**: Forensic system audit log records.
+
+### 5. Client Navigation & Routing Architecture
+- **Unified Navigation Across Views**: Both the Landing Page floating navbar (`LandingNav.jsx`) and internal layout header (`Navbar.jsx`) expose consistent, direct routing to core site destinations (`HOME`, `EVENTS`, `ENTRY PASS` / `MY PASS`, `DASHBOARD`, `FAQ`) across both desktop and mobile viewports.
+- **Pathless Layout Routing**: Standardized React Router v6 pathless layout pattern (`<Route element={<Layout />}>`) eliminates route scoring collisions with the root landing view (`/`), ensuring seamless matching for public discovery views (`/events`, `/events/:eventId`, `/faq`) and protected user operations (`/dashboard`, `/entry-registration`, `/my-pass`).
+- **Responsive Viewport Visibility**: Realigned desktop navigation breakpoints to `md:flex` (768px+) and mobile drawers to `md:hidden`, preventing navigation links from collapsing or disappearing on 1024px desktop and tablet displays with active scrollbars.
+- **State-Preserving Authentication Redirection**: `ProtectedRoute` captures the user's intended destination (`location.state.from`), and both `Login.jsx` and `Signup.jsx` dynamically honor this target upon successful authentication, directing users straight to their requested dashboard or pass rather than forcing a redirect to the home screen.
+- **Unrestricted Event Catalog Discovery**: Public exploration of the 20+ event arenas (`/events` and `/events/:eventId`) is open to all visitors and attendees without hard clearance gates, while non-intrusive advisory banners and action prompts guide users to claim their Entry Pass when ready to register and compete.
 
 ---
 

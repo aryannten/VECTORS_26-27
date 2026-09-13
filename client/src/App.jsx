@@ -66,7 +66,7 @@ function App() {
               <Route path="/command" element={<DoomsdayCommandCenter />} />
 
               {/* Public & User routes wrapped in standard festival Layout */}
-              <Route path="/" element={<Layout />}>
+              <Route element={<Layout />}>
                 <Route path="festival" element={<Home />} />
                 <Route path="login" element={<Login />} />
                 <Route path="signup" element={<Signup />} />

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate, Navigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext'
  */
 export default function Signup() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, signup, loginWithGoogle } = useAuth()
 
   const [displayName, setDisplayName] = useState('')
@@ -20,9 +21,15 @@ export default function Signup() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  const getDestination = () => {
+    if (location.state?.from?.pathname) return location.state.from.pathname
+    if (typeof location.state?.from === 'string') return location.state.from
+    return '/dashboard'
+  }
+
   // Redirect if already logged in
   if (user) {
-    return <Navigate to="/" replace />
+    return <Navigate to={getDestination()} replace />
   }
 
   const handleSubmit = async (e) => {
@@ -42,7 +49,7 @@ export default function Signup() {
     setLoading(true)
     try {
       await signup(email, password, displayName)
-      navigate('/', { replace: true })
+      navigate(getDestination(), { replace: true })
     } catch (err) {
       const code = err.code
       if (code === 'auth/email-already-in-use') {
@@ -64,7 +71,7 @@ export default function Signup() {
     setError(null)
     try {
       await loginWithGoogle()
-      navigate('/', { replace: true })
+      navigate(getDestination(), { replace: true })
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') {
         setLoading(false)

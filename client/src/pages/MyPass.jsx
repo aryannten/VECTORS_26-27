@@ -145,20 +145,20 @@ export default function MyPass() {
         <div className="flex items-center justify-between">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 font-mono text-xs text-text-muted hover:text-doom-glow transition-colors uppercase tracking-widest"
+            className="inline-flex items-center gap-1.5 font-mono text-[11px] text-text-muted hover:text-white px-2.5 py-1 border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] transition-all uppercase tracking-wider doom-btn-clipped"
           >
-            <ArrowLeft size={14} />
+            <ArrowLeft size={13} />
             <span>Home</span>
           </Link>
 
           <button
             onClick={syncPass}
             disabled={isSyncing}
-            className="inline-flex items-center gap-1.5 font-mono text-[11px] text-text-muted hover:text-doom-glow transition-colors uppercase tracking-wider cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 font-mono text-[11px] text-text-muted hover:text-doom-glow hover:border-doom-glow/40 px-2.5 py-1 border border-white/[0.08] bg-white/[0.02] hover:bg-doom-glow/10 transition-all uppercase tracking-wider cursor-pointer disabled:opacity-50 doom-btn-clipped active:scale-95"
             title="Refresh digital pass and gate check-in status"
           >
             <RefreshCw size={12} className={isSyncing ? 'animate-spin text-doom-glow' : ''} />
-            <span>{isSyncing ? 'REFRESHING...' : 'REFRESH PASS'}</span>
+            <span>REFRESH PASS</span>
           </button>
         </div>
 
@@ -255,17 +255,6 @@ export default function MyPass() {
             <div className="w-full py-2.5 text-center font-mono tracking-[0.2em] uppercase text-xs bg-doom-glow/10 text-doom-glow border border-doom-glow/40 font-bold relative z-10">
               DIGITAL PASS: ACTIVE & VERIFIED
             </div>
-
-            {/* Manual Refresh Action */}
-            <button
-              onClick={syncPass}
-              disabled={isSyncing}
-              className="py-1 px-3 text-text-muted hover:text-doom-glow font-mono text-[10px] uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 relative z-10"
-              title="Refresh gate admission status"
-            >
-              <RefreshCw size={10} className={isSyncing ? 'animate-spin text-doom-glow' : ''} />
-              <span>{isSyncing ? 'SYNCING STATUS...' : 'REFRESH ATTENDANCE STATUS'}</span>
-            </button>
 
             {/* Access Vaults Button */}
             <Link

@@ -59,20 +59,14 @@ export default function Navbar() {
     })
   }
 
-  // Navigation items based on auth state
-  const navItems = user
-    ? [
-        { to: '/', label: 'Home', index: '01' },
-        { to: '/events', label: 'Events', index: '02' },
-        { to: hasPass ? '/my-pass' : '/entry-registration', label: hasPass ? 'My Pass' : 'Entry Pass', index: '03' },
-        { to: '/dashboard', label: 'Dashboard', index: '04' },
-        { to: '/faq', label: 'FAQ', index: '05' },
-      ]
-    : [
-        { to: '/', label: 'Home', index: '01' },
-        { to: '/events', label: 'Events', index: '02' },
-        { to: '/faq', label: 'FAQ', index: '03' },
-      ]
+  // Navigation items (accessible to all users, with auth-aware labeling)
+  const navItems = [
+    { to: '/', label: 'Home', index: '01' },
+    { to: '/events', label: 'Events', index: '02' },
+    { to: user ? (hasPass ? '/my-pass' : '/entry-registration') : '/entry-registration', label: user && hasPass ? 'My Pass' : 'Entry Pass', index: '03' },
+    { to: '/dashboard', label: 'Dashboard', index: '04' },
+    { to: '/faq', label: 'FAQ', index: '05' },
+  ]
 
   const handleLogout = async () => {
     await logout()
@@ -108,8 +102,8 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Center: Desktop Nav Links */}
-        <nav className="hidden lg:flex items-center gap-1 xl:gap-2" aria-label="Main Navigation">
+        {/* Center: Desktop Nav Links (Visible from md: 768px upwards) */}
+        <nav className="hidden md:flex items-center gap-1 xl:gap-2" aria-label="Main Navigation">
           {navItems.map((item) => {
             const isActive = item.to === '/'
               ? location.pathname === '/'
@@ -205,7 +199,7 @@ export default function Navbar() {
           {/* Mobile Hamburger Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="w-9 h-9 flex lg:hidden flex-col items-center justify-center gap-1.5 text-text-muted hover:text-doom-glow transition-colors cursor-pointer"
+            className="w-9 h-9 flex md:hidden flex-col items-center justify-center gap-1.5 text-text-muted hover:text-doom-glow transition-colors cursor-pointer"
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isOpen}
           >
@@ -224,7 +218,7 @@ export default function Navbar() {
             animate="open"
             exit="closed"
             variants={menuVariants}
-            className="fixed inset-x-0 top-16 bottom-0 z-40 bg-doom-bg/95 backdrop-blur-xl border-b border-doom-glow/20 px-6 py-8 flex flex-col justify-between overflow-y-auto lg:hidden"
+            className="fixed inset-x-0 top-16 bottom-0 z-40 bg-doom-bg/95 backdrop-blur-xl border-b border-doom-glow/20 px-6 py-8 flex flex-col justify-between overflow-y-auto md:hidden"
           >
             <div className="space-y-6">
               <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">

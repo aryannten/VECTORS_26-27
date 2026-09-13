@@ -92,29 +92,6 @@ export default function EventDetail() {
     return () => { isMounted = false }
   }, [user, eventSlug])
 
-  // Gate: If pass status is loading, render clearance scanner
-  if (passLoading) {
-    return <EntryPassGate user={user} loading={true} />
-  }
-
-  // Gate: If user does not possess an active Entry Pass, block access strictly
-  if (!hasPass) {
-    return (
-      <EntryPassGate
-        user={user}
-        loading={false}
-        error={verificationError}
-        onRetry={async () => {
-          setVerificationError(null)
-          try {
-            await checkPassStatus(user)
-          } catch (err) {
-            setVerificationError(err.message || 'Verification failed.')
-          }
-        }}
-      />
-    )
-  }
 
   if (!eventData) {
     return (
@@ -208,6 +185,29 @@ export default function EventDetail() {
       return (
         <div className="px-5 py-3 bg-white/[0.04] border border-white/[0.08] text-steel font-mono text-xs uppercase tracking-wider">
           🔒 Registrations for this event are currently locked.
+        </div>
+      )
+    }
+
+    if (!hasPass) {
+      return (
+        <div className="p-4 bg-doom-bg2/90 border border-doom-glow/40 doom-btn-clipped flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_0_20px_rgba(30,255,160,0.1)]">
+          <div>
+            <span className="font-mono text-xs text-doom-glow font-bold uppercase tracking-wider block">
+              ENTRY PASS REQUIRED
+            </span>
+            <p className="font-mono text-[11px] text-text-muted mt-0.5">
+              An active Entry Pass is required to register and compete in this protocol.
+            </p>
+          </div>
+          <Link
+            to={user ? '/entry-registration' : '/login'}
+            className="doom-btn-primary shrink-0 text-center"
+          >
+            <span className="doom-btn-primary-inner py-2 px-4 text-xs font-mono font-bold uppercase">
+              {user ? 'CLAIM PASS →' : 'LOG IN & CLAIM PASS →'}
+            </span>
+          </Link>
         </div>
       )
     }

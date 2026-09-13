@@ -25,11 +25,18 @@ export default function Login() {
   const [resetSuccess, setResetSuccess] = useState(null)
   const [resetError, setResetError] = useState(null)
 
+  // Determine intended redirection destination from location.state or role
+  const getDestination = (role) => {
+    if (location.state?.from?.pathname) return location.state.from.pathname
+    if (typeof location.state?.from === 'string') return location.state.from
+    if (role === 'security') return '/security'
+    if (role === 'admin') return '/admin'
+    return '/dashboard'
+  }
+
   // Redirect if already logged in
   if (user && !loading) {
-    if (userRole === 'security') return <Navigate to="/security" replace />
-    if (userRole === 'admin') return <Navigate to="/admin" replace />
-    return <Navigate to="/" replace />
+    return <Navigate to={getDestination(userRole)} replace />
   }
 
   const handleSubmit = async (e) => {
@@ -38,14 +45,7 @@ export default function Login() {
     setError(null)
     try {
       const backendUser = await login(email, password)
-      if (backendUser?.role === 'security') {
-        navigate('/security', { replace: true })
-      } else if (backendUser?.role === 'admin') {
-        navigate('/admin', { replace: true })
-      } else {
-        // Enforce strict Home-first product flow
-        navigate('/', { replace: true })
-      }
+      navigate(getDestination(backendUser?.role), { replace: true })
     } catch (err) {
       const code = err.code
       if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
@@ -67,14 +67,7 @@ export default function Login() {
     setError(null)
     try {
       const backendUser = await loginWithGoogle()
-      if (backendUser?.role === 'security') {
-        navigate('/security', { replace: true })
-      } else if (backendUser?.role === 'admin') {
-        navigate('/admin', { replace: true })
-      } else {
-        // Enforce strict Home-first product flow
-        navigate('/', { replace: true })
-      }
+      navigate(getDestination(backendUser?.role), { replace: true })
     } catch (err) {
       if (err.code === 'auth/popup-closed-by-user') {
         setLoading(false)

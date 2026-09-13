@@ -11,7 +11,8 @@ import {
   Filter, 
   X, 
   RotateCcw, 
-  CheckCircle2
+  CheckCircle2,
+  Ticket
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { eventsData } from '../data/events'
@@ -111,33 +112,37 @@ export default function Events() {
 
   const hasActiveFilters = searchQuery.trim() !== '' || selectedMode !== 'ALL' || selectedStatus !== 'ALL'
 
-  // Gate: If pass status is loading, render clearance scanner
-  if (passLoading) {
-    return <EntryPassGate user={user} loading={true} />
-  }
-
-  // Gate: If user does not possess an active Entry Pass, block access strictly
-  if (!hasPass) {
-    return (
-      <EntryPassGate
-        user={user}
-        loading={false}
-        error={verificationError}
-        onRetry={async () => {
-          setVerificationError(null)
-          try {
-            await checkPassStatus(user)
-          } catch (err) {
-            setVerificationError(err.message || 'Verification failed.')
-          }
-        }}
-      />
-    )
-  }
-
   return (
     <div className="min-h-screen px-4 sm:px-6 md:px-8 pt-24 sm:pt-28 pb-20 relative z-10">
       <div className="max-w-6xl mx-auto">
+
+        {/* Pass Status Advisory Banner (Non-blocking: permits full catalog discovery) */}
+        {!hasPass && (
+          <div className="mb-8 p-4 sm:p-5 bg-doom-bg2/90 border border-doom-glow/40 doom-btn-clipped flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_0_30px_rgba(30,255,160,0.1)]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-sm bg-doom-glow/15 border border-doom-glow/50 flex items-center justify-center text-doom-glow shrink-0">
+                <Ticket size={20} />
+              </div>
+              <div>
+                <span className="font-mono text-[10px] text-doom-glow uppercase tracking-widest block font-bold">
+                  ENTRY PASS REQUIRED FOR COMPETITION
+                </span>
+                <p className="font-mono text-xs text-text-muted mt-0.5">
+                  Explore all symposium arena protocols below. An approved Entry Pass is required to register and compete.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              to={user ? '/entry-registration' : '/login'}
+              className="doom-btn-primary shrink-0 whitespace-nowrap text-center"
+            >
+              <span className="doom-btn-primary-inner py-2 px-4 text-xs font-mono tracking-wider font-semibold">
+                {user ? 'CLAIM ACCESS PASS →' : 'LOG IN TO CLAIM PASS →'}
+              </span>
+            </Link>
+          </div>
+        )}
 
         {/* ====================================================
             SCENARIO 1: CATEGORY SELECTION GATEWAY (Initial View)
