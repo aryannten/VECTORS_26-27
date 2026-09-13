@@ -39,12 +39,27 @@ router.post('/sync', async (req, res) => {
     const existingPass = await EntryRegistration.findOne({ email: userEmail })
     const userPhone = existingPass?.phone || decodedToken.phone_number || null
 
+    // The ID token may lack the `name` claim for email/password signups
+    // (token minted before updateProfile). Fall back to the Firebase
+    // Admin user record which always has the latest displayName.
+    let resolvedName = decodedToken.name || ''
+    let resolvedPhoto = decodedToken.picture || ''
+    if (!resolvedName) {
+      try {
+        const firebaseUserRecord = await getAuth().getUser(decodedToken.uid)
+        resolvedName = firebaseUserRecord.displayName || ''
+        resolvedPhoto = resolvedPhoto || firebaseUserRecord.photoURL || ''
+      } catch (_) {
+        // non-critical — continue with what we have
+      }
+    }
+
     const updateSet = {
       email: decodedToken.email,
       lastLoginAt: new Date(),
       ...(userPhone ? { phone: userPhone } : {}),
-      ...(decodedToken.name ? { displayName: decodedToken.name } : {}),
-      ...(decodedToken.picture ? { photoURL: decodedToken.picture } : {}),
+      ...(resolvedName ? { displayName: resolvedName } : {}),
+      ...(resolvedPhoto ? { photoURL: resolvedPhoto } : {}),
     }
 
     const updateOps = {

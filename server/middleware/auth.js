@@ -35,11 +35,23 @@ const verifyFirebaseToken = async (req, res, next) => {
         .filter(Boolean)
       const isAdmin = adminEmails.includes(userEmail)
       const role = isAdmin ? 'admin' : 'user'
+
+      // Resolve displayName from token or Firebase Admin record
+      let resolvedName = decodedToken.name || ''
+      let resolvedPhoto = decodedToken.picture || ''
+      if (!resolvedName) {
+        try {
+          const firebaseUserRecord = await getAuth().getUser(decodedToken.uid)
+          resolvedName = firebaseUserRecord.displayName || ''
+          resolvedPhoto = resolvedPhoto || firebaseUserRecord.photoURL || ''
+        } catch (_) { /* non-critical */ }
+      }
+
       user = await User.create({
         firebaseUid: decodedToken.uid,
         email: decodedToken.email,
-        displayName: decodedToken.name || '',
-        photoURL: decodedToken.picture || '',
+        displayName: resolvedName,
+        photoURL: resolvedPhoto,
         role
       })
     }

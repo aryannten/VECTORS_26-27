@@ -214,6 +214,9 @@ export function AuthProvider({ children }) {
     const result = await createUserWithEmailAndPassword(auth, email, password)
     if (displayName) {
       await updateProfile(result.user, { displayName })
+      // Force-refresh the ID token so the new displayName claim is
+      // included in the token sent to the backend sync endpoint.
+      await result.user.getIdToken(true)
     }
     const backendUser = await syncWithBackend(result.user)
     return backendUser

@@ -169,7 +169,7 @@ VECTORS_26-27/
 
 | Method | Route | Description |
 |---|---|---|
-| `POST` | `/api/auth/sync` | Synchronize Firebase identity with MongoDB user profile, auto-attaching verified phone numbers |
+| `POST` | `/api/auth/sync` | Synchronize Firebase identity with MongoDB user profile, resolving `displayName` via Firebase Admin SDK fallback for email/password signups, and auto-attaching verified phone numbers |
 | `GET` | `/api/user/dashboard` | Aggregated user summary including pass status, Day 1 & Day 2 check-in timestamps, and active registrations |
 | `POST` | `/api/register` | Mint a verified campus Entry Pass (`VEC-XXXXXXXX`) and sync attendee contact phone to user account |
 | `GET` | `/api/register/status` | Retrieve the authenticated user's authoritative pass status, QR payload, and Day 1 / Day 2 check-in telemetry |
