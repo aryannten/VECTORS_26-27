@@ -3,6 +3,12 @@
   "version": 2,
   "buildCommand": "npm run build --prefix client",
   "outputDirectory": "client/dist",
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs22.x",
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
