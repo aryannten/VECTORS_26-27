@@ -59,9 +59,10 @@ flowchart TD
 - **Credential Generation**: `qrcode.react` for vector-based SVG QR rendering
 
 ### Backend API & Services
-- **Runtime Environment**: Node.js (v18+)
+- **Runtime Environment**: Node.js (v22.x configured on Vercel Serverless Functions & local dev)
 - **API Framework**: Express 5
 - **Authentication**: Google Firebase Authentication with Firebase Admin SDK token verification
+- **CJS/ESM Compatibility**: `jose` pinned to `^4.15.9` via npm overrides ensuring seamless CommonJS execution of `jwks-rsa` across Vercel Serverless runtimes
 - **Database & Data Modeling**: MongoDB Atlas with Mongoose 9
 - **Security Middleware**:
   - `helmet`: Secure HTTP headers
@@ -71,8 +72,8 @@ flowchart TD
   - `express-mongo-sanitize`: NoSQL injection query sanitization
 
 ### Infrastructure & Deployment
-- **Hosting Platform**: Vercel (Edge CDN + Node.js Serverless Functions)
-- **Domain & DNS**: GoDaddy Custom Domain DNS integration
+- **Hosting Platform**: Vercel (Edge CDN + Node.js 22 Serverless Functions)
+- **Domain & DNS**: Vercel `*.vercel.app` testing deployment & GoDaddy Custom Domain DNS integration
 - **SSL / TLS**: Automatic zero-configuration certificate provisioning via Vercel Edge
 
 ---
