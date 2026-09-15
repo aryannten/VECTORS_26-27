@@ -51,6 +51,7 @@ flowchart TD
 ### Frontend Application
 - **Core Framework**: React 19, Vite 8, React Router v7
 - **Styling Architecture**: Tailwind CSS v4 with custom design tokens and tactical dark palette
+- **Developer Tooling & Linting**: Official Tailwind CSS IntelliSense (`bradlc.vscode-tailwindcss`) integration with custom language associations for Tailwind v4 `@theme` directives
 - **Graphics & Rendering**: Three.js & `@react-three/fiber` for procedural WebGL canvas rendering, Lucide React iconography
 - **Hero & Visual Direction**: Cinematic DOOM monolith citadel visual integration with high-contrast tactical telemetry HUD elements (`#00E676`)
 - **Performance & Code-Splitting**: Route-level dynamic loading (`React.lazy`) and manual Rollup vendor chunking (`vendor-three`, `vendor-motion`, `vendor-firebase`, `vendor-icons`) delivering a >75% reduction in initial payload (~398 kB entry)
@@ -80,6 +81,9 @@ flowchart TD
 
 ```text
 VECTORS_26-27/
+├── .vscode/
+│   ├── extensions.json               # Recommended extensions (Tailwind CSS IntelliSense)
+│   └── settings.json                 # Editor associations and CSS linting rules for Tailwind v4
 ├── api/
 │   └── index.js                      # Serverless function bridge for Vercel
 ├── client/
