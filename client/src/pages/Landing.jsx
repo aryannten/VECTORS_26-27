@@ -179,10 +179,12 @@ export default function Landing() {
             <img
               src="/hero-bg.webp"
               alt="Doctor Doom standing before the DOOM Monolith"
-              className="w-full h-full object-cover object-top sm:object-center"
+              className="w-full h-full object-contain"
               loading="eager"
               fetchpriority="high"
               decoding="sync"
+              width="1920"
+              height="1080"
             />
           </picture>
           {/* Subtle natural lighting overlays: minimal top navbar gradient & soft base fade */}
