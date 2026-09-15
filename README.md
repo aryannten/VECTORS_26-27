@@ -51,7 +51,7 @@ flowchart TD
 ### Frontend Application
 - **Core Framework**: React 19, Vite 8, React Router v7
 - **Styling Architecture**: Tailwind CSS v4 with custom design tokens, tactical dark palette, standard numeric spacing/width scale normalization, and linear gradient utilities (`bg-linear-to-*`)
-- **Developer Tooling & Linting**: Official Tailwind CSS IntelliSense (`bradlc.vscode-tailwindcss`) integration with custom language associations, experimental v4 `@theme` entrypoint mapping (`client/src/index.css`), pseudo-variant conflict mitigation, and suppression of non-blocking canonical class suggestions (`suggestCanonicalClasses: ignore`)
+- **Developer Tooling & Linting**: Official Tailwind CSS IntelliSense (`bradlc.vscode-tailwindcss`) integration with custom language associations, disabled non-blocking lint diagnostics (`tailwindCSS.validate: false`, `css.validate: false`), and suppressed file explorer problem decorations (`problems.decorations.enabled: false`) ensuring a clean, noise-free development workspace
 - **Graphics & Rendering**: Three.js & `@react-three/fiber` for procedural WebGL canvas rendering, Lucide React iconography
 - **Hero & Visual Direction**: Cinematic DOOM monolith citadel visual integration with high-contrast tactical telemetry HUD elements (`#00E676`)
 - **Performance & Code-Splitting**: Route-level dynamic loading (`React.lazy`), isolated asynchronous 3D canvas loading, and granular Rollup vendor chunking (`vendor-three`, `vendor-motion`, `vendor-firebase`, `vendor-icons`, `vendor-qr`, `vendor-ogl`) delivering an initial entry payload of ~309 kB (~96 kB gzipped)
