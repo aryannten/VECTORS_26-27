@@ -28,7 +28,9 @@ const AdminRegistrations = lazy(() => import('./pages/admin/AdminRegistrations')
 const AdminEventRegistrations = lazy(() => import('./pages/admin/AdminEventRegistrations'))
 const AdminEvents = lazy(() => import('./pages/admin/AdminEvents'))
 const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
+const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements'))
 const AdminAuditLogs = lazy(() => import('./pages/admin/AdminAuditLogs'))
+const Announcements = lazy(() => import('./pages/Announcements'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 // Immutable constant to prevent re-instantiating WebGL context on route re-renders
@@ -80,6 +82,7 @@ function App() {
                 <Route path="events/:eventId" element={<EventDetail />} />
                 <Route path="schedule" element={<Schedule />} />
                 <Route path="faq" element={<FAQ />} />
+                <Route path="announcements" element={<Announcements />} />
 
                 {/* Protected user routes: requires login */}
                 <Route path="dashboard" element={
@@ -114,6 +117,7 @@ function App() {
                 <Route path="event-registrations" element={<AdminEventRegistrations />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="users" element={<AdminUsers />} />
+                <Route path="announcements" element={<AdminAnnouncements />} />
                 <Route path="audit-logs" element={<AdminAuditLogs />} />
               </Route>
             </Routes>

@@ -3,9 +3,26 @@ const router = express.Router()
 const Event = require('../models/Event')
 const EventRegistration = require('../models/EventRegistration')
 const { verifyFirebaseToken, requireEntryPass, requireRole } = require('../middleware/auth')
+const { rateLimitMongo } = require('../middleware/rateLimitMongo')
 
 const officialEvents = require('../data/officialEvents')
 const memoryCache = require('../utils/cache')
+
+const FIFTEEN_MINUTES = 15 * 60 * 1000
+
+/**
+ * MongoDB-backed rate limiter for event registration.
+ * 30 requests per 15 minutes per authenticated user (fallback to IP).
+ * Allows legitimate participants to register for multiple distinct events while
+ * preventing automated script spam and race condition attacks.
+ */
+const eventRegistrationLimiter = rateLimitMongo({
+  category: 'event_registration',
+  windowMs: FIFTEEN_MINUTES,
+  max: 30,
+  keyGenerator: (req) => req.user?._id?.toString() || req.user?.email || req.ip || req.connection?.remoteAddress || 'unknown',
+  message: 'Too many event registration attempts. Please wait a few minutes before registering for another event.',
+})
 
 // Regex for phone validation
 const PHONE_REGEX = /^[0-9+\s-]{7,20}$/
@@ -121,7 +138,7 @@ router.get('/:slug/my-registration', verifyFirebaseToken, async (req, res) => {
  * The verified Entry Pass (req.entryPass) provides trusted defaults for name, phone,
  * and college, supporting both flows without a client-controlled bypass flag.
  */
-router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req, res) => {
+router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, eventRegistrationLimiter, async (req, res) => {
   const eventSlug = req.params.slug.toLowerCase()
   const userEmail = req.user.email.toLowerCase()
 

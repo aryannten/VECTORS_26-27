@@ -179,11 +179,11 @@ export default function Landing() {
             <source media="(min-width: 1280px)" srcSet="/hero-bg-2k.webp" type="image/webp" />
             <source media="(max-width: 1279px)" srcSet="/hero-bg-mobile.webp" type="image/webp" />
             <img
-              src="/hero-bg.webp"
+              src="/hero-bg-2k.webp"
               alt="Doctor Doom standing before the DOOM Monolith"
               className="w-full h-full object-cover object-top sm:object-center"
               loading="eager"
-              fetchpriority="high"
+              fetchPriority="high"
               decoding="sync"
             />
           </picture>

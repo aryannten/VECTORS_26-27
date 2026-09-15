@@ -13,12 +13,12 @@ const ONE_HOUR = 60 * 60 * 1000
 
 /**
  * IP-based limiter for POST /api/auth/sync
- * 10 requests per IP per 15 minutes.
+ * 300 requests per IP per 15 minutes (scaled for shared campus/venue Wi-Fi NAT and page refreshes).
  */
 const authSyncIpLimiter = rateLimitMongo({
   category: 'auth_sync_ip',
   windowMs: FIFTEEN_MINUTES,
-  max: 10,
+  max: 300,
   keyGenerator: (req) => req.ip || req.connection?.remoteAddress || 'unknown',
   message: 'Too many authentication attempts. Please try again later.',
 })
@@ -152,6 +152,7 @@ router.post('/sync', authSyncIpLimiter, async (req, res) => {
       if (resolvedPhoto) user.photoURL = resolvedPhoto
       user.role = isAdmin ? 'admin' : isSecurity ? 'security' : 'user'
       await user.save()
+    } else {
       try {
         user = await User.create({
           firebaseUid: decodedToken.uid,

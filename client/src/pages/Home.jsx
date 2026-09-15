@@ -41,11 +41,7 @@ export default function Home() {
   }
 
   const handleExploreEvents = () => {
-    if (user) {
-      navigate('/events')
-    } else {
-      navigate('/login')
-    }
+    navigate('/events')
   }
 
   // Hero animations

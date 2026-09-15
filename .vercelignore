@@ -1,0 +1,26 @@
+# Secrets & credentials
+.env
+.env.*
+*.env
+server/.env
+server/.env.*
+serviceAccountKey.json
+**/serviceAccountKey.json
+
+# Large media & docs
+*.pdf
+Vectors-Brochure-OCR.pdf
+docs/
+VECTORS_2026_Antigravity_Master_Specification.md
+hereo 1080.webp
+
+# Scripts & temporary tools
+resize.mjs
+dev.bat
+run.bat
+server/test/
+server/scripts/
+
+# Agent rules
+AGENTS.md
+.agents/

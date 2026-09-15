@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Allow: /events
+Allow: /schedule
+Allow: /faq
+Allow: /command
+Allow: /festival
+Allow: /announcements
+Allow: /login
+Allow: /signup
+Disallow: /admin/
+Disallow: /security/
+Disallow: /dashboard
+Disallow: /my-pass
+Disallow: /entry-registration
+Disallow: /api/
+
+Sitemap: https://www.vectors2026-27.in/sitemap.xml

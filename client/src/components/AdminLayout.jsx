@@ -1,7 +1,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { LayoutDashboard, Users, Ticket, Calendar, LogOut, Shield, ArrowLeft, Menu, X, ClipboardList, ShieldAlert, Camera } from 'lucide-react'
+import { LayoutDashboard, Users, Ticket, Calendar, LogOut, Shield, ArrowLeft, Menu, X, ClipboardList, ShieldAlert, Camera, Megaphone } from 'lucide-react'
 import { cn } from '../lib/utils'
 import PageLoading from './ui/PageLoading'
 
@@ -30,6 +30,7 @@ export default function AdminLayout() {
     { to: '/admin/event-registrations', label: 'Event Signups', icon: ClipboardList },
     { to: '/admin/events', label: 'Events Control', icon: Calendar },
     { to: '/admin/users', label: 'User Accounts', icon: Users },
+    { to: '/admin/announcements', label: 'Announcements', icon: Megaphone },
     { to: '/admin/audit-logs', label: 'Audit Logs', icon: ShieldAlert },
     { to: '/security', label: 'Gate Scanner', icon: Camera },
   ]

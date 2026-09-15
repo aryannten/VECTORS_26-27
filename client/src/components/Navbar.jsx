@@ -17,7 +17,7 @@ export default function Navbar() {
   const { user, userRole, logout, loading, hasPass } = useAuth()
 
   // Top-level pages don't show a back button
-  const topLevelPaths = ['/', '/festival', '/events', '/login', '/signup', '/faq', '/dashboard']
+  const topLevelPaths = ['/', '/festival', '/events', '/announcements', '/login', '/signup', '/faq', '/dashboard']
   const isTopLevel = topLevelPaths.includes(location.pathname)
 
   // Lock body scroll when mobile menu is open
@@ -63,9 +63,10 @@ export default function Navbar() {
   const navItems = [
     { to: '/', label: 'Home', index: '01' },
     { to: '/events', label: 'Events', index: '02' },
-    { to: user ? (hasPass ? '/my-pass' : '/entry-registration') : '/entry-registration', label: user && hasPass ? 'My Pass' : 'Entry Pass', index: '03' },
-    { to: '/dashboard', label: 'Dashboard', index: '04' },
-    { to: '/faq', label: 'FAQ', index: '05' },
+    { to: '/announcements', label: 'Alerts', index: '03' },
+    { to: user ? (hasPass ? '/my-pass' : '/entry-registration') : '/entry-registration', label: user && hasPass ? 'My Pass' : 'Entry Pass', index: '04' },
+    { to: '/dashboard', label: 'Dashboard', index: '05' },
+    { to: '/faq', label: 'FAQ', index: '06' },
   ]
 
   const handleLogout = async () => {

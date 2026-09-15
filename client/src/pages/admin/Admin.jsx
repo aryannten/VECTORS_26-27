@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { Users, Ticket, Calendar, Shield, Check, ArrowRight, Clock, AlertCircle } from 'lucide-react'
@@ -13,11 +13,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const token = await getToken()
       const headers = { Authorization: `Bearer ${token}` }
@@ -34,7 +30,11 @@ export default function Admin() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [getToken])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
 
   if (loading) {
     return (

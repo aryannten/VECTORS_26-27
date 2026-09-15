@@ -21,14 +21,15 @@ const registrationLimiter = rateLimitMongo({
 
 /**
  * MongoDB-backed rate limiter for gate security scanner.
- * 30 requests per IP per 15 minutes (defense-in-depth; requires security/admin role).
+ * 1000 requests per 15 minutes per authenticated security operator (fallback to IP).
+ * Scaled for high-throughput gate admissions during festival entry hours.
  */
 const verifyLimiter = rateLimitMongo({
-  category: 'verify_ip',
+  category: 'verify_scanner',
   windowMs: FIFTEEN_MINUTES,
-  max: 30,
-  keyGenerator: (req) => req.ip || req.connection?.remoteAddress || 'unknown',
-  message: 'Too many verification attempts. Please try again later.',
+  max: 1000,
+  keyGenerator: (req) => req.user?._id?.toString() || req.user?.email || req.ip || req.connection?.remoteAddress || 'unknown',
+  message: 'Verification rate limit exceeded. Please pause scanning briefly and try again.',
 })
 
 // Email validation regex
@@ -164,7 +165,7 @@ router.get(['/register/status', '/status'], verifyFirebaseToken, async (req, res
  * Uses atomic findOneAndUpdate to prevent race conditions when two scanners
  * scan the same pass simultaneously.
  */
-router.post('/verify/:registrationId', verifyLimiter, verifyFirebaseToken, requireRole('security', 'admin'), async (req, res) => {
+router.post('/verify/:registrationId', verifyFirebaseToken, requireRole('security', 'admin'), verifyLimiter, async (req, res) => {
   try {
     const { registrationId } = req.params
 

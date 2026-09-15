@@ -960,6 +960,16 @@ router.delete('/users/:id', async (req, res) => {
       return res.status(400).json({ message: 'You cannot delete your own admin account.' })
     }
 
+    // Safety check: prevent deletion of primary administrator accounts configured in environment
+    const adminEmailsRaw = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || ''
+    const adminEmails = adminEmailsRaw
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+    if (adminEmails.includes((user.email || '').toLowerCase())) {
+      return res.status(403).json({ message: 'Primary administrator accounts cannot be deleted.' })
+    }
+
     // Delete from Firebase Auth
     try {
       if (user.firebaseUid) {

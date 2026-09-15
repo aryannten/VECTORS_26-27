@@ -103,6 +103,8 @@ VECTORS_26-27/
 │   ├── vite.config.js                # Build configuration and development proxy
 │   ├── public/
 │   │   ├── favicon.png               # Application icon and touch icon (square)
+│   │   ├── robots.txt                # Search engine crawl directives allowing public routes
+│   │   ├── sitemap.xml               # Standard XML sitemap of all public festival routes
 │   │   ├── vector26-logo-new.png     # Active transparent festival identity logo (UI banner/wordmark)
 │   │   ├── vector26-logo.png         # Preserved legacy festival identity asset
 │   │   ├── hero-bg.png               # Lossless 4K master fallback Doctor Doom monolith arrival hero asset
@@ -191,18 +193,18 @@ VECTORS_26-27/
 
 | Method | Route | Description |
 |---|---|---|
-| `POST` | `/api/auth/sync` | Synchronize Firebase identity with MongoDB user profile, auto-assigning configured `admin` and `security` roles, resolving `displayName` via Firebase Admin SDK fallback, and auto-attaching verified phone numbers (Rate limited: 10 req/IP/15m baseline + 5 failed attempts/email/15m applied post-token verification) |
+| `POST` | `/api/auth/sync` | Synchronize Firebase identity with MongoDB user profile, creating new user records or updating profiles, auto-assigning configured `admin` and `security` roles, resolving `displayName` via Firebase Admin SDK fallback, and auto-attaching verified phone numbers (Rate limited: 300 req/IP/15m scaled for campus/venue Wi-Fi NAT + 5 failed attempts/email/15m applied post-token verification) |
 | `GET` | `/api/user/dashboard` | Aggregated user summary including pass status, Day 1 & Day 2 check-in timestamps, and active registrations |
 | `POST` | `/api/register` | Mint a verified campus Entry Pass (`VEC-XXXXXXXX`) and sync attendee contact phone to user account (Rate limited: 100 req/IP/15m anti-bot defense) |
 | `GET` | `/api/register/status` | Retrieve the authenticated user's authoritative pass status, QR payload, and Day 1 / Day 2 check-in telemetry |
 | `GET` | `/api/my-pass` | Alias route retrieving digital pass details with Day 1 & Day 2 attendance stamps |
-| `POST` | `/api/events/:slug/register` | Register for an event with validation of team parameters |
+| `POST` | `/api/events/:slug/register` | Register for an event with validation of team parameters and Entry Pass clearance (Rate limited: 30 req/15m per authenticated user) |
 
 ### Gate Security Endpoints (`security` or `admin` Role Required)
 
 | Method | Route | Description |
 |---|---|---|
-| `POST` | `/api/verify/:registrationId?day=1\|2` | Perform atomic check-in on an Entry Pass for Day 1 or Day 2 (returns `VALID` or `ALREADY_CHECKED_IN` with multi-day attendance metadata; Rate limited: 30 req/IP/15m scanner flood defense) |
+| `POST` | `/api/verify/:registrationId?day=1\|2` | Perform atomic check-in on an Entry Pass for Day 1 or Day 2 (returns `VALID` or `ALREADY_CHECKED_IN` with multi-day attendance metadata; Rate limited: 1000 req/15m per authenticated scanner operator for high-throughput gate admissions) |
 
 ### Administration Endpoints (`admin` Role Required)
 
@@ -218,10 +220,14 @@ VECTORS_26-27/
 | `GET` | `/api/admin/users` | Directory of all created user accounts with role assignment, contact phone numbers, Firebase auto-sync, and Entry Pass QR claim telemetry |
 | `POST` | `/api/admin/users` | Create a new user account with role, password, and optional phone |
 | `PUT` | `/api/admin/users/:id` | Update user details (displayName, phone, role, password) with automatic sync to `EntryRegistration` |
-| `DELETE` | `/api/admin/users/:id` | Delete user account from both MongoDB and Firebase Auth |
+| `DELETE` | `/api/admin/users/:id` | Delete user account from both MongoDB and Firebase Auth (with immutable guard protecting primary admin accounts in `ADMIN_EMAILS`) |
 | `PATCH` | `/api/admin/users/:id/role` | Quick role upgrade/downgrade (`user`, `security`, `admin`) |
 | `POST` | `/api/admin/users/:id/reset-password` | Generate Firebase password reset link for user |
 | `GET` | `/api/admin/users/export` | Download sanitized CSV export of all created user accounts, roles, phone numbers, and pass claim statuses |
+| `GET` | `/api/admin/announcements` | Administrative list of all announcements including drafts |
+| `POST` | `/api/announcements` | Create new broadcast announcement with category and pin status |
+| `PUT` | `/api/announcements/:id` | Modify announcement metadata, content, or publication state |
+| `DELETE` | `/api/announcements/:id` | Delete announcement and log forensic audit trail |
 | `GET` | `/api/admin/audit-logs` | Forensic system audit log records |
 
 ---
@@ -324,6 +330,7 @@ https://yourdomain.com/api/*    --> Serverless Function Runtime (api/index.js)
 - Inbound requests matching `/api/(.*)` rewrite to the serverless function handler.
 - Static assets matching `/assets/(.*)` and `/fonts/(.*)` are served directly from the edge cache with immutable cache control headers.
 - All non-API, non-static document requests rewrite to `/index.html` to enable client-side React Router execution without 404 errors on deep links.
+- `.vercelignore` strictly excludes local environment files (`.env*`), Firebase service account secrets (`serviceAccountKey.json`), large binary brochures, test harnesses, and internal documentation from production builds.
 
 ### DNS Mapping
 For apex and subdomain configuration on GoDaddy:
