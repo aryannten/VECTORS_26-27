@@ -55,7 +55,7 @@ flowchart TD
 - **Graphics & Rendering**: Three.js & `@react-three/fiber` for procedural WebGL canvas rendering, Lucide React iconography
 - **Hero & Visual Direction**: Cinematic DOOM monolith citadel visual integration with high-contrast tactical telemetry HUD elements (`#00E676`)
 - **Performance & Code-Splitting**: Route-level dynamic loading (`React.lazy`), isolated asynchronous 3D canvas loading, and granular Rollup vendor chunking (`vendor-three`, `vendor-motion`, `vendor-firebase`, `vendor-icons`, `vendor-qr`, `vendor-ogl`) delivering an initial entry payload of ~309 kB (~96 kB gzipped)
-- **Image Pipeline & Modern Formats**: High-efficiency WebP image pipeline (`vector26-logo-new.webp`, `hero-bg.webp`) reducing transfer payloads by >84%, with responsive `<picture>` fallbacks, `fetchpriority="high"` on hero visuals, and native `loading="lazy"` + `decoding="async"` on below-the-fold media
+- **Image Pipeline & Modern Formats**: Optimized media pipeline pairing WebP compression on UI branding (`vector26-logo-new.webp`) with lossless, full-fidelity master PNG for the hero visual (`hero-bg.png`), preloaded with `fetchpriority="high"` and eager decoding to eliminate compression degradation while retaining responsive fallbacks and lazy-loaded assets below the fold
 - **Critical Path & Font Optimization**: Zero render-blocking third-party font requests; local preloaded `@font-face` WOFF files with `font-display: swap` and non-blocking asynchronous Google Fonts hydration (`media="print" onload="this.media='all'"`)
 - **Reactive UI & Debouncing**: Custom `useDebounce` hook (300ms) eliminating redundant filter re-renders across search inputs in Events, Schedule, FAQ, and Admin registries
 - **Progressive Pagination & Skeletons**: Reusable cyberpunk glowing skeleton loaders (`Skeleton.jsx`, `EventCardSkeleton.jsx`) and progressive list batching (12 events/batch) preventing DOM bloat
@@ -104,8 +104,7 @@ VECTORS_26-27/
 │   │   ├── favicon.png               # Application icon and touch icon (square)
 │   │   ├── vector26-logo-new.png     # Active transparent festival identity logo (UI banner/wordmark)
 │   │   ├── vector26-logo.png         # Preserved legacy festival identity asset
-│   │   ├── hero-bg.jpg               # Cinematic Doctor Doom monolith arrival hero asset
-│   │   ├── hero-bg.webp              # High-efficiency WebP transcode of hero background
+│   │   ├── hero-bg.png               # High-fidelity uncompressed Doctor Doom monolith arrival hero asset
 │   │   └── fonts/                    # Display typography assets
 │   └── src/
 │       ├── App.jsx                   # Central routing and authorization guards
@@ -281,7 +280,7 @@ flowchart TD
 
 | Domain | Performance Technique | Implementation Details | Quantitative Impact |
 |:---|:---|:---|:---|
-| **Image Delivery** | WebP Transcoding & Responsive Art Direction | Transcoded master assets (`vector26-logo-new.webp`, `hero-bg.webp`) with `<picture>` fallbacks, `loading="lazy"`, and `fetchpriority="high"` for hero visuals | **Optimized image payloads** (625 KB → 100 KB logo, 238 KB → 129 KB hero WebP) |
+| **Image Delivery** | Brand WebP Transcoding & Lossless Hero | Transcoded brand assets (`vector26-logo-new.webp`) with `<picture>` fallbacks, paired with pristine full-fidelity master `hero-bg.png` (`loading="eager"`, `fetchpriority="high"`) preventing WebP compression degradation | **Crisp, artifact-free hero presentation** alongside optimized brand payloads (625 KB → 100 KB logo) |
 | **Critical Path** | Asynchronous Font Hydration | Removed blocking third-party `cdnfonts.com` link; loaded local WOFF via `@font-face` with `font-display: swap`; Google Fonts loaded asynchronously via `media="print" onload="this.media='all'"` | **Eliminated render-blocking network hops** (saved 400–1200ms on first paint) |
 | **Code Splitting** | Granular Rollup Chunks & Lazy Loading | `React.lazy` on `Landing`, `Particles` (OGL), and `DoomsdayCanvas` (Three.js); isolated `vendor-three`, `vendor-motion`, `vendor-firebase`, `vendor-icons`, `vendor-qr`, `vendor-ogl` | Main entry chunk reduced from **430 kB to ~309 kB** (~96 kB gzipped) |
 | **API Compression** | Express Response Compression | `compression` middleware automatically compresses JSON payloads > 1KB using Gzip/Deflate | **~75% reduction** in API wire transfer size |
