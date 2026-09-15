@@ -5,12 +5,18 @@
   "editor.quickSuggestions": {
     "strings": "on"
   },
+  "css.validate": false,
+  "scss.validate": false,
+  "less.validate": false,
   "css.lint.unknownAtRules": "ignore",
   "scss.lint.unknownAtRules": "ignore",
   "less.lint.unknownAtRules": "ignore",
-  "tailwindCSS.experimental.configFile": "client/src/index.css",
+  "tailwindCSS.validate": false,
   "tailwindCSS.lint.cssConflict": "ignore",
-  "tailwindCSS.lint.suggestCanonicalClasses": "ignore",
-  "tailwindCSS.lint.invalidTailwindDirective": "ignore",
-  "tailwindCSS.lint.recommendedVariantOrder": "ignore"
+  "tailwindCSS.lint.invalidApply": "ignore",
+  "tailwindCSS.lint.invalidScreen": "ignore",
+  "tailwindCSS.lint.invalidVariant": "ignore",
+  "tailwindCSS.lint.invalidConfigPath": "ignore",
+  "tailwindCSS.lint.recommendedVariantOrder": "ignore",
+  "problems.decorations.enabled": false
 }
