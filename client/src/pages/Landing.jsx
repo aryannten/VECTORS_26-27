@@ -174,14 +174,17 @@ export default function Landing() {
       >
         {/* Monumental Hero Visual: Fully illuminated artwork, clear character & mural */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <img
-            src="/hero-bg.png"
-            alt="Doctor Doom standing before the DOOM Monolith"
-            className="w-full h-full object-cover object-top sm:object-center filter contrast-105 brightness-95"
-            loading="eager"
-            fetchpriority="high"
-            decoding="async"
-          />
+          <picture>
+            <source srcSet="/hero-bg.webp" type="image/webp" />
+            <img
+              src="/hero-bg.webp"
+              alt="Doctor Doom standing before the DOOM Monolith"
+              className="w-full h-full object-cover object-top sm:object-center"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </picture>
           {/* Subtle natural lighting overlays: minimal top navbar gradient & soft base fade */}
           <div className="absolute top-0 left-0 right-0 h-28 bg-linear-to-b from-black/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 h-44 bg-linear-to-t from-[#060809] via-[#060809]/75 to-transparent" />
