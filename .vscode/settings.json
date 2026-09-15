@@ -6,6 +6,11 @@
     "strings": "on"
   },
   "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
   "tailwindCSS.experimental.configFile": "client/src/index.css",
-  "tailwindCSS.lint.cssConflict": "ignore"
+  "tailwindCSS.lint.cssConflict": "ignore",
+  "tailwindCSS.lint.suggestCanonicalClasses": "ignore",
+  "tailwindCSS.lint.invalidTailwindDirective": "ignore",
+  "tailwindCSS.lint.recommendedVariantOrder": "ignore"
 }

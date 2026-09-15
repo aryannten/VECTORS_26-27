@@ -38,7 +38,7 @@ export default function TacticalPanel({
       <span className="absolute -bottom-1 -right-1 text-[9px] text-[#A8ADB2]/30 font-mono select-none pointer-events-none">+</span>
 
       {/* Internal Machining Line on Top */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#A8ADB2]/20 to-transparent pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-[#A8ADB2]/20 to-transparent pointer-events-none" />
 
       {/* Header bar if title or tag is provided */}
       {(title || tag || status || action) && (
