@@ -6,6 +6,7 @@ import AdminLayout from './components/AdminLayout'
 import PageLoading from './components/ui/PageLoading'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
+import { Analytics } from '@vercel/analytics/react'
 
 // Lazy load non-critical components & pages for instant first paint
 const Particles = lazy(() => import('./components/ui/Particles'))
@@ -40,6 +41,7 @@ function App() {
   return (
     <div className="relative min-h-screen bg-doom-bg">
       <ScrollToTop />
+      <Analytics />
 
       {/* 3D Particle background for internal pages (loaded asynchronously, disabled on heavy canvas views) */}
       {!isLandingPage && (

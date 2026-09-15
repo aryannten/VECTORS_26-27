@@ -63,6 +63,7 @@ flowchart TD
 - **Official Events Architecture**: Comprehensive 29-event festival catalog synchronization across frontend and backend tiers; includes dynamic judging criteria breakdowns, accurate entry fee tiers, team size constraints (Solo, Duo, 3-member, 4-member), and direct coordinator hotlines
 - **Hardware Integration**: `@yudiel/react-qr-scanner` for browser-level camera stream acquisition (isolated to dedicated chunk)
 - **Credential Generation**: `qrcode.react` for vector-based SVG QR rendering
+- **Web Analytics & Telemetry**: Privacy-first real-time traffic, page view, and visitor telemetry via `@vercel/analytics/react` directly integrated into the root application render tree (`App.jsx`)
 
 ### Backend API & Services
 - **Runtime Environment**: Node.js (v22.x configured on Vercel Serverless Functions & local dev)
@@ -103,7 +104,8 @@ VECTORS_26-27/
 │   │   ├── favicon.png               # Application icon and touch icon (square)
 │   │   ├── vector26-logo-new.png     # Active transparent festival identity logo (UI banner/wordmark)
 │   │   ├── vector26-logo.png         # Preserved legacy festival identity asset
-│   │   ├── hero-bg.jpg               # Portal visual assets
+│   │   ├── hero-bg.jpg               # Cinematic Doctor Doom monolith arrival hero asset
+│   │   ├── hero-bg.webp              # High-efficiency WebP transcode of hero background
 │   │   └── fonts/                    # Display typography assets
 │   └── src/
 │       ├── App.jsx                   # Central routing and authorization guards
@@ -279,7 +281,7 @@ flowchart TD
 
 | Domain | Performance Technique | Implementation Details | Quantitative Impact |
 |:---|:---|:---|:---|
-| **Image Delivery** | WebP Transcoding & Responsive Art Direction | Transcoded master assets (`vector26-logo-new.webp`, `hero-bg.webp`) with `<picture>` fallbacks, `loading="lazy"`, and `fetchpriority="high"` for hero visuals | **>84% reduction** in image payloads (625 KB → 100 KB logo, 161 KB → 71 KB hero) |
+| **Image Delivery** | WebP Transcoding & Responsive Art Direction | Transcoded master assets (`vector26-logo-new.webp`, `hero-bg.webp`) with `<picture>` fallbacks, `loading="lazy"`, and `fetchpriority="high"` for hero visuals | **Optimized image payloads** (625 KB → 100 KB logo, 238 KB → 129 KB hero WebP) |
 | **Critical Path** | Asynchronous Font Hydration | Removed blocking third-party `cdnfonts.com` link; loaded local WOFF via `@font-face` with `font-display: swap`; Google Fonts loaded asynchronously via `media="print" onload="this.media='all'"` | **Eliminated render-blocking network hops** (saved 400–1200ms on first paint) |
 | **Code Splitting** | Granular Rollup Chunks & Lazy Loading | `React.lazy` on `Landing`, `Particles` (OGL), and `DoomsdayCanvas` (Three.js); isolated `vendor-three`, `vendor-motion`, `vendor-firebase`, `vendor-icons`, `vendor-qr`, `vendor-ogl` | Main entry chunk reduced from **430 kB to ~309 kB** (~96 kB gzipped) |
 | **API Compression** | Express Response Compression | `compression` middleware automatically compresses JSON payloads > 1KB using Gzip/Deflate | **~75% reduction** in API wire transfer size |
