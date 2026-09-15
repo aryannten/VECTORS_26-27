@@ -74,9 +74,10 @@ export default function LandingNav() {
                 aria-label="VECTORS 2026-27 Home"
               >
                 <img
-                  src="/vector26-logo-new.png"
+                  src="/vector26-logo-new.webp"
                   alt="VECTORS 2026-27"
-                  className="h-11 sm:h-13 md:h-15 lg:h-16 w-auto max-w-[180px] sm:max-w-[230px] md:max-w-[280px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_15px_rgba(30,255,160,0.3)]"
+                  decoding="async"
+                  className="h-11 sm:h-13 md:h-15 lg:h-16 w-auto max-w-45 sm:max-w-57.5 md:max-w-70 object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_15px_rgba(30,255,160,0.3)]"
                 />
               </a>
             </div>
@@ -233,7 +234,7 @@ export default function LandingNav() {
               )
             })}
 
-            <div className="w-48 h-[1px] bg-white/[0.1] my-2" />
+            <div className="w-48 h-px bg-white/10 my-2" />
 
             {user ? (
               <button

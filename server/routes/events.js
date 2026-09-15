@@ -5,6 +5,7 @@ const EventRegistration = require('../models/EventRegistration')
 const { verifyFirebaseToken, requireEntryPass, requireRole } = require('../middleware/auth')
 
 const officialEvents = require('../data/officialEvents')
+const memoryCache = require('../utils/cache')
 
 // Regex for phone validation
 const PHONE_REGEX = /^[0-9+\s-]{7,20}$/
@@ -12,15 +13,23 @@ const PHONE_REGEX = /^[0-9+\s-]{7,20}$/
 /**
  * GET /api/events
  * Get all active events.
- * Public or authenticated.
+ * Public or authenticated. Cached for 60s with Edge CDN stale-while-revalidate.
  */
 router.get('/', async (req, res) => {
   try {
-    const events = await Event.find({ isActive: true }).sort({ category: 1, name: 1 })
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600')
+    const cached = memoryCache.get('events:all')
+    if (cached) {
+      return res.status(200).json(cached)
+    }
+
+    const events = await Event.find({ isActive: true }).sort({ category: 1, name: 1 }).lean()
     if (events && events.length > 0) {
+      memoryCache.set('events:all', events, 60)
       return res.status(200).json(events)
     }
     // Fallback to official brochure events if DB not yet seeded
+    memoryCache.set('events:all', officialEvents, 60)
     res.status(200).json(officialEvents)
   } catch (error) {
     console.warn('[API] Events fetch using fallback official brochure events:', error.message)
@@ -35,12 +44,21 @@ router.get('/', async (req, res) => {
 router.get('/:slug', async (req, res) => {
   const reqSlug = req.params.slug.toLowerCase()
   try {
-    const event = await Event.findOne({ slug: reqSlug, isActive: true })
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600')
+    const cacheKey = `event:${reqSlug}`
+    const cached = memoryCache.get(cacheKey)
+    if (cached) {
+      return res.status(200).json(cached)
+    }
+
+    const event = await Event.findOne({ slug: reqSlug, isActive: true }).lean()
     if (event) {
+      memoryCache.set(cacheKey, event, 120)
       return res.status(200).json(event)
     }
     const fallback = officialEvents.find((e) => e.slug === reqSlug)
     if (fallback) {
+      memoryCache.set(cacheKey, fallback, 120)
       return res.status(200).json(fallback)
     }
     res.status(404).json({ message: 'Event not found.' })
@@ -241,6 +259,10 @@ router.post('/:slug/register', verifyFirebaseToken, requireEntryPass, async (req
       await Event.findOneAndUpdate({ slug: eventSlug }, { $inc: { registrationCount: -1 } })
       throw createErr
     }
+
+    // Invalidate cached event counts
+    memoryCache.del('events:all')
+    memoryCache.del(`event:${eventSlug}`)
 
     const statusLabel = registrationStatus === 'pending_verification'
       ? 'pending admin verification'

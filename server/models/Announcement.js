@@ -46,4 +46,8 @@ const announcementSchema = new mongoose.Schema(
   }
 )
 
+// Performance compound indexes for public broadcasts and category filtering
+announcementSchema.index({ isPublished: 1, isPinned: -1, publishedAt: -1 })
+announcementSchema.index({ category: 1 })
+
 module.exports = mongoose.model('Announcement', announcementSchema)

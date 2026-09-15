@@ -142,4 +142,7 @@ const eventSchema = new mongoose.Schema(
   }
 )
 
+// Performance compound index for active event vault queries
+eventSchema.index({ isActive: 1, category: 1 })
+
 module.exports = mongoose.model('Event', eventSchema)

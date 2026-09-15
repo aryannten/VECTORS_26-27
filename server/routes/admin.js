@@ -8,6 +8,7 @@ const EntryRegistration = require('../models/EntryRegistration')
 const Event = require('../models/Event')
 const EventRegistration = require('../models/EventRegistration')
 const AuditLog = require('../models/AuditLog')
+const memoryCache = require('../utils/cache')
 
 // All admin routes require admin role
 router.use(verifyFirebaseToken, requireRole('admin'))
@@ -30,10 +31,15 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id)
 
 /**
  * GET /api/admin/stats
- * Dashboard overview statistics.
+ * Dashboard overview statistics. Cached for 30s to reduce parallel aggregation load.
  */
 router.get('/stats', async (req, res) => {
   try {
+    const cached = memoryCache.get('admin:stats')
+    if (cached) {
+      return res.status(200).json(cached)
+    }
+
     const [
       totalRegistrations,
       checkedInCount,
@@ -49,11 +55,11 @@ router.get('/stats', async (req, res) => {
       User.countDocuments(),
       User.countDocuments({ role: 'security' }),
       EventRegistration.countDocuments(),
-      User.find().sort({ createdAt: -1 }).limit(5),
+      User.find().sort({ createdAt: -1 }).limit(5).lean(),
     ])
 
     const recentUserEmails = recentUsersList.map(u => (u.email || '').toLowerCase())
-    const recentPasses = await EntryRegistration.find({ email: { $in: recentUserEmails } }, 'registrationId email')
+    const recentPasses = await EntryRegistration.find({ email: { $in: recentUserEmails } }, 'registrationId email').lean()
     const recentPassMap = new Map(recentPasses.map(p => [(p.email || '').toLowerCase(), p.registrationId]))
 
     const recentUsers = recentUsersList.map(u => ({
@@ -79,10 +85,14 @@ router.get('/stats', async (req, res) => {
       recentUsers,
     }
 
-    res.status(200).json({
+    const result = {
       stats: payload,
       ...payload,
-    })
+    }
+
+    memoryCache.set('admin:stats', result, 30)
+
+    res.status(200).json(result)
   } catch (error) {
     console.error('[Admin] Stats error:', error.message)
     res.status(500).json({ message: 'Failed to fetch admin stats.' })
@@ -117,7 +127,8 @@ router.get('/registrations', async (req, res) => {
       EntryRegistration.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
       EntryRegistration.countDocuments(filter),
     ])
 
@@ -330,7 +341,8 @@ router.get('/event-registrations', async (req, res) => {
       EventRegistration.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
       EventRegistration.countDocuments(filter),
     ])
 
@@ -624,7 +636,8 @@ router.get('/audit-logs', async (req, res) => {
       AuditLog.find()
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
       AuditLog.countDocuments(),
     ])
 
@@ -716,27 +729,29 @@ router.get('/users', async (req, res) => {
     const role = req.query.role || ''
     const passStatus = req.query.passStatus || 'all'
 
-    // Auto-sync missing users from Firebase Auth into MongoDB
-    try {
-      const fbUsersResult = await getAuth().listUsers(1000)
-      if (fbUsersResult && fbUsersResult.users.length > 0) {
-        const existingEmails = new Set((await User.find({}, 'email')).map(u => u.email?.toLowerCase()))
-        const missingUsers = fbUsersResult.users.filter(u => u.email && !existingEmails.has(u.email.toLowerCase()))
-        if (missingUsers.length > 0) {
-          const toInsert = missingUsers.map(u => ({
-            firebaseUid: u.uid,
-            email: u.email.toLowerCase(),
-            displayName: u.displayName || u.email.split('@')[0],
-            photoURL: u.photoURL || null,
-            role: 'user',
-            createdAt: u.metadata?.creationTime ? new Date(u.metadata.creationTime) : new Date(),
-            lastLoginAt: u.metadata?.lastSignInTime ? new Date(u.metadata.lastSignInTime) : null,
-          }))
-          await User.insertMany(toInsert, { ordered: false }).catch(() => {})
+    // Auto-sync missing users from Firebase Auth into MongoDB only when explicitly requested (?sync=true)
+    if (req.query.sync === 'true') {
+      try {
+        const fbUsersResult = await getAuth().listUsers(1000)
+        if (fbUsersResult && fbUsersResult.users.length > 0) {
+          const existingEmails = new Set((await User.find({}, 'email').lean()).map(u => u.email?.toLowerCase()))
+          const missingUsers = fbUsersResult.users.filter(u => u.email && !existingEmails.has(u.email.toLowerCase()))
+          if (missingUsers.length > 0) {
+            const toInsert = missingUsers.map(u => ({
+              firebaseUid: u.uid,
+              email: u.email.toLowerCase(),
+              displayName: u.displayName || u.email.split('@')[0],
+              photoURL: u.photoURL || null,
+              role: 'user',
+              createdAt: u.metadata?.creationTime ? new Date(u.metadata.creationTime) : new Date(),
+              lastLoginAt: u.metadata?.lastSignInTime ? new Date(u.metadata.lastSignInTime) : null,
+            }))
+            await User.insertMany(toInsert, { ordered: false }).catch(() => {})
+          }
         }
+      } catch (syncErr) {
+        console.warn('[Admin] Firebase users auto-sync notice:', syncErr.message)
       }
-    } catch (syncErr) {
-      console.warn('[Admin] Firebase users auto-sync notice:', syncErr.message)
     }
 
     const filter = {}
@@ -751,10 +766,10 @@ router.get('/users', async (req, res) => {
       filter.role = role
     }
 
-    const users = await User.find(filter).sort({ createdAt: -1 })
+    const users = await User.find(filter).sort({ createdAt: -1 }).lean()
 
     // Enrich with EntryRegistration (QR pass) data
-    const allPasses = await EntryRegistration.find({}, 'registrationId email name college phone checkedIn day1CheckedIn day2CheckedIn createdAt')
+    const allPasses = await EntryRegistration.find({}, 'registrationId email name college phone checkedIn day1CheckedIn day2CheckedIn createdAt').lean()
     const passMap = new Map(allPasses.map(p => [(p.email || '').toLowerCase(), p]))
 
     let enrichedUsers = users.map(u => {

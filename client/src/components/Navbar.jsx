@@ -95,9 +95,10 @@ export default function Navbar() {
 
           <Link to="/" className="flex items-center group select-none py-1" aria-label="VECTORS 2026-27 Home">
             <img
-              src="/vector26-logo-new.png"
+              src="/vector26-logo-new.webp"
               alt="VECTORS 2026-27"
-              className="h-11 sm:h-13 md:h-14 w-auto max-w-[190px] sm:max-w-[240px] md:max-w-[280px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_15px_rgba(30,255,160,0.3)]"
+              decoding="async"
+              className="h-11 sm:h-13 md:h-14 w-auto max-w-47.5 sm:max-w-60 md:max-w-70 object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-[0_0_15px_rgba(30,255,160,0.3)]"
             />
           </Link>
         </div>
@@ -112,7 +113,7 @@ export default function Navbar() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={cn('doom-nav-link !px-2.5 !text-[11px]', isActive && 'active')}
+                className={cn('doom-nav-link px-2.5! text-[11px]!', isActive && 'active')}
               >
                 {item.label}
               </Link>
@@ -155,7 +156,7 @@ export default function Navbar() {
                   <DoomButton
                     to={hasPass ? "/my-pass" : "/entry-registration"}
                     size="sm"
-                    className="hidden sm:inline-flex !py-1 !px-3 !text-[10px]"
+                    className="hidden sm:inline-flex py-1! px-3! text-[10px]!"
                   >
                     {hasPass ? 'My Pass' : 'Get Pass'}
                   </DoomButton>
@@ -187,7 +188,7 @@ export default function Navbar() {
                   <DoomButton
                     to="/login"
                     size="sm"
-                    className="!py-1.5 !px-3.5 !text-[11px] font-mono tracking-wider font-semibold uppercase"
+                    className="py-1.5! px-3.5! text-[11px]! font-mono tracking-wider font-semibold uppercase"
                   >
                     ENTER THE PORTAL
                   </DoomButton>
@@ -221,7 +222,7 @@ export default function Navbar() {
             className="fixed inset-x-0 top-16 bottom-0 z-40 bg-doom-bg/95 backdrop-blur-xl border-b border-doom-glow/20 px-6 py-8 flex flex-col justify-between overflow-y-auto md:hidden"
           >
             <div className="space-y-6">
-              <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between pb-3 border-b border-white/6">
                 <span className="font-mono text-xs uppercase tracking-widest text-text-muted">Navigation Protocols</span>
                 <span className="font-mono text-xs text-doom-glow">ONLINE</span>
               </div>
@@ -238,7 +239,7 @@ export default function Navbar() {
                         to={item.to}
                         onClick={() => setIsOpen(false)}
                         className={cn(
-                          'flex items-center justify-between py-2.5 border-b border-white/[0.04] transition-colors',
+                          'flex items-center justify-between py-2.5 border-b border-white/4 transition-colors',
                           isActive ? 'text-doom-glow font-bold' : 'text-text-muted hover:text-text-primary'
                         )}
                       >
@@ -252,7 +253,7 @@ export default function Navbar() {
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-6 border-t border-white/[0.08] flex flex-col gap-3">
+            <div className="pt-6 border-t border-white/8 flex flex-col gap-3">
               {user ? (
                 <>
                   <div className="flex items-center gap-3 pb-2">
@@ -301,7 +302,7 @@ export default function Navbar() {
                     to="/login"
                     onClick={() => setIsOpen(false)}
                     size="md"
-                    className="w-full text-center font-mono tracking-wider font-semibold uppercase !text-xs"
+                    className="w-full text-center font-mono tracking-wider font-semibold uppercase text-xs!"
                   >
                     ENTER THE PORTAL
                   </DoomButton>

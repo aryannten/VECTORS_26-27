@@ -32,4 +32,9 @@ const auditLogSchema = new mongoose.Schema(
   }
 )
 
+// Performance indexes for sorted pagination and filtering
+auditLogSchema.index({ createdAt: -1 })
+auditLogSchema.index({ performedBy: 1 })
+auditLogSchema.index({ targetType: 1 })
+
 module.exports = mongoose.model('AuditLog', auditLogSchema)

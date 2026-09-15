@@ -3,6 +3,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') })
 const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
+const compression = require('compression')
 const rateLimit = require('express-rate-limit')
 const mongoSanitize = require('express-mongo-sanitize')
 const { initializeApp, getApps, cert } = require('firebase-admin/app')
@@ -83,6 +84,15 @@ app.set('trust proxy', 1)
 app.use(helmet({
   contentSecurityPolicy: false, // Allows flexible cross-origin asset loading
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+}))
+
+// 2.1 HTTP Payload Compression (Gzip / Deflate for responses > 1KB)
+app.use(compression({
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false
+    return compression.filter(req, res)
+  },
 }))
 
 // 3. CORS Configuration

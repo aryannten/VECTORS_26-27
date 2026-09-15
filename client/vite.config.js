@@ -28,12 +28,19 @@ export default defineConfig({
   },
   build: {
     chunkSizeWarningLimit: 1200,
+    cssMinify: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
             if (id.includes('three') || id.includes('@react-three')) {
               return 'vendor-three'
+            }
+            if (id.includes('ogl')) {
+              return 'vendor-ogl'
+            }
+            if (id.includes('@yudiel/react-qr-scanner') || id.includes('qrcode.react')) {
+              return 'vendor-qr'
             }
             if (id.includes('framer-motion') || id.includes('gsap') || id.includes('lenis')) {
               return 'vendor-motion'

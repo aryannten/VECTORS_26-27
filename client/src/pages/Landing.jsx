@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import LandingNav from '../components/landing/LandingNav'
-import DoomsdayCanvas from '../components/landing/DoomsdayCanvas'
+const DoomsdayCanvas = lazy(() => import('../components/landing/DoomsdayCanvas'))
 import DoomButton from '../components/ui/DoomButton'
 import { eventsData } from '../data/events'
 
@@ -155,8 +155,10 @@ export default function Landing() {
 
   return (
     <div className="relative min-h-screen bg-doom-bg text-text-primary selection:bg-doom-glow selection:text-black overflow-x-hidden font-sans">
-      {/* ── Ultra-smooth Optimized 3D WebGL Canvas Layer ── */}
-      <DoomsdayCanvas />
+      {/* ── Ultra-smooth Optimized 3D WebGL Canvas Layer (Loaded Asynchronously) ── */}
+      <Suspense fallback={null}>
+        <DoomsdayCanvas />
+      </Suspense>
 
       {/* ── Floating Sticky Navigation ── */}
       <LandingNav />
@@ -172,15 +174,20 @@ export default function Landing() {
       >
         {/* Monumental Hero Visual: Fully illuminated artwork, clear character & mural */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <img
-            src="/hero-bg.jpg"
-            alt="Doctor Doom standing before the DOOM Monolith"
-            className="w-full h-full object-cover object-top sm:object-center filter contrast-105 brightness-95"
-            loading="eager"
-          />
+          <picture>
+            <source srcSet="/hero-bg.webp" type="image/webp" />
+            <img
+              src="/hero-bg.jpg"
+              alt="Doctor Doom standing before the DOOM Monolith"
+              className="w-full h-full object-cover object-top sm:object-center filter contrast-105 brightness-95"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </picture>
           {/* Subtle natural lighting overlays: minimal top navbar gradient & soft base fade */}
-          <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-black/60 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-[#060809] via-[#060809]/75 to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-28 bg-linear-to-b from-black/60 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-44 bg-linear-to-t from-[#060809] via-[#060809]/75 to-transparent" />
         </div>
 
         {/* Top Mission Telemetry Header */}
@@ -215,11 +222,11 @@ export default function Landing() {
 
           {/* Tagline & Subheading */}
           <div className="mt-3 sm:mt-3.5 flex items-center justify-center gap-4">
-            <div className="w-8 sm:w-16 h-[1px] bg-gradient-to-r from-transparent to-doom-glow" />
+            <div className="w-8 sm:w-16 h-px bg-linear-to-r from-transparent to-doom-glow" />
             <p className="font-accent text-xs sm:text-sm md:text-base tracking-[0.3em] uppercase text-emerald-300 font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
               THE DOOMSDAY PROTOCOL
             </p>
-            <div className="w-8 sm:w-16 h-[1px] bg-gradient-to-l from-transparent to-doom-glow" />
+            <div className="w-8 sm:w-16 h-px bg-linear-to-l from-transparent to-doom-glow" />
           </div>
 
           {/* Primary Action Buttons */}
@@ -252,7 +259,7 @@ export default function Landing() {
       <section
         ref={destinyRef}
         id="destiny"
-        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/[0.08] bg-transparent"
+        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/8 bg-transparent"
       >
         <div className="max-w-7xl mx-auto w-full">
           {/* Section Overline & Category Tag */}
@@ -268,7 +275,7 @@ export default function Landing() {
             <div>
               <h2 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.04em] uppercase text-text-primary leading-[0.95]">
                 BUILD BEYOND <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-doom-glow via-emerald-400 to-teal-200 drop-shadow-[0_0_25px_rgba(30,255,160,0.3)]">
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-doom-glow via-emerald-400 to-teal-200 drop-shadow-[0_0_25px_rgba(30,255,160,0.3)]">
                   THE POSSIBLE.
                 </span>
               </h2>
@@ -314,7 +321,7 @@ export default function Landing() {
                 {/* Top ASCII Border */}
                 <div className="flex items-center text-zinc-400 group-hover:text-doom-glow font-mono text-xs select-none transition-colors duration-300 px-1">
                   <span className="text-sm font-mono leading-none">┌</span>
-                  <div className="flex-1 h-[1px] bg-zinc-700/80 group-hover:bg-doom-glow/70 mx-2 transition-colors duration-300" />
+                  <div className="flex-1 h-px bg-zinc-700/80 group-hover:bg-doom-glow/70 mx-2 transition-colors duration-300" />
                   <span className="text-sm font-mono leading-none">┐</span>
                 </div>
 
@@ -345,7 +352,7 @@ export default function Landing() {
                 {/* Bottom ASCII Border */}
                 <div className="flex items-center text-zinc-400 group-hover:text-doom-glow font-mono text-xs select-none transition-colors duration-300 px-1">
                   <span className="text-sm font-mono leading-none">└</span>
-                  <div className="flex-1 h-[1px] bg-zinc-700/80 group-hover:bg-doom-glow/70 mx-2 transition-colors duration-300" />
+                  <div className="flex-1 h-px bg-zinc-700/80 group-hover:bg-doom-glow/70 mx-2 transition-colors duration-300" />
                   <span className="text-sm font-mono leading-none">┘</span>
                 </div>
               </div>
@@ -361,7 +368,7 @@ export default function Landing() {
       <section
         ref={supremacyRef}
         id="supremacy"
-        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/[0.08] bg-transparent"
+        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/8 bg-transparent"
       >
         <div className="max-w-7xl mx-auto w-full">
           {/* Section Header */}
@@ -374,7 +381,7 @@ export default function Landing() {
             </div>
             <h2 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold tracking-[0.04em] uppercase text-text-primary leading-[0.95]">
               BUILT TO <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-doom-glow via-emerald-400 to-teal-200 drop-shadow-[0_0_25px_rgba(30,255,160,0.3)]">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-doom-glow via-emerald-400 to-teal-200 drop-shadow-[0_0_25px_rgba(30,255,160,0.3)]">
                 CHALLENGE YOU.
               </span>
             </h2>
@@ -409,21 +416,21 @@ export default function Landing() {
                 <div className="space-y-2.5 font-mono text-xs text-zinc-300 tracking-wider">
                   <div
                     onClick={() => navigate('/events?category=technical')}
-                    className="flex items-center justify-between p-2.5 bg-white/[0.03] hover:bg-doom-glow/10 border border-white/5 hover:border-doom-glow/40 transition-all cursor-pointer group"
+                    className="flex items-center justify-between p-2.5 bg-white/3 hover:bg-doom-glow/10 border border-white/5 hover:border-doom-glow/40 transition-all cursor-pointer group"
                   >
                     <span className="group-hover:text-doom-glow transition-colors">TECHNICAL EVENTS</span>
                     <span className="text-doom-glow font-bold text-[10px]">12</span>
                   </div>
                   <div
                     onClick={() => navigate('/events?category=non-technical')}
-                    className="flex items-center justify-between p-2.5 bg-white/[0.03] hover:bg-doom-glow/10 border border-white/5 hover:border-doom-glow/40 transition-all cursor-pointer group"
+                    className="flex items-center justify-between p-2.5 bg-white/3 hover:bg-doom-glow/10 border border-white/5 hover:border-doom-glow/40 transition-all cursor-pointer group"
                   >
                     <span className="group-hover:text-doom-glow transition-colors">NON-TECHNICAL EVENTS</span>
                     <span className="text-doom-glow font-bold text-[10px]">08</span>
                   </div>
                   <div
                     onClick={() => navigate('/events')}
-                    className="flex items-center justify-between p-2.5 bg-white/[0.03] hover:bg-doom-glow/10 border border-white/5 hover:border-doom-glow/40 transition-all cursor-pointer group"
+                    className="flex items-center justify-between p-2.5 bg-white/3 hover:bg-doom-glow/10 border border-white/5 hover:border-doom-glow/40 transition-all cursor-pointer group"
                   >
                     <span className="group-hover:text-doom-glow transition-colors">LIVE EXPERIENCES</span>
                     <span className="text-doom-glow font-bold text-[10px]">02</span>
@@ -578,7 +585,7 @@ export default function Landing() {
       <section
         ref={eventsRef}
         id="events"
-        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/[0.08] bg-gradient-to-b from-transparent via-[rgba(10,12,14,0.7)] to-transparent backdrop-blur-[2px]"
+        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/8 bg-linear-to-b from-transparent via-[rgba(10,12,14,0.7)] to-transparent backdrop-blur-[2px]"
       >
         <div className="max-w-7xl mx-auto w-full">
           {/* Section Header & Category Filter Buttons */}
@@ -689,11 +696,11 @@ export default function Landing() {
       <section
         ref={passesRef}
         id="passes"
-        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/[0.08] bg-gradient-to-b from-transparent via-[rgba(8,10,12,0.85)] to-doom-bg/95 backdrop-blur-[2px]"
+        className="relative min-h-screen py-24 sm:py-32 md:py-36 px-4 sm:px-6 md:px-8 flex flex-col justify-center z-10 border-t border-white/8 bg-linear-to-b from-transparent via-[rgba(8,10,12,0.85)] to-doom-bg/95 backdrop-blur-[2px]"
       >
         <div className="max-w-5xl mx-auto w-full">
           <div className="pass-reveal text-center mb-12">
-            <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 bg-doom-glow/[0.06] border border-doom-glow/20">
+            <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 bg-doom-glow/6 border border-doom-glow/20">
               <span className="w-1.5 h-1.5 rounded-full bg-doom-glow" />
               <span className="font-mono text-xs tracking-[0.3em] uppercase text-doom-glow font-bold">
                 SECTOR CLEARANCE // SECTION 05
@@ -712,11 +719,16 @@ export default function Landing() {
             {/* Top Pass Header */}
             <div className="flex items-center justify-between border-b border-white/10 pb-6">
               <div className="flex items-center gap-3">
-                <img
-                  src="/vector26-logo-new.png"
-                  alt="VECTORS 2026-27"
-                  className="h-8 w-auto object-contain"
-                />
+                <picture>
+                  <source srcSet="/vector26-logo-new.webp" type="image/webp" />
+                  <img
+                    src="/vector26-logo-new.png"
+                    alt="VECTORS 2026-27"
+                    loading="lazy"
+                    decoding="async"
+                    className="h-8 w-auto object-contain"
+                  />
+                </picture>
                 <span className="font-mono text-xs tracking-widest uppercase text-doom-glow font-bold">
                   DIGITAL CREDENTIAL
                 </span>

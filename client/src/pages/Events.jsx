@@ -18,12 +18,16 @@ import { cn } from '../lib/utils'
 import { eventsData } from '../data/events'
 import { useAuth } from '../contexts/AuthContext'
 import EntryPassGate from '../components/EntryPassGate'
+import { useDebounce } from '../lib/useDebounce'
+import { EventCardSkeleton } from '../components/ui/Skeleton'
 
 /**
  * Events — VECTORS 26–27 Event Vaults & Discovery
  * Features:
- * - Real-time keyword search (name, rules, description)
+ * - Real-time debounced keyword search (name, rules, description)
  * - Multi-filter: Category, Department/Branch, Participation Mode (Solo/Team), and Status
+ * - Loading skeleton states during asynchronous API fetch
+ * - Smooth list pagination / batch rendering for high-performance mobile scrolling
  * - Reactive empty states with "Reset Filters"
  * - Live capacity status badges
  * - Strict Entry Pass gating
@@ -34,21 +38,39 @@ export default function Events() {
   const [searchParams, setSearchParams] = useSearchParams()
   const categoryParam = searchParams.get('category')?.toLowerCase()
 
-  const [allEvents, setAllEvents] = useState(eventsData)
+  const [allEvents, setAllEvents] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('vectors_events_data')
+      if (cached) return JSON.parse(cached)
+    } catch (_) {}
+    return eventsData
+  })
+  const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const debouncedSearch = useDebounce(searchQuery, 300)
   const [selectedMode, setSelectedMode] = useState('ALL')
   const [selectedStatus, setSelectedStatus] = useState('ALL')
+  const [visibleCount, setVisibleCount] = useState(12)
 
-  // Fetch live events from API with fallback to static eventsData
+  // Fetch live events from API with fallback and client-side session caching
   useEffect(() => {
+    let isMounted = true
+    setLoading(true)
     fetch('/api/events')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (isMounted && Array.isArray(data) && data.length > 0) {
           setAllEvents(data)
+          try {
+            sessionStorage.setItem('vectors_events_data', JSON.stringify(data))
+          } catch (_) {}
         }
       })
       .catch(() => {})
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => { isMounted = false }
   }, [])
 
   // Selected category state ('technical' | 'non-technical' | null)
@@ -63,15 +85,15 @@ export default function Events() {
   const techEvents = useMemo(() => allEvents.filter(e => e.category?.toLowerCase() === 'technical'), [allEvents])
   const nonTechEvents = useMemo(() => allEvents.filter(e => e.category?.toLowerCase() === 'non-technical'), [allEvents])
 
-  // Comprehensive reactive filtering
+  // Comprehensive reactive filtering using debounced search
   const currentEvents = useMemo(() => {
     let list = activeCategory
       ? (activeCategory === 'technical' ? techEvents : nonTechEvents)
       : allEvents
 
-    // 1. Search Query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim()
+    // 1. Debounced Search Query
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase().trim()
       list = list.filter(e => 
         e.name.toLowerCase().includes(q) ||
         (e.description && e.description.toLowerCase().includes(q)) ||
@@ -94,9 +116,14 @@ export default function Events() {
     }
 
     return list
-  }, [activeCategory, techEvents, nonTechEvents, allEvents, searchQuery, selectedMode, selectedStatus])
+  }, [activeCategory, techEvents, nonTechEvents, allEvents, debouncedSearch, selectedMode, selectedStatus])
+
+  const paginatedEvents = useMemo(() => {
+    return currentEvents.slice(0, visibleCount)
+  }, [currentEvents, visibleCount])
 
   const handleSelectCategory = (cat) => {
+    setVisibleCount(12)
     setSearchParams({ category: cat }, { replace: false })
   }
 
@@ -161,7 +188,7 @@ export default function Events() {
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <Link
                   to="/"
-                  className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-text-muted hover:text-doom-glow transition-colors cursor-pointer py-1.5 px-3 bg-white/[0.04] border border-white/[0.08] hover:border-doom-glow/30"
+                  className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-text-muted hover:text-doom-glow transition-colors cursor-pointer py-1.5 px-3 bg-white/4 border border-white/8 hover:border-doom-glow/30"
                 >
                   <ArrowLeft size={13} />
                   <span>Return to Home</span>
@@ -204,12 +231,12 @@ export default function Events() {
                   whileHover={{ y: -6, transition: { duration: 0.25 } }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleSelectCategory('technical')}
-                  className="relative p-[1.5px] doom-btn-clipped group cursor-pointer bg-gradient-to-b from-white/15 via-doom-glow/30 to-white/5 hover:from-doom-glow hover:via-doom-glow-muted hover:to-doom-glow transition-all duration-500 shadow-[0_10px_35px_rgba(0,0,0,0.7)]"
+                  className="relative p-[1.5px] doom-btn-clipped group cursor-pointer bg-linear-to-b from-white/15 via-doom-glow/30 to-white/5 hover:from-doom-glow hover:via-doom-glow-muted hover:to-doom-glow transition-all duration-500 shadow-[0_10px_35px_rgba(0,0,0,0.7)]"
                 >
                   <div className="h-full p-6 sm:p-8 md:p-10 doom-btn-clipped bg-doom-bg2 flex flex-col justify-between relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-doom-glow/5 rounded-full blur-3xl pointer-events-none group-hover:bg-doom-glow/15 transition-all duration-500" />
                     
-                    <div className="relative z-10 flex items-center justify-between pb-6 border-b border-white/[0.08]">
+                    <div className="relative z-10 flex items-center justify-between pb-6 border-b border-white/8">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-sm bg-doom-glow/10 border border-doom-glow/40 flex items-center justify-center text-doom-glow">
                           <Cpu size={18} />
@@ -218,7 +245,7 @@ export default function Events() {
                           SECTOR // 01
                         </span>
                       </div>
-                      <span className="font-mono text-[11px] text-text-muted tracking-wider px-2 py-0.5 bg-white/[0.03] border border-white/[0.06]">
+                      <span className="font-mono text-[11px] text-text-muted tracking-wider px-2 py-0.5 bg-white/3 border border-white/6">
                         {techEvents.length} ACTIVE PROTOCOLS
                       </span>
                     </div>
@@ -235,7 +262,7 @@ export default function Events() {
                         {['CSE', 'IT', 'AIML', 'EXTC', 'MECHANICAL', 'CIVIL'].map(tag => (
                           <span
                             key={tag}
-                            className="font-mono text-[10px] tracking-wider text-chrome-light px-2 py-1 bg-white/[0.04] border border-white/[0.08]"
+                            className="font-mono text-[10px] tracking-wider text-chrome-light px-2 py-1 bg-white/4 border border-white/8"
                           >
                             {tag}
                           </span>
@@ -243,7 +270,7 @@ export default function Events() {
                       </div>
                     </div>
 
-                    <div className="relative z-10 pt-6 border-t border-white/[0.08] flex items-center justify-between">
+                    <div className="relative z-10 pt-6 border-t border-white/8 flex items-center justify-between">
                       <span className="font-mono text-xs uppercase tracking-widest text-text-muted group-hover:text-white transition-colors">
                         ENTER SECTOR 01
                       </span>
@@ -260,21 +287,21 @@ export default function Events() {
                   whileHover={{ y: -6, transition: { duration: 0.25 } }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleSelectCategory('non-technical')}
-                  className="relative p-[1.5px] doom-btn-clipped group cursor-pointer bg-gradient-to-b from-white/15 via-white/20 to-white/5 hover:from-doom-glow hover:via-doom-glow-muted hover:to-doom-glow transition-all duration-500 shadow-[0_10px_35px_rgba(0,0,0,0.7)]"
+                  className="relative p-[1.5px] doom-btn-clipped group cursor-pointer bg-linear-to-b from-white/15 via-white/20 to-white/5 hover:from-doom-glow hover:via-doom-glow-muted hover:to-doom-glow transition-all duration-500 shadow-[0_10px_35px_rgba(0,0,0,0.7)]"
                 >
                   <div className="h-full p-6 sm:p-8 md:p-10 doom-btn-clipped bg-doom-bg2 flex flex-col justify-between relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none group-hover:bg-doom-glow/15 transition-all duration-500" />
                     
-                    <div className="relative z-10 flex items-center justify-between pb-6 border-b border-white/[0.08]">
+                    <div className="relative z-10 flex items-center justify-between pb-6 border-b border-white/8">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-sm bg-white/[0.06] border border-white/20 flex items-center justify-center text-chrome-light group-hover:text-doom-glow group-hover:border-doom-glow/40 transition-colors">
+                        <div className="w-8 h-8 rounded-sm bg-white/6 border border-white/20 flex items-center justify-center text-chrome-light group-hover:text-doom-glow group-hover:border-doom-glow/40 transition-colors">
                           <Gamepad2 size={18} />
                         </div>
                         <span className="font-mono text-xs text-chrome-light group-hover:text-doom-glow tracking-widest uppercase font-bold transition-colors">
                           SECTOR // 02
                         </span>
                       </div>
-                      <span className="font-mono text-[11px] text-text-muted tracking-wider px-2 py-0.5 bg-white/[0.03] border border-white/[0.06]">
+                      <span className="font-mono text-[11px] text-text-muted tracking-wider px-2 py-0.5 bg-white/3 border border-white/6">
                         {nonTechEvents.length} ACTIVE PROTOCOLS
                       </span>
                     </div>
@@ -291,7 +318,7 @@ export default function Events() {
                         {['ESPORTS', 'VALORANT / BGMI', 'TRIVIA', 'STAGE ARTS', 'CASUAL GAMING'].map(tag => (
                           <span
                             key={tag}
-                            className="font-mono text-[10px] tracking-wider text-chrome-light px-2 py-1 bg-white/[0.04] border border-white/[0.08]"
+                            className="font-mono text-[10px] tracking-wider text-chrome-light px-2 py-1 bg-white/4 border border-white/8"
                           >
                             {tag}
                           </span>
@@ -299,7 +326,7 @@ export default function Events() {
                       </div>
                     </div>
 
-                    <div className="relative z-10 pt-6 border-t border-white/[0.08] flex items-center justify-between">
+                    <div className="relative z-10 pt-6 border-t border-white/8 flex items-center justify-between">
                       <span className="font-mono text-xs uppercase tracking-widest text-text-muted group-hover:text-white transition-colors">
                         ENTER SECTOR 02
                       </span>
@@ -326,7 +353,7 @@ export default function Events() {
               className="space-y-8 sm:space-y-10"
             >
               {/* Top Navigation & Category Switcher Bar */}
-              <div className="flex flex-col gap-5 border-b border-white/[0.08] pb-6">
+              <div className="flex flex-col gap-5 border-b border-white/8 pb-6">
                 
                 {/* Upper row: Breadcrumbs & Return button */}
                 <div className="flex items-center justify-between flex-wrap gap-4">
@@ -348,7 +375,7 @@ export default function Events() {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={handleClearCategory}
-                      className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-text-muted hover:text-doom-glow transition-colors cursor-pointer py-1.5 px-3 bg-white/[0.04] border border-white/[0.08] hover:border-doom-glow/30"
+                      className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-text-muted hover:text-doom-glow transition-colors cursor-pointer py-1.5 px-3 bg-white/4 border border-white/8 hover:border-doom-glow/30"
                     >
                       <ArrowLeft size={13} />
                       <span>Change Sector</span>
@@ -362,7 +389,7 @@ export default function Events() {
 
                 {/* Primary Category Switcher Tabs */}
                 <div className="flex items-center justify-between flex-wrap gap-4 pt-2">
-                  <div className="inline-flex p-1 bg-doom-bg2 border border-white/[0.08] doom-btn-clipped">
+                  <div className="inline-flex p-1 bg-doom-bg2 border border-white/8 doom-btn-clipped">
                     <button
                       onClick={() => handleSelectCategory('technical')}
                       className={cn(
@@ -401,7 +428,7 @@ export default function Events() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search protocols by name, discipline, keywords, or rules..."
-                      className="w-full bg-doom-bg2 border border-white/[0.12] text-text-primary pl-11 pr-10 py-3 font-mono text-xs sm:text-sm focus:outline-none focus:border-doom-glow focus:ring-1 focus:ring-doom-glow transition-all"
+                      className="w-full bg-doom-bg2 border border-white/12 text-text-primary pl-11 pr-10 py-3 font-mono text-xs sm:text-sm focus:outline-none focus:border-doom-glow focus:ring-1 focus:ring-doom-glow transition-all"
                     />
                     {searchQuery && (
                       <button
@@ -421,7 +448,7 @@ export default function Events() {
                       <select
                         value={selectedMode}
                         onChange={(e) => setSelectedMode(e.target.value)}
-                        className="bg-doom-bg2 border border-white/[0.12] text-text-primary font-mono text-xs px-2.5 py-1 focus:outline-none focus:border-doom-glow cursor-pointer"
+                        className="bg-doom-bg2 border border-white/12 text-text-primary font-mono text-xs px-2.5 py-1 focus:outline-none focus:border-doom-glow cursor-pointer"
                       >
                         <option value="ALL">All Modes</option>
                         <option value="Solo">Solo</option>
@@ -443,10 +470,16 @@ export default function Events() {
 
               </div>
 
-              {/* Event Cards Grid or Empty State */}
-              {currentEvents.length === 0 ? (
-                <div className="py-16 px-6 text-center bg-doom-bg2 border border-white/[0.08] doom-btn-clipped max-w-md mx-auto space-y-4">
-                  <div className="w-12 h-12 mx-auto rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center text-text-muted">
+              {/* Event Cards Grid, Skeleton, or Empty State */}
+              {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <EventCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : currentEvents.length === 0 ? (
+                <div className="py-16 px-6 text-center bg-doom-bg2 border border-white/8 doom-btn-clipped max-w-md mx-auto space-y-4">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-white/4 border border-white/10 flex items-center justify-center text-text-muted">
                     <Filter size={20} />
                   </div>
                   <h3 className="font-display text-xl font-bold uppercase tracking-wider text-text-primary">
@@ -463,63 +496,77 @@ export default function Events() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {currentEvents.map((evt) => (
-                    <Link
-                      key={evt.slug || evt.id}
-                      to={`/events/${evt.slug || evt.id}`}
-                      className="group p-6 bg-doom-bg2 border border-white/[0.08] doom-btn-clipped hover:border-doom-glow/50 transition-all flex flex-col justify-between space-y-5"
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono text-[10px] text-doom-glow uppercase tracking-widest px-2 py-0.5 bg-doom-glow/10 border border-doom-glow/30 font-bold">
-                            {evt.category || 'EVENT'}
-                          </span>
-                          <span className="font-mono text-[10px] text-text-muted uppercase">
-                            {evt.teamSize || 'Individual'}
-                          </span>
-                        </div>
-
-                        <h3 className="font-display text-xl font-bold uppercase tracking-wide text-text-primary group-hover:text-doom-glow transition-colors">
-                          {evt.name}
-                        </h3>
-
-                        <p className="font-body text-xs text-text-muted line-clamp-2 leading-relaxed">
-                          {evt.description}
-                        </p>
-                      </div>
-
-                      <div className="space-y-3 pt-3 border-t border-white/[0.06]">
-                        <div className="grid grid-cols-2 gap-2 font-mono text-[11px] text-text-muted">
-                          <div className="flex items-center gap-1.5 truncate">
-                            <Users size={12} className="text-doom-glow shrink-0" />
-                            <span className="truncate">{evt.teamSize}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 truncate">
-                            <span className="text-doom-glow font-bold">STATUS:</span>
-                            <span className="truncate">OPEN</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-1 gap-2">
-                          <div>
-                            <span className="font-mono text-xs text-text-primary font-bold block">
-                              Fee: {evt.fee}
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {paginatedEvents.map((evt) => (
+                      <Link
+                        key={evt.slug || evt.id}
+                        to={`/events/${evt.slug || evt.id}`}
+                        className="group p-6 bg-doom-bg2 border border-white/8 doom-btn-clipped hover:border-doom-glow/50 transition-all flex flex-col justify-between space-y-5"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-mono text-[10px] text-doom-glow uppercase tracking-widest px-2 py-0.5 bg-doom-glow/10 border border-doom-glow/30 font-bold">
+                              {evt.category || 'EVENT'}
                             </span>
-                            {evt.prizePool && (
-                              <span className="font-mono text-[10px] text-doom-glow font-semibold block">
-                                🏆 {evt.prizePool}
-                              </span>
-                            )}
+                            <span className="font-mono text-[10px] text-text-muted uppercase">
+                              {evt.teamSize || 'Individual'}
+                            </span>
                           </div>
-                          <span className="inline-flex items-center gap-1 font-mono text-xs text-doom-glow group-hover:translate-x-1 transition-transform shrink-0">
-                            <span>ACCESS VAULT</span>
-                            <ArrowRight size={13} />
-                          </span>
+
+                          <h3 className="font-display text-xl font-bold uppercase tracking-wide text-text-primary group-hover:text-doom-glow transition-colors">
+                            {evt.name}
+                          </h3>
+
+                          <p className="font-body text-xs text-text-muted line-clamp-2 leading-relaxed">
+                            {evt.description}
+                          </p>
                         </div>
-                      </div>
-                    </Link>
-                  ))}
+
+                        <div className="space-y-3 pt-3 border-t border-white/6">
+                          <div className="grid grid-cols-2 gap-2 font-mono text-[11px] text-text-muted">
+                            <div className="flex items-center gap-1.5 truncate">
+                              <Users size={12} className="text-doom-glow shrink-0" />
+                              <span className="truncate">{evt.teamSize}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 truncate">
+                              <span className="text-doom-glow font-bold">STATUS:</span>
+                              <span className="truncate">OPEN</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-1 gap-2">
+                            <div>
+                              <span className="font-mono text-xs text-text-primary font-bold block">
+                                Fee: {evt.fee}
+                              </span>
+                              {evt.prizePool && (
+                                <span className="font-mono text-[10px] text-doom-glow font-semibold block">
+                                  🏆 {evt.prizePool}
+                                </span>
+                              )}
+                            </div>
+                            <span className="inline-flex items-center gap-1 font-mono text-xs text-doom-glow group-hover:translate-x-1 transition-transform shrink-0">
+                              <span>ACCESS VAULT</span>
+                              <ArrowRight size={13} />
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+
+                  {/* Load More Pagination Trigger */}
+                  {visibleCount < currentEvents.length && (
+                    <div className="pt-4 text-center">
+                      <button
+                        onClick={() => setVisibleCount((prev) => prev + 12)}
+                        className="py-3 px-8 bg-doom-bg2 border border-doom-glow/40 hover:border-doom-glow text-doom-glow font-mono text-xs uppercase tracking-widest font-bold transition-all shadow-[0_0_20px_rgba(30,255,160,0.1)] hover:shadow-[0_0_30px_rgba(30,255,160,0.25)] cursor-pointer"
+                      >
+                        LOAD MORE PROTOCOLS ({currentEvents.length - visibleCount} REMAINING)
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </motion.div>

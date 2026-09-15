@@ -44,4 +44,8 @@ const userSchema = new mongoose.Schema(
   }
 )
 
+// Performance indexes for sorted pagination and role lookup
+userSchema.index({ createdAt: -1 })
+userSchema.index({ role: 1 })
+
 module.exports = mongoose.model('User', userSchema)

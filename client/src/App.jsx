@@ -3,13 +3,13 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminLayout from './components/AdminLayout'
-import Particles from './components/ui/Particles'
 import PageLoading from './components/ui/PageLoading'
 import ScrollToTop from './components/ScrollToTop'
 import ErrorBoundary from './components/ErrorBoundary'
-import Landing from './pages/Landing'
 
-// Lazy load non-critical pages for better initial load performance
+// Lazy load non-critical components & pages for instant first paint
+const Particles = lazy(() => import('./components/ui/Particles'))
+const Landing = lazy(() => import('./pages/Landing'))
 const Home = lazy(() => import('./pages/Home'))
 const DoomsdayCommandCenter = lazy(() => import('./pages/DoomsdayCommandCenter'))
 const Login = lazy(() => import('./pages/Login'))
@@ -41,19 +41,21 @@ function App() {
     <div className="relative min-h-screen bg-doom-bg">
       <ScrollToTop />
 
-      {/* 3D Particle background for internal pages (disabled on heavy canvas views) */}
+      {/* 3D Particle background for internal pages (loaded asynchronously, disabled on heavy canvas views) */}
       {!isLandingPage && (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <Particles
-            particleColors={PARTICLE_COLORS}
-            particleCount={200}
-            particleSpread={10}
-            speed={0.1}
-            particleBaseSize={100}
-            moveParticlesOnHover={true}
-            alphaParticles={false}
-            disableRotation={false}
-          />
+          <Suspense fallback={null}>
+            <Particles
+              particleColors={PARTICLE_COLORS}
+              particleCount={200}
+              particleSpread={10}
+              speed={0.1}
+              particleBaseSize={100}
+              moveParticlesOnHover={true}
+              alphaParticles={false}
+              disableRotation={false}
+            />
+          </Suspense>
         </div>
       )}
 

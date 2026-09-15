@@ -15,13 +15,13 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
     const userEmail = req.user.email.toLowerCase()
 
     // 1. Fetch user's entry pass
-    const entryPass = await EntryRegistration.findOne({ email: userEmail })
+    const entryPass = await EntryRegistration.findOne({ email: userEmail }).lean()
 
     // 2. Fetch user's event registrations
     const eventRegistrations = await EventRegistration.find({
       userEmail,
       status: { $ne: 'cancelled' },
-    }).sort({ createdAt: -1 })
+    }).sort({ createdAt: -1 }).lean()
 
     const enrichedRegistrations = eventRegistrations.map((reg) => {
       return {
@@ -41,6 +41,7 @@ router.get('/dashboard', verifyFirebaseToken, async (req, res) => {
     const recentAnnouncements = await Announcement.find({ isPublished: true })
       .sort({ isPinned: -1, publishedAt: -1 })
       .limit(5)
+      .lean()
 
     res.status(200).json({
       user: {
@@ -84,7 +85,7 @@ router.get('/registrations', verifyFirebaseToken, async (req, res) => {
     const registrations = await EventRegistration.find({
       userEmail,
       status: { $ne: 'cancelled' },
-    }).sort({ createdAt: -1 })
+    }).sort({ createdAt: -1 }).lean()
     res.status(200).json(registrations)
   } catch (error) {
     console.error('[User Registrations] Error:', error.message)

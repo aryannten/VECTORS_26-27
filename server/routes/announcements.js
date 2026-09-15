@@ -4,6 +4,9 @@ const router = express.Router()
 const Announcement = require('../models/Announcement')
 const AuditLog = require('../models/AuditLog')
 const { verifyFirebaseToken, requireRole } = require('../middleware/auth')
+const memoryCache = require('../utils/cache')
+
+const SUPPORTED_CATEGORIES = new Set(['general', 'schedule', 'urgent', 'registration'])
 
 const DEFAULT_ANNOUNCEMENTS = [
   {
@@ -42,28 +45,39 @@ const DEFAULT_ANNOUNCEMENTS = [
 
 /**
  * GET /api/announcements
- * Public list of published announcements.
+ * Public list of published announcements. Cached for 60s with Edge CDN revalidation.
  */
 router.get('/', async (req, res) => {
   try {
-    const { category } = req.query
+    res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600')
+    const rawCategory = typeof req.query.category === 'string' ? req.query.category.trim().toLowerCase() : ''
+    const targetCategory = SUPPORTED_CATEGORIES.has(rawCategory) ? rawCategory : null
+    const cacheKey = `announcements:${targetCategory || 'all'}`
+    const cached = memoryCache.get(cacheKey)
+    if (cached) {
+      return res.status(200).json(cached)
+    }
+
     const filter = { isPublished: true }
-    if (category && category !== 'all') {
-      filter.category = category
+    if (targetCategory) {
+      filter.category = targetCategory
     }
 
     const announcements = await Announcement.find(filter)
       .sort({ isPinned: -1, publishedAt: -1 })
       .limit(50)
+      .lean()
 
     if (announcements && announcements.length > 0) {
+      memoryCache.set(cacheKey, announcements, 60)
       return res.status(200).json(announcements)
     }
 
     // Fallback if collection is newly created or empty
-    const filteredFallback = category && category !== 'all'
-      ? DEFAULT_ANNOUNCEMENTS.filter((a) => a.category === category)
+    const filteredFallback = targetCategory
+      ? DEFAULT_ANNOUNCEMENTS.filter((a) => a.category === targetCategory)
       : DEFAULT_ANNOUNCEMENTS
+    memoryCache.set(cacheKey, filteredFallback, 60)
     res.status(200).json(filteredFallback)
   } catch (error) {
     console.error('[Announcements] Fetch error:', error.message)
@@ -129,6 +143,7 @@ router.post('/', verifyFirebaseToken, requireRole('admin'), async (req, res) => 
       details: { title: announcement.title },
     }).catch(err => console.error('[AuditLog] Error:', err.message))
 
+    memoryCache.delPrefix('announcements:')
     res.status(201).json(announcement)
   } catch (error) {
     console.error('[Announcements] Create error:', error.message)
@@ -181,6 +196,7 @@ router.put('/:id', verifyFirebaseToken, requireRole('admin'), async (req, res) =
       details: { title: announcement.title, isPublished: announcement.isPublished },
     }).catch(err => console.error('[AuditLog] Error:', err.message))
 
+    memoryCache.delPrefix('announcements:')
     res.status(200).json(announcement)
   } catch (error) {
     console.error('[Announcements] Update error:', error.message)
@@ -212,6 +228,7 @@ router.delete('/:id', verifyFirebaseToken, requireRole('admin'), async (req, res
       details: { title: announcement.title },
     }).catch(err => console.error('[AuditLog] Error:', err.message))
 
+    memoryCache.delPrefix('announcements:')
     res.status(200).json({ message: 'Announcement deleted successfully.' })
   } catch (error) {
     console.error('[Announcements] Delete error:', error.message)

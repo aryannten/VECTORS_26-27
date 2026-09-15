@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { HelpCircle, ChevronDown, Search, ArrowRight, ShieldCheck, Ticket, Users, MapPin, Mail, MessageSquare } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { useDebounce } from '../lib/useDebounce'
 
 const FAQ_DATA = [
   {
@@ -88,6 +89,7 @@ const FAQ_DATA = [
 
 export default function FAQ() {
   const [searchQuery, setSearchQuery] = useState('')
+  const debouncedSearch = useDebounce(searchQuery, 300)
   const [openItems, setOpenItems] = useState({}) // { [key]: boolean }
   const [selectedCategory, setSelectedCategory] = useState('ALL')
 
@@ -96,10 +98,12 @@ export default function FAQ() {
   }
 
   const filteredCategories = useMemo(() => {
+    const q = debouncedSearch.toLowerCase().trim()
     return FAQ_DATA.map((catGroup) => {
       const filteredQuestions = catGroup.questions.filter((item) => {
-        const qMatch = item.q.toLowerCase().includes(searchQuery.toLowerCase())
-        const aMatch = item.a.toLowerCase().includes(searchQuery.toLowerCase())
+        if (!q) return true
+        const qMatch = item.q.toLowerCase().includes(q)
+        const aMatch = item.a.toLowerCase().includes(q)
         return qMatch || aMatch
       })
 
@@ -112,12 +116,12 @@ export default function FAQ() {
         selectedCategory === 'ALL' || catGroup.category === selectedCategory
       return matchCat && catGroup.questions.length > 0
     })
-  }, [searchQuery, selectedCategory])
+  }, [debouncedSearch, selectedCategory])
 
   return (
     <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-10">
       {/* Header */}
-      <div className="text-center space-y-3 border-b border-white/[0.08] pb-8">
+      <div className="text-center space-y-3 border-b border-white/8 pb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-emerald/10 border border-emerald/20 text-emerald font-mono text-xs uppercase tracking-widest">
           <HelpCircle size={13} />
           <span>Festival Knowledge Base // FAQ</span>
@@ -219,7 +223,7 @@ export default function FAQ() {
                         </button>
 
                         {isOpen && (
-                          <div className="px-4 pb-5 sm:px-5 sm:pb-5 pt-1 text-steel text-xs sm:text-sm leading-relaxed border-t border-white/[0.04] font-sans">
+                          <div className="px-4 pb-5 sm:px-5 sm:pb-5 pt-1 text-steel text-xs sm:text-sm leading-relaxed border-t border-white/4 font-sans">
                             {item.a}
                           </div>
                         )}
@@ -234,7 +238,7 @@ export default function FAQ() {
       </div>
 
       {/* Support & Contact Card */}
-      <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-charcoal via-charcoal to-emerald/10 border border-white/[0.08] shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+      <div className="p-6 sm:p-8 rounded-2xl bg-linear-to-r from-charcoal via-charcoal to-emerald/10 border border-white/8 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
         <div className="space-y-1">
           <h3 className="font-display text-xl font-bold uppercase tracking-wider text-bone">
             Still Have Inquiries?

@@ -5,5 +5,7 @@
   "editor.quickSuggestions": {
     "strings": "on"
   },
-  "css.lint.unknownAtRules": "ignore"
+  "css.lint.unknownAtRules": "ignore",
+  "tailwindCSS.experimental.configFile": "client/src/index.css",
+  "tailwindCSS.lint.cssConflict": "ignore"
 }

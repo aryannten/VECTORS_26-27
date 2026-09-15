@@ -61,4 +61,10 @@ const entryRegistrationSchema = new mongoose.Schema(
   }
 )
 
+// Performance indexes for sorted pagination & check-in metrics
+entryRegistrationSchema.index({ createdAt: -1 })
+entryRegistrationSchema.index({ checkedIn: 1 })
+entryRegistrationSchema.index({ day1CheckedIn: 1 })
+entryRegistrationSchema.index({ day2CheckedIn: 1 })
+
 module.exports = mongoose.model('EntryRegistration', entryRegistrationSchema)

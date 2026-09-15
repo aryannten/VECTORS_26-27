@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { Calendar, Clock, MapPin, Search, Filter, Users, Trophy, ExternalLink, Download, Sparkles, AlertCircle } from 'lucide-react'
 import { eventsData } from '../data/events'
 import { cn } from '../lib/utils'
+import { useDebounce } from '../lib/useDebounce'
 
 export default function Schedule() {
   const [activeDay, setActiveDay] = useState('Day 1') // 'Day 1' | 'Day 2'
   const [searchQuery, setSearchQuery] = useState('')
+  const debouncedSearch = useDebounce(searchQuery, 300)
   const [selectedCategory, setSelectedCategory] = useState('ALL')
   const [liveEvents, setLiveEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -54,18 +56,20 @@ export default function Schedule() {
 
   // Filter items
   const filteredEvents = useMemo(() => {
+    const q = debouncedSearch.toLowerCase().trim()
     return masterSchedule.filter((ev) => {
       const matchDay = ev.day === activeDay
       const matchSearch =
-        ev.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ev.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ev.venue.toLowerCase().includes(searchQuery.toLowerCase())
+        !q ||
+        ev.name.toLowerCase().includes(q) ||
+        ev.description.toLowerCase().includes(q) ||
+        ev.venue.toLowerCase().includes(q)
       const matchCategory =
         selectedCategory === 'ALL' || ev.category.toUpperCase() === selectedCategory
 
       return matchDay && matchSearch && matchCategory
     })
-  }, [masterSchedule, activeDay, searchQuery, selectedCategory])
+  }, [masterSchedule, activeDay, debouncedSearch, selectedCategory])
 
   // Export Day Schedule to iCal / ICS
   const handleExportSchedule = () => {
@@ -91,7 +95,7 @@ export default function Schedule() {
   return (
     <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.08] pb-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/8 pb-8">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-emerald/10 border border-emerald/20 text-emerald font-mono text-xs uppercase tracking-widest mb-3">
             <Calendar size={13} />
@@ -147,7 +151,7 @@ export default function Schedule() {
         </div>
 
         {/* Filter Toolbar */}
-        <div className="p-4 rounded-xl bg-charcoal/80 border border-white/[0.06] backdrop-blur-md flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+        <div className="p-4 rounded-xl bg-charcoal/80 border border-white/6 backdrop-blur-md flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
           {/* Search Box */}
           <div className="relative flex-1">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-steel/50" />
@@ -187,7 +191,7 @@ export default function Schedule() {
       {/* Timeline List */}
       <div className="relative">
         {/* Vertical timeline spine */}
-        <div className="hidden md:block absolute left-28 top-4 bottom-4 w-px bg-gradient-to-b from-emerald/40 via-white/10 to-transparent" />
+        <div className="hidden md:block absolute left-28 top-4 bottom-4 w-px bg-linear-to-b from-emerald/40 via-white/10 to-transparent" />
 
         {filteredEvents.length === 0 ? (
           <div className="text-center py-20 bg-charcoal/40 border border-white/5 rounded-2xl">
@@ -227,14 +231,14 @@ export default function Schedule() {
                   </div>
 
                   {/* Timeline Dot (Desktop) */}
-                  <div className="hidden md:flex absolute left-[111px] top-4 w-2.5 h-2.5 rounded-full bg-charcoal border-2 border-emerald group-hover:bg-emerald group-hover:scale-125 transition-all shadow-sm shadow-emerald/50 z-10" />
+                  <div className="hidden md:flex absolute left-26.75 top-4 w-2.5 h-2.5 rounded-full bg-charcoal border-2 border-emerald group-hover:bg-emerald group-hover:scale-125 transition-all shadow-sm shadow-emerald/50 z-10" />
 
                   {/* Event Timeline Card */}
                   <div className="flex-1 w-full bg-charcoal/70 hover:bg-charcoal/90 border border-white/[0.07] hover:border-emerald/40 rounded-xl p-5 md:p-6 transition-all duration-300 shadow-lg relative overflow-hidden">
                     {/* Top subtle glow line */}
                     <div className={cn(
                       'absolute top-0 left-0 right-0 h-0.5 opacity-40 group-hover:opacity-100 transition-opacity',
-                      isTech ? 'bg-gradient-to-r from-emerald via-emerald/60 to-transparent' : 'bg-gradient-to-r from-amber-400 via-amber-400/60 to-transparent'
+                      isTech ? 'bg-linear-to-r from-emerald via-emerald/60 to-transparent' : 'bg-linear-to-r from-amber-400 via-amber-400/60 to-transparent'
                     )} />
 
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
@@ -280,7 +284,7 @@ export default function Schedule() {
                     </p>
 
                     {/* Metadata strip */}
-                    <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-white/[0.04]">
+                    <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-white/4">
                       <div className="flex flex-wrap items-center gap-4 text-steel font-mono text-xs">
                         <span className="flex items-center gap-1.5 text-steel/80">
                           <Users size={13} className="text-emerald/70" />

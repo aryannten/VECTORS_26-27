@@ -82,5 +82,9 @@ const eventRegistrationSchema = new mongoose.Schema(
 
 // Prevent duplicate registrations for the same event by the same user email
 eventRegistrationSchema.index({ eventSlug: 1, userEmail: 1 }, { unique: true })
+// Performance indexes for sorted pagination, event list queries, and admin filters
+eventRegistrationSchema.index({ createdAt: -1 })
+eventRegistrationSchema.index({ status: 1 })
+eventRegistrationSchema.index({ eventSlug: 1, createdAt: -1 })
 
 module.exports = mongoose.model('EventRegistration', eventRegistrationSchema)
