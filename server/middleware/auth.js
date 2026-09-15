@@ -67,13 +67,25 @@ const verifyFirebaseToken = async (req, res, next) => {
         } catch (_) { /* non-critical */ }
       }
 
-      user = await User.create({
-        firebaseUid: decodedToken.uid,
-        email: decodedToken.email,
-        displayName: resolvedName,
-        photoURL: resolvedPhoto,
-        role: targetRole
-      })
+      try {
+        user = await User.create({
+          firebaseUid: decodedToken.uid,
+          email: decodedToken.email,
+          displayName: resolvedName,
+          photoURL: resolvedPhoto,
+          role: targetRole
+        })
+      } catch (createErr) {
+        if (createErr.code === 11000) {
+          // Concurrent request created user simultaneously — retrieve created user
+          user = await User.findOne({ firebaseUid: decodedToken.uid })
+          if (!user && userEmail) {
+            user = await User.findOne({ email: userEmail })
+          }
+        } else {
+          throw createErr
+        }
+      }
     }
     if (!user) {
       return res.status(401).json({ message: 'User not found. Please sign up first.' })

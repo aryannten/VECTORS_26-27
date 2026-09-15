@@ -152,16 +152,26 @@ router.post('/sync', authSyncIpLimiter, async (req, res) => {
       if (resolvedPhoto) user.photoURL = resolvedPhoto
       user.role = isAdmin ? 'admin' : isSecurity ? 'security' : 'user'
       await user.save()
-    } else {
-      user = await User.create({
-        firebaseUid: decodedToken.uid,
-        email: decodedToken.email,
-        lastLoginAt: new Date(),
-        phone: userPhone,
-        displayName: resolvedName || '',
-        photoURL: resolvedPhoto || null,
-        role: isAdmin ? 'admin' : isSecurity ? 'security' : 'user',
-      })
+      try {
+        user = await User.create({
+          firebaseUid: decodedToken.uid,
+          email: decodedToken.email,
+          lastLoginAt: new Date(),
+          phone: userPhone,
+          displayName: resolvedName || '',
+          photoURL: resolvedPhoto || null,
+          role: isAdmin ? 'admin' : isSecurity ? 'security' : 'user',
+        })
+      } catch (createErr) {
+        if (createErr.code === 11000) {
+          user = await User.findOne({ firebaseUid: decodedToken.uid })
+          if (!user && userEmail) {
+            user = await User.findOne({ email: userEmail })
+          }
+        } else {
+          throw createErr
+        }
+      }
     }
 
     res.status(200).json({

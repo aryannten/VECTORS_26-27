@@ -79,12 +79,26 @@ router.post('/register', registrationLimiter, verifyFirebaseToken, async (req, r
     }
 
     // 4. Create new registration
-    const registration = await EntryRegistration.create({
-      name: cleanName,
-      email: cleanEmail,
-      phone: cleanPhone,
-      college: cleanCollege,
-    })
+    let registration
+    try {
+      registration = await EntryRegistration.create({
+        name: cleanName,
+        email: cleanEmail,
+        phone: cleanPhone,
+        college: cleanCollege,
+      })
+    } catch (createErr) {
+      if (createErr.code === 11000) {
+        const dup = await EntryRegistration.findOne({ email: cleanEmail })
+        if (dup) {
+          return res.status(409).json({
+            message: 'This email is already registered.',
+            registrationId: dup.registrationId,
+          })
+        }
+      }
+      throw createErr
+    }
 
     // Sync phone number to User account
     await User.findOneAndUpdate(

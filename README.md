@@ -75,10 +75,11 @@ flowchart TD
 - **CJS/ESM Compatibility**: `firebase-admin@13` + pinned `jose@4.15.9` with npm package override (`"overrides": { "jose": "$jose" }`) ensuring native CommonJS execution without ESM resolution conflicts on Vercel Serverless Function runtimes
 - **Security Middleware**:
   - `helmet`: Secure HTTP headers
-  - `cors`: Explicit origin allowlist supporting production and preview environments
+  - `cors`: Explicit origin allowlist supporting production (`vectors2026-27.in`, `www.vectors2026-27.in`), Vercel preview environments (`*.vercel.app`), local development, and LAN IP testing with structured 403 error rejection
   - `express-rate-limit`: Global production traffic shaping with reverse proxy trust
   - `rateLimitMongo` (Custom): Distributed MongoDB-backed multi-tier rate limiter utilizing atomic `$inc` updates and TTL index auto-eviction (`server/middleware/rateLimitMongo.js`)
   - `express-mongo-sanitize`: NoSQL injection query sanitization
+  - **Concurrency & Identity Idempotency**: Atomic duplicate key (`E11000`) recovery in `verifyFirebaseToken`, `POST /api/auth/sync`, and `POST /api/register` preventing race conditions during concurrent client logins and pass generation
 
 ### Infrastructure & Deployment
 - **Hosting Platform**: Vercel (Edge CDN + Node.js 22 Serverless Functions)

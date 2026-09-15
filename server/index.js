@@ -96,24 +96,58 @@ app.use(compression({
 }))
 
 // 3. CORS Configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
-  : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173']
+const defaultAllowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'https://vectors2026-27.in',
+  'https://www.vectors2026-27.in',
+  'http://vectors2026-27.in',
+  'http://www.vectors2026-27.in',
+]
+
+const envAllowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
+  : []
+
+const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...envAllowedOrigins])]
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow same-origin (no Origin header on GET/direct requests), explicit allowedOrigins,
-    // Vercel preview deployments (*.vercel.app), or any origin in non-production
+    // 1. Allow requests with no Origin header (same-origin, curl, server-to-server)
+    if (!origin) return callback(null, true)
+
+    // 2. Allow explicitly configured origins
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+
+    // 3. Allow all vectors2026-27.in domains and subdomains
     if (
-      !origin ||
-      allowedOrigins.includes(origin) ||
-      (process.env.VERCEL && origin.endsWith('.vercel.app')) ||
-      process.env.NODE_ENV !== 'production'
+      origin === 'https://vectors2026-27.in' ||
+      origin.endsWith('.vectors2026-27.in')
     ) {
-      callback(null, true)
-    } else {
-      callback(new Error('Blocked by CORS policy'))
+      return callback(null, true)
     }
+
+    // 4. Allow all Vercel preview & production deployments (*.vercel.app)
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true)
+    }
+
+    // 5. Allow local LAN testing (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    if (
+      /^https?:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(origin)
+    ) {
+      return callback(null, true)
+    }
+
+    // 6. Allow all origins in non-production environments
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true)
+    }
+
+    const corsError = new Error(`Origin ${origin} blocked by CORS policy`)
+    corsError.status = 403
+    callback(corsError)
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
