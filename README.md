@@ -60,6 +60,7 @@ flowchart TD
 - **Reactive UI & Debouncing**: Custom `useDebounce` hook (300ms) eliminating redundant filter re-renders across search inputs in Events, Schedule, FAQ, and Admin registries
 - **Progressive Pagination & Skeletons**: Reusable cyberpunk glowing skeleton loaders (`Skeleton.jsx`, `EventCardSkeleton.jsx`) and progressive list batching (12 events/batch) preventing DOM bloat
 - **Client Session Caching**: In-memory and session storage caching for public event catalog data ensuring instantaneous navigation without repeated network roundtrips
+- **Official Events Architecture**: Comprehensive 29-event festival catalog synchronization across frontend and backend tiers; includes dynamic judging criteria breakdowns, accurate entry fee tiers, team size constraints (Solo, Duo, 3-member, 4-member), and direct coordinator hotlines
 - **Hardware Integration**: `@yudiel/react-qr-scanner` for browser-level camera stream acquisition (isolated to dedicated chunk)
 - **Credential Generation**: `qrcode.react` for vector-based SVG QR rendering
 

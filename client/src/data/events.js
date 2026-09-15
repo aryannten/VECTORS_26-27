@@ -13,6 +13,7 @@
  * - prizePool: Formatted summary of prizes
  * - description: Official description from brochure
  * - rules: Rules of engagement
+ * - judgingCriteria: Scoring and judging breakdown
  * - teamSize: Team size requirements
  * - minTeamSize: Minimum members
  * - maxTeamSize: Maximum members
@@ -22,747 +23,1092 @@
  */
 
 export const eventsData = [
-  // ==========================================
-  // TECHNICAL EVENTS (18)
-  // ==========================================
   {
-    id: 'technical-debate',
-    name: 'Technical Debate',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹500',
-    secondPrize: '₹300',
-    prizePool: '1st: ₹500 | 2nd: ₹300',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'Structured debate on engineering and technology topics.',
-    rules: [
-      'Individual participation; topics will be allotted on the spot with prep time.',
-      'Participants will debate in favor or against the assigned technology paradigm.',
-      'Evaluation criteria include logical argumentation, technical depth, and rebuttal agility.',
-      'The jury decision is final and binding.'
+    "id": "technical-debate",
+    "name": "Technical Debate",
+    "category": "Technical",
+    "branch": "Open to All Branches",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Participant (Teams of 2–3 participants)",
+    "firstPrize": "₹500",
+    "secondPrize": "₹300",
+    "prizePool": "1st: ₹500 | 2nd: ₹300 (Prize money may vary depending on participant count)",
+    "teamSize": "Team (2–3 members)",
+    "minTeamSize": 2,
+    "maxTeamSize": 3,
+    "description": "Structured parliamentary technical debate. Teams defend or dispute cutting-edge engineering paradigms, AI ethics, and emerging technologies.",
+    "rules": [
+      "Debate topics provided by organizers; teams prepare arguments for both 'For' and 'Against' sides.",
+      "Maintain discipline and sportsmanship; personal attacks and offensive language are prohibited.",
+      "Mobile devices allowed only if explicitly permitted."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Shravani Gosavi', contact: '+91 86522 06648', role: 'Head' },
-      { name: 'Soumya Pawar', contact: '+91 96993 81920', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Technical Knowledge & Accuracy: 25",
+      "Logical Reasoning & Arguments: 25",
+      "Communication & Presentation: 20",
+      "Rebuttal & Counterarguments: 15",
+      "Team Coordination: 10",
+      "Time Management: 5"
+    ],
+    "coordinators": [
+      {
+        "name": "Shravani Gosavi",
+        "contact": "+91 86522 06648",
+        "role": "Head"
+      },
+      {
+        "name": "Soumya Pawar",
+        "contact": "+91 96993 81920",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'technical-quiz',
-    name: 'Technical Quiz',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹500',
-    secondPrize: '₹300',
-    prizePool: '1st: ₹500 | 2nd: ₹300',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'Quiz competition testing knowledge of engineering and IT.',
-    rules: [
-      'Round 1: Rapid-fire screening quiz across core engineering, IT, and emerging tech.',
-      'Round 2: Top scorers advance to live onstage buzzer round.',
-      'No electronic devices permitted during quiz rounds.',
-      'Ties broken by sudden-death questions.'
+    "id": "technical-quiz",
+    "name": "Technical Quiz",
+    "category": "Technical",
+    "branch": "Open to All Branches",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Participant (Individual participation)",
+    "firstPrize": "₹500",
+    "secondPrize": "₹300",
+    "prizePool": "1st: ₹500 | 2nd: ₹300 (Prize money may vary depending on participation)",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "4-phase technical trivia battle: Tech Sprint, Engineer Kaun?, Guess The Tech, and Circuit Breaker buzzer round covering computing, hardware, and engineering.",
+    "rules": [
+      "Mobile phones, smartwatches, or searching gadgets are strictly prohibited.",
+      "Answer independently without audience or peer assistance."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Yukthi Devadiga', contact: '+91 88287 18083', role: 'Head' },
-      { name: 'Sara Mahadik', contact: '+91 90829 04487', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Based on cumulative points across 4 phases (Tech Sprint, Engineer Kaun?, Guess The Tech, Circuit Breaker).",
+      "Tie-breakers resolved via a dedicated technical question round."
+    ],
+    "coordinators": [
+      {
+        "name": "Yukthi Devadiga",
+        "contact": "+91 88287 18083",
+        "role": "Head"
+      },
+      {
+        "name": "Sara Mahadik",
+        "contact": "+91 90829 04487",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'prompt-mania',
-    name: 'Prompt Mania',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹1,500',
-    secondPrize: '₹1,000',
-    prizePool: '1st: ₹1,500 | 2nd: ₹1,000',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'A coding challenge driven by creative prompts.',
-    rules: [
-      'Participants receive dynamic problem prompts and must craft precise solutions.',
-      'Judged on prompt engineering effectiveness, solution accuracy, and completion speed.',
-      'Multiple difficulty tiers will be unveiled in rapid sequential rounds.',
-      'Fair play protocol: External unauthorized solvers are prohibited.'
+    "id": "prompt-mania",
+    "name": "Prompt Mania – 2026",
+    "category": "Technical",
+    "branch": "Computer / IT / AI",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Person (Solo participation)",
+    "firstPrize": "₹1,500",
+    "secondPrize": "₹1,000",
+    "prizePool": "1st: ₹1,500 | 2nd: ₹1,000 (Prize money may vary depending on participation)",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "Harness AI generative engineering to solve dynamic programming challenges. Craft precise system prompts, generate working logic, and present production-ready apps.",
+    "rules": [
+      "Internet usage is permitted for AI tools and development.",
+      "Pre-developed or copied projects are strictly prohibited.",
+      "Core logic must be AI-generated (minor manual modifications permitted)."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Akshata Mishra', contact: '+91 89765 26414', role: 'Head' },
-      { name: 'Mitansh Jadhav', contact: '+91 85911 52587', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Functionality & Accuracy: 40%",
+      "Practical Usefulness: 25%",
+      "Innovation: 20%",
+      "UI/UX: 10%",
+      "Presentation: 5%"
+    ],
+    "coordinators": [
+      {
+        "name": "Akshata Mishra",
+        "contact": "+91 89765 26414",
+        "role": "Head"
+      },
+      {
+        "name": "Mitansh Jadhav",
+        "contact": "+91 85911 52587",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'tech-arena',
-    name: 'Tech Arena 2.0',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹1,500',
-    secondPrize: '₹1,000',
-    prizePool: '1st: ₹1,500 | 2nd: ₹1,000',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'A multi-domain contest testing applied technical knowledge.',
-    rules: [
-      'Multi-domain arena challenging general engineering, digital logic, and aptitude.',
-      'Round 1: Speed diagnostics and circuit/code debugging.',
-      'Round 2: Applied technical integration and system troubleshooting.',
-      'Top aggregate scores claim the arena championship.'
+    "id": "tech-arena",
+    "name": "Tech Arena 2.0",
+    "category": "Technical",
+    "branch": "Open to All Branches",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Participant (Solo participation)",
+    "firstPrize": "₹1,500",
+    "secondPrize": "₹1,000",
+    "prizePool": "1st: ₹1,500 | 2nd: ₹1,000 (Prize money may vary depending on total participation)",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "A multi-stage technical gauntlet testing logical reasoning, coding, and problem-solving across three intense elimination rounds.",
+    "rules": [
+      "Strict individual participation; communication or cheating leads to instant disqualification.",
+      "Complete tasks within round time limits."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Shridhar Kalasgonda', contact: '+91 90047 89940', role: 'Head' },
-      { name: 'Chaitanya Sawant', contact: '+91 84519 64399', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Highest total score earned across all three rounds.",
+      "Tie-breaker resolved by shortest completion time."
+    ],
+    "coordinators": [
+      {
+        "name": "Shridhar Kalasgonda",
+        "contact": "+91 90047 89940",
+        "role": "Head"
+      },
+      {
+        "name": "Chaitanya Sawant",
+        "contact": "+91 84519 64399",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'breaking-the-ai',
-    name: 'Breaking the AI',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹1,000',
-    secondPrize: '₹600',
-    prizePool: '1st: ₹1,000 | 2nd: ₹600',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'Contest to test and challenge AI systems creatively.',
-    rules: [
-      'Participants interact with constrained AI models to identify vulnerabilities and jailbreaks.',
-      'Points awarded for successful edge-case elicitation and guardrail bypassing.',
-      'Systematic documentation of prompts and responses is mandatory.',
-      'Ethical red-teaming guidelines must be adhered to throughout.'
+    "id": "breaking-the-ai",
+    "name": "Breaking the AI",
+    "category": "Technical",
+    "branch": "AI / Data Science / Computer",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Person (Solo participation)",
+    "firstPrize": "₹1,200",
+    "secondPrize": "₹800",
+    "prizePool": "1st: ₹1,200 | 2nd: ₹800",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "A 60-minute solo challenge to design, experiment, and break limits with AI tools. Participants must explain their solution and demonstrate how AI assisted them.",
+    "rules": [
+      "Use of AI tools is permitted.",
+      "60 minutes allowed to design, experiment, and complete the challenge.",
+      "Participants may bring their own PC/laptop.",
+      "Pre-made complete solutions or templates are prohibited.",
+      "Participants must explain their solution and demonstrate how AI assisted them.",
+      "Follow instructions for each round. Unfair practice leads to disqualification."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Pranjal Dhanawade', contact: '+91 98344 29122', role: 'Head' },
-      { name: 'Madhura Khade', contact: '+91 87796 93988', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Breaking AI (15 Marks): Creativity & originality, Quality of AI usage, Problem-solving, Overall execution.",
+      "Pitching (5 Marks): Creativity explanation, Presentation, Effective use of prompts/tools, How convincingly the idea is justified."
+    ],
+    "coordinators": [
+      {
+        "name": "Taresh R. Ivalekar",
+        "contact": "+91 99605 94908",
+        "role": "Head"
+      },
+      {
+        "name": "Tanishq Gore",
+        "contact": "+91 99873 23799",
+        "role": "Co-Head"
+      },
+      {
+        "name": "Pranjal Dhanawade",
+        "contact": "+91 98344 29122",
+        "role": "Coordinator"
+      },
+      {
+        "name": "Madhura Khade",
+        "contact": "+91 87796 93988",
+        "role": "Coordinator"
+      }
     ]
   },
   {
-    id: 'ui-nightmare',
-    name: 'UI Nightmare',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹1,200',
-    secondPrize: '₹800',
-    prizePool: '1st: ₹1,200 | 2nd: ₹800',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'Participants fix flawed user interfaces to improve usability.',
-    rules: [
-      'Participants receive intentionally broken, chaotic, and anti-pattern web interfaces.',
-      'Goal: Refactor code, layout, and UX to adhere to modern accessibility and design principles.',
-      'Judged on visual polish, responsive behavior, usability heuristics, and code cleanliness.'
+    "id": "ui-nightmare",
+    "name": "UI Nightmare",
+    "category": "Technical",
+    "branch": "Design / Web / Computer",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Person (Solo participation)",
+    "firstPrize": "₹1,200",
+    "secondPrize": "₹800",
+    "prizePool": "1st: ₹1,200 | 2nd: ₹800",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "An inverted frontend design showdown. Create the most delightfully infuriating, counter-intuitive, and frustrating user interface imaginable, and pitch your sadistic UX choices.",
+    "rules": [
+      "AI tools allowed; 60 minutes duration.",
+      "Participants may bring personal PCs.",
+      "Pre-made UI designs or templates are strictly prohibited.",
+      "Participants must explain their frustrating design choices."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Taresh R. Ivalekar', contact: '+91 99605 94908', role: 'Head' },
-      { name: 'Tanishq Gore', contact: '+91 99873 23799', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "UI Nightmare (15 Marks): Creativity, Confusing interaction, Overall execution.",
+      "Pitching (5 Marks): Creativity Explanation, Presentation, How effectively participants justify their design."
+    ],
+    "coordinators": [
+      {
+        "name": "Taresh R. Ivalekar",
+        "contact": "+91 99605 94908",
+        "role": "Head"
+      },
+      {
+        "name": "Tanishq Gore",
+        "contact": "+91 99873 23799",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'code-musketeer',
-    name: 'Code Musketeer',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹1,000',
-    secondPrize: '₹500',
-    prizePool: '1st: ₹1,000 | 2nd: ₹500',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'Competitive coding contest solving algorithmic problems under time limits.',
-    rules: [
-      'Speed coding contest testing data structures, algorithms, and time complexity.',
-      'Supported languages: C++, Java, Python 3, JavaScript.',
-      'Automated judge scoring with hidden test cases; penalties for incorrect submissions.',
-      'Any form of malpractice or code plagiarism leads to immediate disqualification.'
+    "id": "code-musketeer",
+    "name": "Code Musketeer",
+    "category": "Technical",
+    "branch": "Computer / IT",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Team (Team size: 3 participants)",
+    "firstPrize": "₹1,000",
+    "secondPrize": "₹500",
+    "prizePool": "1st: ₹1,000 | 2nd: ₹500 (Prize money may vary depending on participation)",
+    "teamSize": "Team (3 members)",
+    "minTeamSize": 3,
+    "maxTeamSize": 3,
+    "description": "A high-intensity collaborative coding and error-finding duel. Team members switch roles between Coding and Debugging, testing accuracy, syntax mastery, and speed.",
+    "rules": [
+      "Team size: strictly 3 participants per team.",
+      "Internet usage is strictly prohibited.",
+      "Adhere to coding and debugging time limits.",
+      "AI decisions regarding reported errors are final and binding.",
+      "Any malpractice or plagiarism results in immediate disqualification."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Ali Lala', contact: '+91 96534 94171', role: 'Head' },
-      { name: 'Manasvi Khamkar', contact: '+91 86690 27650', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "+1 point for each valid error identified by the Debug Team.",
+      "+1 point to the Coding Team for each error missed by the Debug Team.",
+      "Clean code correctly confirmed by Debug Team awards win to Debug Team.",
+      "-1 point penalty for false error claims by the Debug Team."
+    ],
+    "coordinators": [
+      {
+        "name": "Ali Lala",
+        "contact": "+91 96534 94171",
+        "role": "Head"
+      },
+      {
+        "name": "Manasvi Khamkar",
+        "contact": "+91 86690 27650",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'project-competition',
-    name: 'Project Competition',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹80 / Team (80/4P)',
-    firstPrize: '₹1,000',
-    secondPrize: '₹500',
-    prizePool: '1st: ₹1,000 | 2nd: ₹500',
-    teamSize: 'Team (1–4 members)',
-    minTeamSize: 1,
-    maxTeamSize: 4,
-    description: 'Students present innovative technical projects for evaluation.',
-    rules: [
-      'Open to hardware, software, IoT, and interdisciplinary engineering projects.',
-      'Each team gets designated booth space and power supply for physical demonstration.',
-      'Evaluation rubric: Innovation, technical complexity, social relevance, and presentation clarity.'
+    "id": "project-competition",
+    "name": "Technical Game Project Competition",
+    "category": "Technical",
+    "branch": "All Engineering Branches",
+    "isBranchExclusive": false,
+    "fee": "₹100 / Team",
+    "firstPrize": "₹1,000",
+    "secondPrize": "₹500",
+    "prizePool": "1st: ₹1,000 | 2nd: ₹500 (Prize money may change depending on participation numbers)",
+    "teamSize": "Team (1–4 members)",
+    "minTeamSize": 1,
+    "maxTeamSize": 4,
+    "description": "Present your technical, hardware, or game project to a panel of expert judges. Demonstrate working functionality, real-world relevance, and innovative problem solving.",
+    "rules": [
+      "Complete registration before the announced deadline and report at the venue prior to the allotted time.",
+      "Projects presented must be the team's own work or clearly identify external/open-source components.",
+      "Teams must bring all hardware, software, adapters, cables, and demo materials.",
+      "Follow presentation order and handle equipment responsibly.",
+      "Any form of misbehavior, cheating, deliberate disruption, or vandalism may lead to disqualification."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Aryan Patil', contact: '+91 93216 38772', role: 'Head' },
-      { name: 'Smita Nigade', contact: '+91 93248 85232', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Technical Implementation: 20%",
+      "Working Demonstration / Functionality: 20%",
+      "Problem Relevance & Practical Impact: 20%",
+      "Presentation & Explanation: 20%",
+      "Team Response to Questions: 20%"
+    ],
+    "coordinators": [
+      {
+        "name": "Aryan Patil",
+        "contact": "+91 93216 38772",
+        "role": "Head"
+      },
+      {
+        "name": "Smita Nigade",
+        "contact": "+91 93248 85232",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'tech-traitors',
-    name: 'Tech Traitors',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹80 / Team (80/4P)',
-    firstPrize: '₹1,500',
-    secondPrize: '₹1,200',
-    prizePool: '1st: ₹1,500 | 2nd: ₹1,200',
-    teamSize: 'Team (4 members)',
-    minTeamSize: 4,
-    maxTeamSize: 4,
-    description: 'Solve challenges, uncover the traitor, and survive to become the champion!',
-    rules: [
-      'Teams must solve complex engineering tasks while an undercover traitor secretly sabotages progress.',
-      'Team members analyze clues, debate evidence, and vote each round.',
-      'Survival, task completion rate, and deductive accuracy determine final champions.'
+    "id": "tech-traitors",
+    "name": "Tech Traitors",
+    "category": "Technical",
+    "branch": "Open to All Branches",
+    "isBranchExclusive": false,
+    "fee": "₹80 / Participant (Individual participation)",
+    "firstPrize": "₹1,500",
+    "secondPrize": "₹1,200",
+    "prizePool": "1st: ₹1,500 | 2nd: ₹1,200 (Prize money may vary depending on participating teams)",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "A psychological deception and tech puzzle tournament. Complete technical challenges while secretly detecting or playing the saboteur embedded among participants.",
+    "rules": [
+      "Mobile phones, internet, and outside assistance are prohibited unless specified.",
+      "Challenges must be completed sequentially within fixed time limits.",
+      "Traitor cannot damage, hide, or tamper with clues/equipment."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Dhanshri Deshmukh', contact: '+91 98217 79088', role: 'Head' },
-      { name: 'Gargi Bhole', contact: '+91 87887 70270', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Correct Answer, Speed, Traitor Identification, Accuracy, and Final Overall Score across all rounds."
+    ],
+    "coordinators": [
+      {
+        "name": "Dhanshri Deshmukh",
+        "contact": "+91 98217 79088",
+        "role": "Head"
+      },
+      {
+        "name": "Gargi Bhole",
+        "contact": "+91 87887 70270",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'cad-clash',
-    name: 'CAD Clash',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹80 / Person (80/1P)',
-    firstPrize: '₹1,000',
-    secondPrize: '₹800',
-    prizePool: '1st: ₹1,000 | 2nd: ₹800',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'A precision drafting challenge testing technical drawing, speed, and 3D visualization.',
-    rules: [
-      'Individual CAD modelling and drafting competition using standard industry tools (AutoCAD / SolidWorks / Fusion 360).',
-      'Round 1: 2D drafting precision under strict time constraint.',
-      'Round 2: Complex 3D parametric part modelling and assembly from isometric blueprints.',
-      'Scoring based on dimensional accuracy, geometric constraints, and completion speed.'
+    "id": "cad-clash",
+    "name": "CAD Clash",
+    "category": "Technical",
+    "branch": "Mechanical / Civil / Design",
+    "isBranchExclusive": false,
+    "fee": "₹80 / Participant (Solo participation only)",
+    "firstPrize": "₹1,000",
+    "secondPrize": "₹800",
+    "prizePool": "1st: ₹1,000 | 2nd: ₹800 (Prize money may vary depending on total participation)",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "Solo computer-aided drafting speed and precision contest. Model complex engineering geometry with micron-level dimensioning accuracy under strict time limits.",
+    "rules": [
+      "Group or duo entries are strictly prohibited (Solo participation only).",
+      "Must use official software provided (AutoCAD) or registered personal laptops.",
+      "Pre-existing CAD blocks, templates, or external scripts are strictly prohibited.",
+      "Hand over all storage devices (USBs/hard drives) and smartphones to volunteers prior to the event.",
+      "Internet access during drafting phases is strictly forbidden."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Deepak Choudhary', contact: '+91 91529 01441', role: 'Head' },
-      { name: 'Vaishnavi Bawaskar', contact: '+91 83695 50995', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Manual evaluation of accuracy of drawing dimensions, alignment, and geometric correctness.",
+      "Final Calculated Time = Actual Completion Time + Time Penalties.",
+      "Lowest adjusted times or highest completion accuracy determines the winners."
+    ],
+    "coordinators": [
+      {
+        "name": "Deepak Choudhary",
+        "contact": "+91 91529 01441",
+        "role": "Head"
+      },
+      {
+        "name": "Vaishnavi Bawaskar",
+        "contact": "+91 83695 50995",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'code-fusion-ai',
-    name: 'Code Fusion AI',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹1,000',
-    secondPrize: '₹800',
-    prizePool: '1st: ₹1,000 | 2nd: ₹800',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'A three-round technical competition testing programming, logic, and AI skills.',
-    rules: [
-      'Round 1: Algorithmic logic and data structure debugging.',
-      'Round 2: Machine learning model tuning and feature engineering sprint.',
-      'Round 3: Integrated problem solving combining programmatic logic with AI APIs.',
-      'Judged on pipeline efficiency, solution validity, and execution latency.'
+    "id": "code-fusion-ai",
+    "name": "Code Fusion AI",
+    "category": "Technical",
+    "branch": "Computer / IT / AI",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Participant (Solo Participation)",
+    "firstPrize": "₹1,000",
+    "secondPrize": "₹800",
+    "prizePool": "1st: ₹1,000 | 2nd: ₹800 (Prize money may vary depending on total participation)",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "A multi-stage coding and AI debugging tournament. Solve rapid logic chits, fix complex bugs under time pressure, and craft prompts with ChatGPT to build live applications.",
+    "rules": [
+      "Strictly follow round deadlines and permitted tools (Solo Participation).",
+      "ChatGPT is the only permitted AI tool (Round 3).",
+      "Unauthorized AI tools or external assistance will lead to disqualification."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Rudra Burbadkar', contact: '+91 83695 66780', role: 'Head' },
-      { name: 'Om Korade', contact: '+91 95949 07384', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Round 1: Number of correctly solved chits within the allotted time.",
+      "Round 2: Successfully completed debugging challenges within time/attempt limits.",
+      "Round 3: Evaluated on Prompting Skills, AI Interaction, Requirement Completion, UI/UX & Creativity, Functionality, and Overall Execution."
+    ],
+    "coordinators": [
+      {
+        "name": "Rudra Burbadkar",
+        "contact": "+91 83695 66780",
+        "role": "Head"
+      },
+      {
+        "name": "Om Korade",
+        "contact": "+91 95949 07384",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'technical-treasure-hunt',
-    name: 'Technical Treasure Hunt',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹200 / Team (200/4P)',
-    firstPrize: '₹1,200',
-    secondPrize: '₹800',
-    prizePool: '1st: ₹1,200 | 2nd: ₹800',
-    teamSize: 'Team (4 members)',
-    minTeamSize: 4,
-    maxTeamSize: 4,
-    description: 'Clue-based hunt requiring engineering and IT problem-solving.',
-    rules: [
-      'Teams solve cryptograms, logic puzzles, circuit schematics, and binary riddles.',
-      'Each solved clue reveals physical geo-coordinates to the next technical checkpoint across campus.',
-      'First team to successfully decipher all checkpoints and reach the final vault wins.'
+    "id": "technical-treasure-hunt",
+    "name": "Technical Treasure Hunt",
+    "category": "Technical",
+    "branch": "Open to All Branches",
+    "isBranchExclusive": false,
+    "fee": "₹200 / Team (Max 4 members per team)",
+    "firstPrize": "Winner Trophy & Cash Prize",
+    "secondPrize": "Runner-up Trophy & Cash Prize",
+    "prizePool": "1st Place: Winner | 2nd Place: Runner-up",
+    "teamSize": "Team (2–4 members; max 4 members)",
+    "minTeamSize": 2,
+    "maxTeamSize": 4,
+    "description": "A campus-wide tech puzzle and coding expedition. Decode algorithmic riddles, execute C/Java/Python programs, hunt physical QR coordinates, and locate the final chit.",
+    "rules": [
+      "Teams must remain together during rounds (Max 4 members per team; single participation not allowed).",
+      "Do not damage, move, or tamper with setup, equipment, clues, QR codes, or computers.",
+      "Do not reveal clues, answers, or codes to other teams or use unauthorized external assistance.",
+      "Permitted programming languages: C, Java, Python."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Atharv Kolhe', contact: '+91 74004 84814', role: 'Head' },
-      { name: 'Sahil Borse', contact: '+91 90118 95074', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Evaluated on correctness of answers, coding accuracy, successful program execution, problem-solving ability, speed, clue identification, logical thinking, and teamwork.",
+      "The first team to successfully complete the final Advanced Chit Finding challenge wins."
+    ],
+    "coordinators": [
+      {
+        "name": "Atharv Kolhe",
+        "contact": "+91 74004 84814",
+        "role": "Head"
+      },
+      {
+        "name": "Sahil Borse",
+        "contact": "+91 90118 95074",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'bolt-rush',
-    name: 'Bolt Rush',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹30 (Solo) / ₹60 (Duo)',
-    firstPrize: '₹300 (Solo)',
-    secondPrize: '₹600 (Duo)',
-    prizePool: 'Solo: ₹300 | Duo: ₹600',
-    teamSize: 'Solo / Duo (1–2 members)',
-    minTeamSize: 1,
-    maxTeamSize: 2,
-    description: 'Electrical engineering challenge involving circuits and innovation.',
-    rules: [
-      'Solo or Duo participation permitted.',
-      'Round 1: Component identification, circuit analysis, and impedance calculation.',
-      'Round 2: Live breadboard circuit design, troubleshooting, and waveform synthesis.',
-      'Evaluated on circuit functionality, safety adherence, and completion speed.'
+    "id": "bolt-rush",
+    "name": "Bolt Rush",
+    "category": "Technical",
+    "branch": "Electrical / Electronics",
+    "isBranchExclusive": false,
+    "fee": "Solo: ₹30 / player | Duo: ₹60 / team",
+    "firstPrize": "₹600 (Duo Category Winner)",
+    "secondPrize": "₹300 (Solo Category Winner)",
+    "prizePool": "Duo Winner: ₹600 | Solo Winner: ₹300 (Prize money may vary depending on total participation)",
+    "teamSize": "Solo / Duo (1–2 players)",
+    "minTeamSize": 1,
+    "maxTeamSize": 2,
+    "description": "Tactile sensory-deprivation assembly sprint. Blindfolded engineers assemble components under verbal direction or solo tactile intuition against the clock.",
+    "rules": [
+      "Smartphones and light-emitting devices are forbidden inside the room; hand them over to volunteers.",
+      "Duo Player 1 (Guide) must strictly avoid touching the hardware tray or Player 2's hands (violating this triggers a 'Reboot' physical walk penalty).",
+      "Removing blindfolds early triggers a 10-second 'Freeze' penalty."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Sarvesh Shinde', contact: '+91 93215 46460', role: 'Head' },
-      { name: 'Unnati Nankile', contact: '+91 82088 27879', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Winner determined by fastest completion time in each category.",
+      "Efficiency Bonus: Zero-penalty completion awards a 15-second time deduction from the final recorded time."
+    ],
+    "coordinators": [
+      {
+        "name": "Sarvesh Shinde",
+        "contact": "+91 93215 46460",
+        "role": "Head"
+      },
+      {
+        "name": "Unnati Nankile",
+        "contact": "+91 82088 27879",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'the-50',
-    name: 'The 50',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹150 / Team (1–4P)',
-    firstPrize: '₹1,000',
-    secondPrize: '₹800',
-    prizePool: '1st: ₹1,000 | 2nd: ₹800',
-    teamSize: 'Team (1–4 members)',
-    minTeamSize: 1,
-    maxTeamSize: 4,
-    description: 'A fast-paced puzzle challenge testing logical thinking, observation, technical knowledge, and decision-making.',
-    rules: [
-      'Teams race against a 50-minute countdown to solve 50 escalating micro-puzzles.',
-      'Puzzles range from algorithmic logic to pattern recognition and mechanical observation.',
-      'Points awarded per correct solution; penalty applied for skipped or incorrect submissions.',
-      'Highest aggregate score at the 50-minute buzzer wins.'
+    "id": "the-50",
+    "name": "The 50",
+    "category": "Technical",
+    "branch": "Open to All Branches",
+    "isBranchExclusive": false,
+    "fee": "₹40 / Individual | ₹150 / Team (Team size: 2 or 4 members)",
+    "firstPrize": "₹1,200",
+    "secondPrize": "₹1,000",
+    "prizePool": "1st: ₹1,200 | 2nd: ₹1,000",
+    "teamSize": "Solo / Team (1, 2, or 4 members)",
+    "minTeamSize": 1,
+    "maxTeamSize": 4,
+    "description": "5 dynamic puzzle and logic rounds pushing speed, problem-solving, and accuracy under pressure. Complete rounds in order and accumulate maximum points.",
+    "rules": [
+      "Mobile phones, internet, or outside assistance are forbidden.",
+      "Must complete rounds in specified order and within given time limits."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Tanvi Bhamare', contact: '+91 87797 73908', role: 'Head' },
-      { name: 'Arya Thakur', contact: '+91 95271 97560', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Accuracy (correct answers)",
+      "Speed (completion time)",
+      "Problem-Solving (logical approach)",
+      "Total overall score from all 5 rounds determines final ranking."
+    ],
+    "coordinators": [
+      {
+        "name": "Mokshada Bhangale",
+        "contact": "+91 88308 10614",
+        "role": "Head"
+      },
+      {
+        "name": "Samidha Bhamte",
+        "contact": "+91 86050 94579",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'embedded-systems-showdown',
-    name: 'Embedded Systems Showdown',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹75 / Person (75/1P)',
-    firstPrize: '₹800',
-    secondPrize: '₹500',
-    prizePool: '1st: ₹800 | 2nd: ₹500',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'Crack the code: Solve clues and enter the code to unlock the box.',
-    rules: [
-      'Individual embedded engineering challenge.',
-      'Participants decipher hardware schematics, register values, and serial outputs.',
-      'Program the designated microcontroller to trigger actuators and unlock the electronic vault.',
-      'First participant to crack all stages and unlock the box claims victory.'
+    "id": "embedded-systems-showdown",
+    "name": "Embedded Systems Showdown",
+    "category": "Technical",
+    "branch": "Electronics / IoT",
+    "isBranchExclusive": false,
+    "fee": "₹75 / Person (75/1P)",
+    "firstPrize": "₹800",
+    "secondPrize": "₹500",
+    "prizePool": "1st: ₹800 | 2nd: ₹500",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "Crack the code: Solve clues and enter the code to unlock the box.",
+    "rules": [
+      "Individual embedded engineering challenge.",
+      "Participants decipher hardware schematics, register values, and serial outputs.",
+      "Program the designated microcontroller to trigger actuators and unlock the electronic vault.",
+      "First participant to crack all stages and unlock the box claims victory."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Manas Sanjay Bhise', contact: '+91 91377 02048', role: 'Head' },
-      { name: 'Omkar Bali', contact: '+91 87792 13361', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "coordinators": [
+      {
+        "name": "Manas Sanjay Bhise",
+        "contact": "+91 91377 02048",
+        "role": "Coordinator"
+      },
+      {
+        "name": "Omkar Bali",
+        "contact": "+91 87792 13361",
+        "role": "Coordinator"
+      }
     ]
   },
   {
-    id: 'rc-bomb-escape',
-    name: 'RC Bomb Escape',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹70 / Person (70/1P)',
-    firstPrize: '₹800',
-    secondPrize: '₹500',
-    prizePool: '1st: ₹800 | 2nd: ₹500',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'RC driving challenge, navigate a narrow obstacle track with speed and precision while avoiding penalties.',
-    rules: [
-      'Pilots steer remote-controlled vehicles across a hazardous obstacle course carrying a payload.',
-      'Strict time penalties for touching boundary barriers, obstacles, or dropping the payload.',
-      'Fastest pilot with zero or minimal penalty deductions takes top prize.'
+    "id": "rc-bomb-escape",
+    "name": "RC Bomb Escape",
+    "category": "Technical",
+    "branch": "Robotics / Electronics",
+    "isBranchExclusive": false,
+    "fee": "₹70 / Person (70/1P)",
+    "firstPrize": "₹800",
+    "secondPrize": "₹500",
+    "prizePool": "1st: ₹800 | 2nd: ₹500",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "RC driving challenge, navigate a narrow obstacle track with speed and precision while avoiding penalties.",
+    "rules": [
+      "Pilots steer remote-controlled vehicles across a hazardous obstacle course carrying a payload.",
+      "Strict time penalties for touching boundary barriers, obstacles, or dropping the payload.",
+      "Fastest pilot with zero or minimal penalty deductions takes top prize."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Aryan Bhoir', contact: '+91 70452 87346', role: 'Head' },
-      { name: 'Chinmay Gokhale', contact: '+91 77771 04858', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "coordinators": [
+      {
+        "name": "Aryan Bhoir",
+        "contact": "+91 70452 87346",
+        "role": "Coordinator"
+      },
+      {
+        "name": "Chinmay Gokhale",
+        "contact": "+91 77771 04858",
+        "role": "Coordinator"
+      }
     ]
   },
   {
-    id: 'technical-paper-presentation',
-    name: 'Technical Paper Presentation',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹100 / Team (100/2P)',
-    firstPrize: '₹1,000',
-    secondPrize: '₹700',
-    prizePool: '1st: ₹1,000 | 2nd: ₹700',
-    teamSize: 'Team (2 members)',
-    minTeamSize: 2,
-    maxTeamSize: 2,
-    description: 'Present innovative ideas and technical research.',
-    rules: [
-      'Teams of 2 submit and present technical research papers adhering to standard IEEE format.',
-      '10-minute presentation followed by 5 minutes of intensive Q&A with the academic jury.',
-      'Judged on technical rigor, original methodology, presentation clarity, and citation depth.'
+    "id": "technical-maze",
+    "name": "Technical Maze",
+    "category": "Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "Free",
+    "firstPrize": "",
+    "secondPrize": "",
+    "prizePool": "",
+    "teamSize": "Solo / Duo (1–2 players)",
+    "minTeamSize": 1,
+    "maxTeamSize": 2,
+    "description": "Hardware circuit and breadboard maze puzzle. Calculate equivalent resistor networks and navigate electronic logic paths with maximum component economy.",
+    "rules": [
+      "Calculators and physical scratchpads encouraged; smart devices/internet forbidden.",
+      "Hand over smartphones to volunteers prior to the simulation."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Prathamesh Arya', contact: '+91 81043 75419', role: 'Head' },
-      { name: 'Jayesh Sonawane', contact: '+91 91520 71305', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "aliases": [
+      "technical-paper-presentation"
+    ],
+    "judgingCriteria": [
+      "1. Fewest Tries Used",
+      "2. Minimum Resistors Used (Component Economy)",
+      "3. Fastest Completion Time"
+    ],
+    "coordinators": [
+      {
+        "name": "Prathamesh Arya",
+        "contact": "+91 81043 75419",
+        "role": "Head"
+      },
+      {
+        "name": "Jayesh Sonawane",
+        "contact": "+91 91520 71305",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'fpv-flight',
-    name: 'FPV Flight',
-    category: 'Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹600',
-    secondPrize: '₹400',
-    prizePool: '1st: ₹600 | 2nd: ₹400',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'Take flight, race the FPV drone, and conquer the challenge!',
-    rules: [
-      'Pilots race first-person-view micro drones through lit hoops and obstacle gates.',
-      'Time-trial format: 3 laps per heat; missed gates incur 5-second penalties.',
-      'Safety goggles and emergency failsafe switches strictly required.'
+    "id": "fpv-flight",
+    "name": "FPV Flight",
+    "category": "Technical",
+    "branch": "Aero / Electronics / Drone",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Person (50/1P)",
+    "firstPrize": "₹600",
+    "secondPrize": "₹400",
+    "prizePool": "1st: ₹600 | 2nd: ₹400",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "Take flight, race the FPV drone, and conquer the challenge!",
+    "rules": [
+      "Pilots race first-person-view micro drones through lit hoops and obstacle gates.",
+      "Time-trial format: 3 laps per heat; missed gates incur 5-second penalties.",
+      "Safety goggles and emergency failsafe switches strictly required."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Shriyash Choughule', contact: '+91 99306 96186', role: 'Head' },
-      { name: 'Suresh Bhusnure', contact: '+91 98925 05249', role: 'Co-Head' }
-    ]
-  },
-
-  // ==========================================
-  // NON-TECHNICAL / ARENA EVENTS (11)
-  // ==========================================
-  {
-    id: 'laser-room',
-    name: 'Laser Room',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹100 / Team (100/2P)',
-    firstPrize: '₹1,500',
-    secondPrize: '₹800',
-    prizePool: '1st: ₹1,500 | 2nd: ₹800',
-    teamSize: 'Team (2 members)',
-    minTeamSize: 2,
-    maxTeamSize: 2,
-    description: 'Laser mission: Teams race against the clock, testing speed, precision, and coordination.',
-    rules: [
-      'Teams navigate through a dense, crisscrossing laser beam maze without breaking any optical sensors.',
-      'Breaking a beam triggers alarms and incurs time penalties.',
-      'Fastest team to press the terminal deactivation button with minimal penalties wins.'
-    ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Kanishk Kadam', contact: '+91 96536 17946', role: 'Head' },
-      { name: 'Kartik Patil', contact: '+91 81694 94827', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "coordinators": [
+      {
+        "name": "Shriyash Choughule",
+        "contact": "+91 99306 96186",
+        "role": "Coordinator"
+      },
+      {
+        "name": "Suresh Bhusnure",
+        "contact": "+91 98925 05249",
+        "role": "Coordinator"
+      }
     ]
   },
   {
-    id: 'dooms-countdown',
-    name: 'Dooms Countdown',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹90 / Team (90/3P)',
-    firstPrize: '₹600',
-    secondPrize: '₹450',
-    prizePool: '1st: ₹600 | 2nd: ₹450',
-    teamSize: 'Team (3 members)',
-    minTeamSize: 3,
-    maxTeamSize: 3,
-    description: 'A 5-minute team puzzle mission testing coordination and problem-solving.',
-    rules: [
-      'Teams of 3 are locked in with a 5-minute countdown ticking on the main screen.',
-      'Solve synchronized cryptographic, mechanical, and visual puzzles simultaneously.',
-      'All 3 stations must be solved before the detonation timer reaches zero.'
+    "id": "laser-room",
+    "name": "Lazer Zone",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Person (Single participation)",
+    "firstPrize": "₹1,000",
+    "secondPrize": "₹800",
+    "prizePool": "1st: ₹1,000 | 2nd: ₹800 (Prize money may vary depending on participation)",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "Darkened tactical laser grid security evasion. Navigate through calibrated tripwire laser beams to reach the terminal without triggering alarms.",
+    "rules": [
+      "Running or crawling inside the Lazer Zone is strictly prohibited.",
+      "Do not use walls or structures for support."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Darshan Kandalgaokar', contact: '+91 84589 36724', role: 'Head' },
-      { name: 'Sujal Rautela', contact: '+91 99878 78949', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "aliases": [
+      "lazer-zone"
+    ],
+    "judgingCriteria": [
+      "Ranked by fastest total completion time.",
+      "Penalty: Triggering a laser beam adds 5 seconds to the completion timer."
+    ],
+    "coordinators": [
+      {
+        "name": "Kanishk Kadam",
+        "contact": "+91 96536 17946",
+        "role": "Head"
+      },
+      {
+        "name": "Kartik Patil",
+        "contact": "+91 81694 94827",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'flight-frenzy',
-    name: 'Flight Frenzy',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹75 / Person (75/1P)',
-    firstPrize: '₹700',
-    secondPrize: '₹500',
-    prizePool: '1st: ₹700 | 2nd: ₹500',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'A solo paper-plane precision throwing challenge. Fold, aim, and hit the targets in 4 minutes!',
-    rules: [
-      'Standard A4 paper provided by the organizers; no additional weights or adhesives permitted.',
-      'Participants fold their custom aerodynamic aircraft and target precision bullseyes and hoops.',
-      'Scoring based on target accuracy, flight duration, and distance.'
+    "id": "dooms-countdown",
+    "name": "Dooms Countdown",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹90 / Team (90/3P)",
+    "firstPrize": "₹600",
+    "secondPrize": "₹450",
+    "prizePool": "1st: ₹600 | 2nd: ₹450",
+    "teamSize": "Team (3 members)",
+    "minTeamSize": 3,
+    "maxTeamSize": 3,
+    "description": "A 5-minute team puzzle mission testing coordination and problem-solving.",
+    "rules": [
+      "Teams of 3 are locked in with a 5-minute countdown ticking on the main screen.",
+      "Solve synchronized cryptographic, mechanical, and visual puzzles simultaneously.",
+      "All 3 stations must be solved before the detonation timer reaches zero."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Balraj Pattanayak', contact: '+91 87798 41383', role: 'Head' },
-      { name: 'Prajyot Mhatre', contact: '+91 99302 40617', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "coordinators": [
+      {
+        "name": "Darshan Kandalgaokar",
+        "contact": "+91 84589 36724",
+        "role": "Coordinator"
+      },
+      {
+        "name": "Sujal Rautela",
+        "contact": "+91 99878 78949",
+        "role": "Coordinator"
+      }
     ]
   },
   {
-    id: 'neon-cricket',
-    name: 'Neon Cricket',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹200 / Team (200/4P)',
-    firstPrize: '₹1,500',
-    secondPrize: '₹1,000',
-    prizePool: '1st: ₹1,500 | 2nd: ₹1,000',
-    teamSize: 'Team (4 members)',
-    minTeamSize: 4,
-    maxTeamSize: 4,
-    description: 'Glow-in-the-dark sports event with neon lighting.',
-    rules: [
-      'Played in full blackout arena illuminated only by UV blacklights.',
-      'Fluorescent glowing balls, neon boundary markers, and glowing bats.',
-      'Short 3-over knockout format with sudden-death super overs in case of tie.'
+    "id": "flight-frenzy",
+    "name": "Flight Frenzy",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹75 / Participant (Solo entry)",
+    "firstPrize": "₹700",
+    "secondPrize": "₹500",
+    "prizePool": "1st: ₹700 | 2nd: ₹500 (Prize money may vary depending on participant count)",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "Paper airplane precision throwing tournament. Fold your aerodynamic gliders on the spot and navigate through multi-tiered obstacle rings for maximum points.",
+    "rules": [
+      "Participants fold their own planes on the spot using provided paper only (max 3 sheets per participant; no added weight/tape/outside materials).",
+      "Every throw must be released behind the marked throw line within a 4-minute time limit (5 tries total).",
+      "Re-registering for extra attempts or resetting scores is not allowed."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Parth Unde', contact: '+91 70395 20331', role: 'Head' },
-      { name: 'Siddhesh Dubal', contact: '+91 81048 80788', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Obstacles cleared in order (Near, Mid, Swinging, Far) award 1, 2, 3, and 4 points respectively.",
+      "Perfect Flight (clearing all 4 in one throw) awards a +2 flat bonus.",
+      "Standing is decided by highest cumulative score across both days."
+    ],
+    "coordinators": [
+      {
+        "name": "Balraj Pattanayak",
+        "contact": "+91 87798 41383",
+        "role": "Head"
+      },
+      {
+        "name": "Prajyot Mhatre",
+        "contact": "+91 99302 40617",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'takeshis-castle',
-    name: 'Takeshi\'s Castle',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹2,000',
-    secondPrize: '₹1,000',
-    prizePool: '1st: ₹2,000 | 2nd: ₹1,000',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'A Takeshi\'s Castle-inspired gauntlet of chaos, balance, and pure energy.',
-    rules: [
-      'Individual high-energy obstacle run featuring stepping stones, slippery surfaces, and maze doors.',
-      'Contestants must complete stages without falling or stepping into penalty zones.',
-      'Fastest contestants to storm the final castle gate win top prizes.'
+    "id": "neon-cricket",
+    "name": "Neon Cricket",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹200 / Team (Squad of 4 players)",
+    "firstPrize": "₹1,500",
+    "secondPrize": "₹1,000",
+    "prizePool": "1st: ₹1,500 | 2nd: ₹1,000 (Prize money may vary depending on participation)",
+    "teamSize": "Team (4 members)",
+    "minTeamSize": 4,
+    "maxTeamSize": 4,
+    "description": "High-octane indoor cricket under pure ultraviolet UV glow lights. Fluorescent wickets, neon cricket balls, glowing bats, and rapid 2-over matches.",
+    "rules": [
+      "Played in a blacked-out room under UV light using provided glow equipment only.",
+      "Personal flashlights or light sources are strictly banned during play.",
+      "Each team gets a maximum of 2 overs to bat."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Atharva Avhad', contact: '+91 83560 53525', role: 'Head' },
-      { name: 'Aryan Yadav', contact: '+91 93212 72969', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Team with the higher total run score wins."
+    ],
+    "coordinators": [
+      {
+        "name": "Parth Unde",
+        "contact": "+91 70395 20331",
+        "role": "Head"
+      },
+      {
+        "name": "Siddhesh Dubal",
+        "contact": "+91 81048 80788",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'escape-room',
-    name: 'Escape Room',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹120 / Team (120/2P)',
-    firstPrize: '₹1,000',
-    secondPrize: '₹500',
-    prizePool: '1st: ₹1,000 | 2nd: ₹500',
-    teamSize: 'Team (2 members)',
-    minTeamSize: 2,
-    maxTeamSize: 2,
-    description: 'A problem-solving challenge where teams escape using logic and tech clues.',
-    rules: [
-      'Teams of 2 are locked inside a themed chamber with hidden lock codes and tactile clues.',
-      'Solve progressive riddles to obtain keys and digital passcode combinations.',
-      'Time limit: 15 minutes. Fastest escape time claims first place.'
+    "id": "takeshis-castle",
+    "name": "Takeshi's Castle",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Participant (Solo participation)",
+    "firstPrize": "₹2,000",
+    "secondPrize": "₹1,000",
+    "prizePool": "1st: ₹2,000 | 2nd: ₹1,000",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "Whimsical physical obstacle gauntlet inspired by the classic game show. Survive the Tissue Float, the Ping-Pong Shake, and the final Balloon Stomp ring.",
+    "rules": [
+      "Round 1: Hands behind back; keep tissue afloat purely by blowing (45–60s).",
+      "Round 2: Shake ping-pong balls out of waist box without touching box or floor.",
+      "Round 3: Balloon stomp knockout in battle ring; no physical pushing/shoving."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Samruddhi Sagale', contact: '+91 80970 41838', role: 'Head' },
-      { name: 'Sanchi Jadhav', contact: '+91 93562 14246', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Decided strictly by survival and elimination across rounds. The last survivor in Round 3 wins."
+    ],
+    "coordinators": [
+      {
+        "name": "Atharva Avhad",
+        "contact": "+91 83560 53525",
+        "role": "Head"
+      },
+      {
+        "name": "Aryan Yadav",
+        "contact": "+91 93212 72969",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'squid-game',
-    name: 'Squid Game',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹50 / Person (50/1P)',
-    firstPrize: '₹1,000',
-    secondPrize: '₹800',
-    prizePool: '1st: ₹1,000 | 2nd: ₹800',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'A set of competitive survival style tasks adapted with technical twists.',
-    rules: [
-      'Battle royale elimination rounds adapted from classic survival challenges.',
-      'Strict referee enforcement on movement cues and boundary lines.',
-      'Last remaining contestants in the final round contend for the championship prize.'
+    "id": "escape-room",
+    "name": "Escape Room: TVA Sacred Timeline Protocol",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹120 / Team (Max 2 members)",
+    "firstPrize": "₹1,000",
+    "secondPrize": "₹500",
+    "prizePool": "1st: ₹1,000 | 2nd: ₹500 (Prize money may vary depending on participation)",
+    "teamSize": "Team (1–2 members)",
+    "minTeamSize": 1,
+    "maxTeamSize": 2,
+    "description": "Immersive Marvel/TVA themed escape room. Decode branching timeline anomalies, unlock cryptex containers, and restore the Sacred Timeline before temporal collapse.",
+    "rules": [
+      "Mobile phones and external aids are strictly prohibited.",
+      "Solve puzzles sequentially without skipping.",
+      "Tampering with props results in immediate disqualification."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Ishwar Avsarkar', contact: '+91 70583 44126', role: 'Head' },
-      { name: 'Maithali Bhave', contact: '+91 99674 33890', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Evaluated on fastest restoration time, total puzzles solved, and minimum hints used.",
+      "Penalty: +5 minutes added for each hint taken."
+    ],
+    "coordinators": [
+      {
+        "name": "Samruddhi Sagale",
+        "contact": "+91 80970 41838",
+        "role": "Head"
+      },
+      {
+        "name": "Sanchi Jadhav",
+        "contact": "+91 93562 14246",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'neon-football',
-    name: 'Neon Football',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹100 / Person (100/1P)',
-    firstPrize: '₹1,000',
-    secondPrize: '₹800',
-    prizePool: '1st: ₹1,000 | 2nd: ₹800',
-    teamSize: 'Solo (1 person)',
-    minTeamSize: 1,
-    maxTeamSize: 1,
-    description: 'Glow-in-the-dark sports event with neon lighting.',
-    rules: [
-      'Solo 1v1 fast-paced penalty shootout and target-striking in UV neon lighting.',
-      'Glowing soccer balls and illuminated goal targets with varying multiplier scores.',
-      'Knockout bracket format leading to the championship shootout.'
+    "id": "squid-game",
+    "name": "Squid Game 3.0",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹50 / Person (Solo participation; free entry for Ddackji gate winners)",
+    "firstPrize": "₹2,500",
+    "secondPrize": "₹1,500",
+    "prizePool": "1st: ₹2,500 | 2nd: ₹1,500 (Prize money may vary depending on participation)",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "High-stakes survival tournament featuring Red Light Green Light, Mingle grouping, and the final Briefcase showdown. Outlast the opposition to claim the prize.",
+    "rules": [
+      "Physical aggression results in immediate disqualification.",
+      "Leaving game boundary results in elimination.",
+      "Damage to college property will be penalized."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Dharamraj Pardeshi', contact: '+91 77387 51720', role: 'Head' },
-      { name: 'Harsh Sutar', contact: '+91 77188 43181', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Survival: Remaining in the game until the end.",
+      "Coordination: Forming correct group numbers during Mingle round.",
+      "Luck: Outcome of the Briefcase round."
+    ],
+    "coordinators": [
+      {
+        "name": "Ishwar Avsarkar",
+        "contact": "+91 70583 44126",
+        "role": "Head"
+      },
+      {
+        "name": "Maithali Bhave",
+        "contact": "+91 99674 33890",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'ipl-auction',
-    name: 'IPL Auction',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹120 / Team (120/2P)',
-    firstPrize: '₹1,200',
-    secondPrize: '₹800',
-    prizePool: '1st: ₹1,200 | 2nd: ₹800',
-    teamSize: 'Team (2 members)',
-    minTeamSize: 2,
-    maxTeamSize: 2,
-    description: 'Strategic team-building simulations where participants bid for real-world IPL players using a virtual budget.',
-    rules: [
-      'Teams receive a standardized virtual purse of ₹100 Crores.',
-      'Live bidding rounds covering batters, bowlers, all-rounders, and wicketkeepers with overseas quotas.',
-      'Squads evaluated by analytical valuation algorithms considering player ratings and team synergy.'
+    "id": "neon-football",
+    "name": "Neon Football",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹100 / Participant (1v1 Solo Knockout Duel)",
+    "firstPrize": "₹1,000",
+    "secondPrize": "₹800",
+    "prizePool": "1st: ₹1,000 | 2nd: ₹800 (Prize money may vary depending on total participation)",
+    "teamSize": "Solo (1 person)",
+    "minTeamSize": 1,
+    "maxTeamSize": 1,
+    "description": "Intense 1v1 blacklight glow football played under UV illumination with fluorescent turf markings and high-visibility neon soccer balls.",
+    "rules": [
+      "Must wear dark or UV-reactive fluorescent gear; flat turf/rubber-soled shoes required (no studs).",
+      "Electronics forbidden inside arena.",
+      "Defense inside restricted crease/penalty box is prohibited.",
+      "Conceding 3 corners awards a penalty kick to the opponent."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Kshitij Deshmukh', contact: '+91 70398 86061', role: 'Head' },
-      { name: 'Prajwal Dhawale', contact: '+91 74995 51917', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Highest goals scored at full-time. Tie-breakers resolved via penalty shootout (3 spot-kicks then sudden death)."
+    ],
+    "coordinators": [
+      {
+        "name": "Dharamraj Pardeshi",
+        "contact": "+91 77387 51720",
+        "role": "Head"
+      },
+      {
+        "name": "Harsh Sutar",
+        "contact": "+91 77188 43181",
+        "role": "Co-Head"
+      }
     ]
   },
   {
-    id: 'tech-hero',
-    name: 'Tech Hero',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹100 / Team (100/2P)',
-    firstPrize: '₹1,200',
-    secondPrize: '₹1,000',
-    prizePool: '1st: ₹1,200 | 2nd: ₹1,000',
-    teamSize: 'Team (2 members)',
-    minTeamSize: 2,
-    maxTeamSize: 2,
-    description: 'A teamwork challenge of navigation, communication, and problem-solving.',
-    rules: [
-      'Teams of 2 tackle interactive coordination trials where one partner navigates blindfolded and the other guides via verbal tech protocols.',
-      'Stations test verbal precision, memory sequencing, and collaborative problem-solving.',
-      'Fastest combined time across all trial checkpoints claims the title.'
+    "id": "ipl-auction",
+    "name": "IPL Auction",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹120 / Team (120/2P)",
+    "firstPrize": "₹1,200",
+    "secondPrize": "₹800",
+    "prizePool": "1st: ₹1,200 | 2nd: ₹800",
+    "teamSize": "Team (2 members)",
+    "minTeamSize": 2,
+    "maxTeamSize": 2,
+    "description": "Strategic team-building simulations where participants bid for real-world IPL players using a virtual budget.",
+    "rules": [
+      "Teams receive a standardized virtual purse of ₹100 Crores.",
+      "Live bidding rounds covering batters, bowlers, all-rounders, and wicketkeepers with overseas quotas.",
+      "Squads evaluated by analytical valuation algorithms considering player ratings and team synergy."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Tanvi Bhamare', contact: '+91 87797 73908', role: 'Head' },
-      { name: 'Arya Thakur', contact: '+91 95271 97560', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "coordinators": [
+      {
+        "name": "Kshitij Deshmukh",
+        "contact": "+91 70398 86061",
+        "role": "Coordinator"
+      },
+      {
+        "name": "Prajwal Dhawale",
+        "contact": "+91 74995 51917",
+        "role": "Coordinator"
+      }
     ]
   },
   {
-    id: 'combat-core',
-    name: 'Combat Core',
-    category: 'Non-Technical',
-    branch: 'Open to All',
-    isBranchExclusive: false,
-    fee: '₹120 / Team (120/2P)',
-    firstPrize: '₹1,200',
-    secondPrize: '₹800',
-    prizePool: '1st: ₹1,200 | 2nd: ₹800',
-    teamSize: 'Team (2 members)',
-    minTeamSize: 2,
-    maxTeamSize: 2,
-    description: 'A 2v2 gel-blaster elimination match with obstacles, targets, and tactical gameplay.',
-    rules: [
-      '2v2 tactical elimination matches played with certified gel-blasters and protective eyewear.',
-      'Obstacle course layout with strategic cover, capture points, and timed objectives.',
-      'Matches scored based on tag accuracy, objective holding, and tactical survival.'
+    "id": "tech-hero",
+    "name": "Tech Hero",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹100 / Duo team (Controller + Human Robot)",
+    "firstPrize": "₹1,200",
+    "secondPrize": "₹1,000",
+    "prizePool": "1st: ₹1,200 | 2nd: ₹1,000 (Prize money may vary depending on team participation)",
+    "teamSize": "Duo (2 members)",
+    "minTeamSize": 2,
+    "maxTeamSize": 2,
+    "description": "One teammate serves as the blindfolded 'Human Robot' traversing an obstacle area, while the other serves as the 'Controller' transmitting precise verbal navigation codes.",
+    "rules": [
+      "Controller cannot enter obstacle area or physically touch/guide the Robot.",
+      "Human Robot cannot see Controller's map.",
+      "Strictly use predefined commands; mobile devices are forbidden."
     ],
-    googleFormUrl: '#',
-    coordinators: [
-      { name: 'Tanmay Pawar', contact: '+91 95293 50358', role: 'Head' },
-      { name: 'Parth Trimbake', contact: '+91 90045 01391', role: 'Co-Head' }
+    "googleFormUrl": "#",
+    "judgingCriteria": [
+      "Final Score = Actual Completion Time + Penalty Time.",
+      "Lowest final time wins; ties broken by fewest total penalties."
+    ],
+    "coordinators": [
+      {
+        "name": "Tanvi Bhamre",
+        "contact": "+91 87797 73908",
+        "role": "Head"
+      },
+      {
+        "name": "Arya Thakur",
+        "contact": "+91 95271 97560",
+        "role": "Co-Head"
+      }
+    ]
+  },
+  {
+    "id": "combat-core",
+    "name": "Combat Core",
+    "category": "Non-Technical",
+    "branch": "Open to All",
+    "isBranchExclusive": false,
+    "fee": "₹120 / Team (120/2P)",
+    "firstPrize": "₹1,200",
+    "secondPrize": "₹800",
+    "prizePool": "1st: ₹1,200 | 2nd: ₹800",
+    "teamSize": "Team (2 members)",
+    "minTeamSize": 2,
+    "maxTeamSize": 2,
+    "description": "A 2v2 gel-blaster elimination match with obstacles, targets, and tactical gameplay.",
+    "rules": [
+      "2v2 tactical elimination matches played with certified gel-blasters and protective eyewear.",
+      "Obstacle course layout with strategic cover, capture points, and timed objectives.",
+      "Matches scored based on tag accuracy, objective holding, and tactical survival."
+    ],
+    "googleFormUrl": "#",
+    "coordinators": [
+      {
+        "name": "Tanmay Pawar",
+        "contact": "+91 95293 50358",
+        "role": "Coordinator"
+      },
+      {
+        "name": "Parth Trimbake",
+        "contact": "+91 90045 01391",
+        "role": "Coordinator"
+      }
     ]
   }
 ]
@@ -778,9 +1124,12 @@ export function getEventsByCategory(category) {
 }
 
 /**
- * Helper to get a single event by ID/slug
+ * Helper to get a single event by ID/slug with alias support
  */
 export function getEventById(id) {
   if (!id) return null
-  return eventsData.find((e) => (e.slug || e.id).toLowerCase() === id.toLowerCase())
+  const query = id.toLowerCase()
+  return eventsData.find(
+    (e) => (e.slug || e.id).toLowerCase() === query || (e.aliases && e.aliases.some((a) => a.toLowerCase() === query))
+  )
 }

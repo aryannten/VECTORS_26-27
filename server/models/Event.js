@@ -37,6 +37,10 @@ const eventSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    judgingCriteria: {
+      type: [String],
+      default: [],
+    },
     fee: {
       type: String,
       default: 'Free',

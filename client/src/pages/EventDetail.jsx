@@ -12,7 +12,8 @@ import {
   CheckCircle2,
   ExternalLink,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Award
 } from 'lucide-react'
 import { getEventById } from '../data/events'
 import { useAuth } from '../contexts/AuthContext'
@@ -96,7 +97,7 @@ export default function EventDetail() {
   if (!eventData) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 relative z-10">
-        <div className="text-center p-8 bg-doom-bg2 border border-white/[0.08] max-w-md w-full doom-btn-clipped">
+        <div className="text-center p-8 bg-doom-bg2 border border-white/8 max-w-md w-full doom-btn-clipped">
           <h2 className="font-display text-2xl sm:text-3xl text-doom-crimson-bright font-bold uppercase tracking-wider">
             VAULT NOT FOUND
           </h2>
@@ -183,7 +184,7 @@ export default function EventDetail() {
 
     if (isClosed) {
       return (
-        <div className="px-5 py-3 bg-white/[0.04] border border-white/[0.08] text-steel font-mono text-xs uppercase tracking-wider">
+        <div className="px-5 py-3 bg-white/4 border border-white/8 text-steel font-mono text-xs uppercase tracking-wider">
           🔒 Registrations for this event are currently locked.
         </div>
       )
@@ -254,7 +255,7 @@ export default function EventDetail() {
       <div className="max-w-3xl mx-auto space-y-8 sm:space-y-10">
         
         {/* Breadcrumb Navigation & Top Action */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/8 pb-4">
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 font-mono text-xs text-text-muted flex-wrap">
             <Link to="/" className="hover:text-doom-glow transition-colors">Home</Link>
             <span className="text-white/30">/</span>
@@ -264,12 +265,12 @@ export default function EventDetail() {
               {eventData.category}
             </Link>
             <span className="text-white/30">/</span>
-            <span className="text-doom-glow font-bold truncate max-w-[180px] sm:max-w-xs">{eventData.name}</span>
+            <span className="text-doom-glow font-bold truncate max-w-45 sm:max-w-xs">{eventData.name}</span>
           </nav>
 
           <Link
             to={`/events?category=${categoryQuery}`}
-            className="inline-flex items-center gap-2 font-mono text-xs text-text-muted hover:text-doom-glow transition-colors uppercase tracking-widest py-1 px-2.5 bg-white/[0.03] border border-white/[0.06] hover:border-doom-glow/30 self-start sm:self-auto"
+            className="inline-flex items-center gap-2 font-mono text-xs text-text-muted hover:text-doom-glow transition-colors uppercase tracking-widest py-1 px-2.5 bg-white/3 border border-white/6 hover:border-doom-glow/30 self-start sm:self-auto"
           >
             <ArrowLeft size={13} />
             <span>Back to {eventData.category}</span>
@@ -306,7 +307,7 @@ export default function EventDetail() {
 
         {/* Prize Pool Banner (if applicable) */}
         {(eventData.prizePool || eventData.firstPrize) && (
-          <div className="p-4 sm:p-5 bg-gradient-to-r from-doom-glow/10 via-doom-bg2 to-doom-bg2 border border-doom-glow/40 doom-btn-clipped flex items-center justify-between gap-4 flex-wrap">
+          <div className="p-4 sm:p-5 bg-linear-to-r from-doom-glow/10 via-doom-bg2 to-doom-bg2 border border-doom-glow/40 doom-btn-clipped flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-sm bg-doom-glow/20 border border-doom-glow/50 flex items-center justify-center text-doom-glow shrink-0">
                 <Trophy size={20} />
@@ -328,7 +329,7 @@ export default function EventDetail() {
                   </div>
                 )}
                 {eventData.secondPrize && (
-                  <div className="px-3.5 py-2 bg-white/[0.04] border border-white/[0.1] text-center font-mono">
+                  <div className="px-3.5 py-2 bg-white/4 border border-white/10 text-center font-mono">
                     <span className="text-[10px] text-text-muted uppercase block font-bold tracking-widest">2ND PRIZE</span>
                     <span className="text-sm sm:text-base font-bold text-text-primary">{eventData.secondPrize}</span>
                   </div>
@@ -349,7 +350,7 @@ export default function EventDetail() {
             return (
               <div
                 key={item.label}
-                className="p-4 bg-doom-bg2 border border-white/[0.08] doom-btn-clipped space-y-1.5"
+                className="p-4 bg-doom-bg2 border border-white/8 doom-btn-clipped space-y-1.5"
               >
                 <div className="flex items-center gap-2 text-text-muted font-mono text-xs">
                   <Icon size={14} className="text-doom-glow" />
@@ -376,7 +377,7 @@ export default function EventDetail() {
             {eventData.rules.map((rule, idx) => (
               <div
                 key={idx}
-                className="p-3.5 bg-doom-bg2 border border-white/[0.06] flex items-start gap-3 doom-btn-clipped"
+                className="p-3.5 bg-doom-bg2 border border-white/6 flex items-start gap-3 doom-btn-clipped"
               >
                 <span className="w-5 h-5 rounded-full bg-doom-glow/10 border border-doom-glow/30 flex items-center justify-center font-mono text-[10px] text-doom-glow font-bold shrink-0 mt-0.5">
                   {idx + 1}
@@ -388,6 +389,34 @@ export default function EventDetail() {
             ))}
           </div>
         </div>
+
+        {/* Judging Criteria & Scoring */}
+        {eventData.judgingCriteria && eventData.judgingCriteria.length > 0 && (
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2">
+              <Award size={18} className="text-doom-glow" />
+              <h2 className="font-display text-lg sm:text-xl font-bold tracking-wider uppercase text-text-primary">
+                JUDGING CRITERIA & SCORING
+              </h2>
+            </div>
+
+            <div className="space-y-2.5">
+              {(Array.isArray(eventData.judgingCriteria) ? eventData.judgingCriteria : [eventData.judgingCriteria]).map((crit, idx) => (
+                <div
+                  key={idx}
+                  className="p-3.5 bg-doom-bg2 border border-white/6 flex items-start gap-3 doom-btn-clipped"
+                >
+                  <span className="w-5 h-5 rounded-full bg-emerald/10 border border-emerald/30 flex items-center justify-center font-mono text-[10px] text-emerald font-bold shrink-0 mt-0.5">
+                    ✓
+                  </span>
+                  <p className="font-body text-xs sm:text-sm text-text-primary/90 leading-relaxed">
+                    {crit}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Event Coordinators */}
         {eventData.coordinators && eventData.coordinators.length > 0 && (
@@ -401,7 +430,7 @@ export default function EventDetail() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {eventData.coordinators.map((c, i) => (
-                <div key={i} className="p-3.5 bg-doom-bg2 border border-white/[0.06] font-mono text-xs flex items-center justify-between gap-3">
+                <div key={i} className="p-3.5 bg-doom-bg2 border border-white/6 font-mono text-xs flex items-center justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-text-primary font-bold">{c.name}</span>
@@ -416,7 +445,7 @@ export default function EventDetail() {
                   {c.contact && (
                     <a
                       href={`tel:${c.contact.replace(/[^0-9+]/g, '')}`}
-                      className="px-3 py-1 bg-white/[0.04] hover:bg-doom-glow/20 border border-white/10 hover:border-doom-glow text-doom-glow text-[11px] font-bold tracking-wider uppercase transition-colors shrink-0"
+                      className="px-3 py-1 bg-white/4 hover:bg-doom-glow/20 border border-white/10 hover:border-doom-glow text-doom-glow text-[11px] font-bold tracking-wider uppercase transition-colors shrink-0"
                     >
                       Call
                     </a>
@@ -429,7 +458,7 @@ export default function EventDetail() {
 
         {/* Event-Specific FAQ */}
         {eventData.faq && eventData.faq.length > 0 && (
-          <div className="space-y-3 pt-4 border-t border-white/[0.08]">
+          <div className="space-y-3 pt-4 border-t border-white/8">
             <div className="flex items-center gap-2">
               <HelpCircle size={18} className="text-doom-glow" />
               <h2 className="font-display text-lg sm:text-xl font-bold tracking-wider uppercase text-text-primary">
@@ -439,7 +468,7 @@ export default function EventDetail() {
 
             <div className="space-y-2">
               {eventData.faq.map((item, idx) => (
-                <div key={idx} className="bg-doom-bg2 border border-white/[0.06] doom-btn-clipped">
+                <div key={idx} className="bg-doom-bg2 border border-white/6 doom-btn-clipped">
                   <button
                     onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
                     className="w-full p-3.5 text-left flex items-center justify-between text-xs font-mono font-bold text-text-primary hover:text-doom-glow transition-colors cursor-pointer"
@@ -448,7 +477,7 @@ export default function EventDetail() {
                     <ChevronDown size={14} className={openFaq === idx ? 'rotate-180 text-doom-glow' : ''} />
                   </button>
                   {openFaq === idx && (
-                    <p className="px-3.5 pb-3.5 text-xs text-text-muted font-body leading-relaxed border-t border-white/[0.04] pt-2">
+                    <p className="px-3.5 pb-3.5 text-xs text-text-muted font-body leading-relaxed border-t border-white/4 pt-2">
                       {item.answer}
                     </p>
                   )}
@@ -483,7 +512,7 @@ export default function EventDetail() {
       {showVerifyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div className="bg-doom-bg2 border border-doom-glow/40 max-w-lg w-full p-6 sm:p-7 space-y-5 doom-btn-clipped shadow-[0_0_50px_rgba(30,255,160,0.18)] relative">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+            <div className="flex items-center justify-between border-b border-white/8 pb-3">
               <div className="flex items-center gap-2 font-mono text-xs text-doom-glow uppercase tracking-wider font-bold">
                 <ShieldCheck size={16} />
                 <span>REGISTRATION VERIFICATION</span>
@@ -533,7 +562,7 @@ export default function EventDetail() {
                     Have you filled and submitted the official Google Form for <strong>{eventData.name}</strong>?
                   </p>
 
-                  <div className="p-3.5 bg-white/[0.03] border border-white/[0.08] font-mono text-xs space-y-1.5">
+                  <div className="p-3.5 bg-white/3 border border-white/8 font-mono text-xs space-y-1.5">
                     <div className="text-text-muted">
                       Participant: <strong className="text-text-primary">{userPass?.name || user?.displayName || user?.email}</strong>
                     </div>
@@ -554,7 +583,7 @@ export default function EventDetail() {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.08]">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/8">
               <button
                 type="button"
                 onClick={() => {
@@ -562,7 +591,7 @@ export default function EventDetail() {
                   setVerifyError(null)
                 }}
                 disabled={verifying}
-                className="py-2.5 px-4 bg-white/[0.04] border border-white/[0.1] hover:border-white/20 text-text-muted hover:text-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                className="py-2.5 px-4 bg-white/4 border border-white/10 hover:border-white/20 text-text-muted hover:text-white font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
               >
                 No, Not Yet
               </button>
