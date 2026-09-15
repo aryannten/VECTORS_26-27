@@ -167,6 +167,7 @@ VECTORS_26-27/
 - **Pathless Layout Routing**: Standardized React Router v6 pathless layout pattern (`<Route element={<Layout />}>`) eliminates route scoring collisions with the root landing view (`/`), ensuring seamless matching for public discovery views (`/events`, `/events/:eventId`, `/faq`) and protected user operations (`/dashboard`, `/entry-registration`, `/my-pass`).
 - **Responsive Viewport Visibility**: Realigned desktop navigation breakpoints to `md:flex` (768px+) and mobile drawers to `md:hidden`, preventing navigation links from collapsing or disappearing on 1024px desktop and tablet displays with active scrollbars.
 - **State-Preserving Authentication Redirection**: `ProtectedRoute` captures the user's intended destination (`location.state.from`), and both `Login.jsx` and `Signup.jsx` dynamically honor this target upon successful authentication, directing users straight to their requested dashboard or pass rather than forcing a redirect to the home screen.
+- **Intuitive Auth Form Inputs**: Standardized user-friendly input placeholders (`Enter your email`, `Enter your password`) across `Login.jsx` and `Signup.jsx` ensuring clear visual feedback and accessibility.
 - **Unrestricted Event Catalog Discovery**: Public exploration of the 20+ event arenas (`/events` and `/events/:eventId`) is open to all visitors and attendees without hard clearance gates, while non-intrusive advisory banners and action prompts guide users to claim their Entry Pass when ready to register and compete.
 
 ---

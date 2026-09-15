@@ -95,11 +95,11 @@ export default function Signup() {
       }}
     >
       {/* Interior architecture lines */}
-      <div className="absolute top-0 left-[12%] w-px h-full bg-gradient-to-b from-transparent via-white/[0.02] to-transparent" />
-      <div className="absolute top-0 right-[12%] w-px h-full bg-gradient-to-b from-transparent via-white/[0.02] to-transparent" />
+      <div className="absolute top-0 left-[12%] w-px h-full bg-linear-to-b from-transparent via-white/2 to-transparent" />
+      <div className="absolute top-0 right-[12%] w-px h-full bg-linear-to-b from-transparent via-white/2 to-transparent" />
 
       {/* Overhead brass light */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-[1px] bg-brass/30" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-50 h-px bg-brass/30" />
       <div className="absolute pointer-events-none"
         style={{
           top: 0,
@@ -120,7 +120,7 @@ export default function Signup() {
             <p className="font-mono text-[10px] tracking-[0.3em] text-brass-dim uppercase mb-3">
               Registration
             </p>
-            <h1 className="font-display text-2xl sm:text-3xl tracking-[0.1em] text-bone uppercase">
+            <h1 className="font-display text-2xl sm:text-3xl tracking-widest text-bone uppercase">
               Create Account
             </h1>
           </div>
@@ -147,7 +147,7 @@ export default function Signup() {
                   onChange={(e) => setDisplayName(e.target.value)}
                   required
                   autoComplete="name"
-                  className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
+                  className="w-full bg-charcoal border border-white/6 text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -163,8 +163,8 @@ export default function Signup() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
-                  placeholder="operator@vectors.dev"
+                  className="w-full bg-charcoal border border-white/6 text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
+                  placeholder="Enter your email"
                 />
               </div>
 
@@ -179,7 +179,7 @@ export default function Signup() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="new-password"
-                  className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
+                  className="w-full bg-charcoal border border-white/6 text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
                   placeholder="Choose password (min 6 characters)"
                 />
               </div>
@@ -195,7 +195,7 @@ export default function Signup() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   autoComplete="new-password"
-                  className="w-full bg-charcoal border border-white/[0.06] text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
+                  className="w-full bg-charcoal border border-white/6 text-bone font-mono text-sm px-4 py-3 focus:outline-none focus:border-brass-dim/40 transition-colors placeholder:text-steel/30"
                   placeholder="Re-enter your password"
                 />
               </div>
@@ -216,9 +216,9 @@ export default function Signup() {
 
               {/* Divider */}
               <div className="flex items-center gap-3 my-1">
-                <div className="flex-1 h-px bg-white/[0.04]" />
+                <div className="flex-1 h-px bg-white/4" />
                 <span className="font-mono text-[9px] tracking-widest text-steel/40 uppercase">or</span>
-                <div className="flex-1 h-px bg-white/[0.04]" />
+                <div className="flex-1 h-px bg-white/4" />
               </div>
 
               {/* Google */}
@@ -226,7 +226,7 @@ export default function Signup() {
                 type="button"
                 onClick={handleGoogleSignUp}
                 disabled={loading}
-                className="w-full py-3.5 text-center font-mono text-xs tracking-[0.15em] uppercase text-steel border border-white/[0.06] hover:border-white/[0.12] hover:text-bone transition-all bg-white/[0.01] disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-full py-3.5 text-center font-mono text-xs tracking-[0.15em] uppercase text-steel border border-white/6 hover:border-white/12 hover:text-bone transition-all bg-white/1 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 Continue with Google
               </button>
