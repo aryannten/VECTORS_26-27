@@ -180,6 +180,11 @@ export default function Landing() {
               src="/hero-bg.webp"
               alt="Doctor Doom standing before the DOOM Monolith"
               className="w-full h-full object-cover object-top sm:object-center"
+              style={{
+                imageRendering: 'high-quality',
+                transform: 'translateZ(0)',
+                backfaceVisibility: 'hidden'
+              }}
               loading="eager"
               fetchpriority="high"
               decoding="async"
