@@ -61,8 +61,8 @@ flowchart TD
 ### Backend API & Services
 - **Runtime Environment**: Node.js (v22.x configured on Vercel Serverless Functions & local dev)
 - **API Framework**: Express 5
-- **Authentication**: Google Firebase Authentication with Firebase Admin SDK token verification
-- **CJS/ESM Compatibility**: `jose` pinned to `^4.15.9` via npm overrides ensuring seamless CommonJS execution of `jwks-rsa` across Vercel Serverless runtimes
+- **Authentication**: Google Firebase Authentication with Firebase Admin SDK (v13 LTS) token verification
+- **CJS/ESM Compatibility**: `firebase-admin@13` + `jose@4.15.9` override ensuring native CommonJS execution without ESM resolution conflicts on Vercel Serverless Function runtimes
 - **Database & Data Modeling**: MongoDB Atlas with Mongoose 9
 - **Security Middleware**:
   - `helmet`: Secure HTTP headers
