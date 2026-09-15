@@ -169,7 +169,7 @@ VECTORS_26-27/
 
 | Method | Route | Description |
 |---|---|---|
-| `GET` | `/api/health` | Service health and database connectivity probe (`200` connected, `503` degraded) |
+| `GET` | `/api/health` | Service health and on-demand database connectivity probe (`200` connected, `503` degraded) |
 | `GET` | `/api/events` | List all active festival events with search and category filtering |
 | `GET` | `/api/events/:slug` | Retrieve complete specifications and metadata for a specific event |
 | `GET` | `/api/announcements` | Retrieve official broadcasts and pinned festival notices |
